@@ -1,0 +1,16 @@
+Package: SADCAT
+Type: Package
+Title: Dictionary creation with stereotype content dictionaries
+Version: 0.1.0
+Authors@R: person("Gandalf", "Nicolas", email = "gandalfn@gmail.com", role = c("aut", "cre"))
+Description: Dictionary creation with stereotype content dictionaries.
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.0
+Imports: stringi, wordnet, koRpus.lang.en, hunspell, quanteda, purrr, parallel, dplyr,koRpus, data.table, stringr
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
+License: NA
+Depends: 
+    R (>= 2.10)

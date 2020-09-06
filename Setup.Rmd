@@ -1,0 +1,54 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(devtools)
+library(roxygen2)
+library(tidyverse)
+```
+
+```{r}
+Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\FULL dictionaries ft shortened 060220.csv", stringsAsFactors = F)
+All.steps_Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\Pre dictionaries ft shortened 060220.csv", stringsAsFactors = F)
+All.steps_Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full steps Dictionaries.csv", stringsAsFactors = F) 
+Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Dictionaries 052920.csv", stringsAsFactors = F) 
+Full_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full_Vectors AVG.csv", stringsAsFactors = F)
+Seed_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Seed_Vectors AVG.csv", stringsAsFactors = F)
+Sentiments = read.csv("D:\\Dropbox\\Dictionary creation Project\\SENT_dict.csv")
+
+Dictionaries = Dictionaries[-1]
+colnames(Dictionaries)
+names(Dictionaries)[names(Dictionaries) == "values3"] = "word"
+
+Dictionaries_FT = Dictionaries_FT[-1]
+names(Dictionaries_FT)[names(Dictionaries_FT) == "values3"] = "word"
+
+use_data(Dictionaries_FT,overwrite = TRUE)
+use_data(All.steps_Dictionaries_FT,overwrite = TRUE)
+use_data(All.steps_Dictionaries,overwrite = TRUE)
+use_data(Dictionaries,overwrite = TRUE)
+use_data(Full_Vectors_Avg,overwrite = TRUE)
+use_data(Seed_Vectors_Avg,overwrite = TRUE)
+use_data(Sentiments,overwrite = TRUE)
+```
+
+```{r}
+document()
+```
+
+```{r}
+devtools::install()
+```
+
+```{r}
+library(SADCAT)
+```
+
+```{r}
+use_vignette("introduction")
+```
+
