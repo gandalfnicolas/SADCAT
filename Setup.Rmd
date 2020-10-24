@@ -19,6 +19,7 @@ Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Dictionaries 
 Full_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full_Vectors AVG.csv", stringsAsFactors = F)
 Seed_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Seed_Vectors AVG.csv", stringsAsFactors = F)
 Sentiments = read.csv("D:\\Dropbox\\Dictionary creation Project\\SENT_dict.csv")
+Obituary_data = read.csv("D:\\Dropbox\\Dictionary creation Project\\obituaries_p.csv")
 
 Dictionaries = Dictionaries[-1]
 colnames(Dictionaries)
@@ -34,6 +35,7 @@ use_data(Dictionaries,overwrite = TRUE)
 use_data(Full_Vectors_Avg,overwrite = TRUE)
 use_data(Seed_Vectors_Avg,overwrite = TRUE)
 use_data(Sentiments,overwrite = TRUE)
+use_data(Obituary_data,overwrite = TRUE)
 ```
 
 ```{r}
