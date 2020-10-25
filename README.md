@@ -1,0 +1,3 @@
+# SADCAT
+
+See articles/vignettes
