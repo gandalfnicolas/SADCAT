@@ -9,6 +9,7 @@ editor_options:
 library(devtools)
 library(roxygen2)
 library(tidyverse)
+library(pkgdown)
 ```
 
 ```{r}
@@ -52,5 +53,10 @@ library(SADCAT)
 
 ```{r}
 use_vignette("introduction")
+use_vignette("Text coding example guide")
+```
+
+```{r}
+pkgdown::build_site()
 ```
 
