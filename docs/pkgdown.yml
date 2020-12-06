@@ -1,0 +1,8 @@
+pandoc: '2.6'
+pkgdown: 1.6.1
+pkgdown_sha: ~
+articles:
+  Dictionary Creation Example Guide: Dictionary Creation Example Guide.html
+  Text coding example guide: Text coding example guide.html
+last_built: 2020-10-25T20:18Z
+
