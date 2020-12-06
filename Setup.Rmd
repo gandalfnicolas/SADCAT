@@ -13,6 +13,15 @@ library(pkgdown)
 ```
 
 ```{r}
+Dictionaries_FT = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\FULL dictionaries ft shortened 060220.csv", stringsAsFactors = F)
+All.steps_Dictionaries_FT = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Pre dictionaries ft shortened 060220.csv", stringsAsFactors = F)
+All.steps_Dictionaries = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Full steps Dictionaries.csv", stringsAsFactors = F) 
+Dictionaries = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Dictionaries 052920.csv", stringsAsFactors = F) 
+Full_Vectors_Avg = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Full_Vectors AVG.csv", stringsAsFactors = F)
+Seed_Vectors_Avg = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Seed_Vectors AVG.csv", stringsAsFactors = F)
+Sentiments = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\SENT_dict.csv")
+Obituary_data = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\obituaries_p.csv")
+
 Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\FULL dictionaries ft shortened 060220.csv", stringsAsFactors = F)
 All.steps_Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\Pre dictionaries ft shortened 060220.csv", stringsAsFactors = F)
 All.steps_Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full steps Dictionaries.csv", stringsAsFactors = F) 
@@ -45,6 +54,7 @@ document()
 
 ```{r}
 devtools::install()
+
 ```
 
 ```{r}
