@@ -28,5 +28,8 @@ Full_preprocess = function(words, parallelize = T, print =T, debug=F){
   res = mapply(Spellcheck,raw = words, cleaned = res, MoreArgs = list(rawlist = words, dict_cleaned= ADCAT::Dictionaries$word))
   res = as.character(res)
   res = sapply(res,tolower)
+  res = sapply(res,trimws) #removes whitespace
+  res = sapply(res,tolower)
+  res = sapply(res,clean_symbols)
   return(res)
 }
