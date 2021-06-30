@@ -75,7 +75,7 @@
 
       
 
-      </header><script src="Text%20coding%20example%20guide_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+      </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Text Coding Example Guide</h1>
@@ -93,59 +93,66 @@
 <p>To use, examine and understand the structure of the obituaries file, and format your own text responses in the same format. Then replace the appropriate variables to run your text responses through the code provided to obtain all the dictionaries codings.Make sure all packages are properly installed and loaded.</p>
 <p>Alternatively, this code also gives you direct access to the dictionaries in the first lines (e.g., SADCAT::Dictionaries), which you can then transfer to your software or approach of choice.</p>
 <p>To install packages, remove # and run.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#install.packages("devtools")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span></code></pre></div>
-<pre><code>## Warning: package 'devtools' was built under R version 4.0.3</code></pre>
+<div class="sourceCode" id="cb1"><pre class="downlit">
+<span class="co">#install.packages("devtools")</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-lib/devtools">devtools</a></span><span class="op">)</span></pre></div>
+<pre><code>## Warning: package 'devtools' was built under R version 3.6.2</code></pre>
 <pre><code>## Loading required package: usethis</code></pre>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#install_github("gandalfnicolas/SADCAT")</span>
+<pre><code>## Warning: package 'usethis' was built under R version 3.6.3</code></pre>
+<pre><code>## Error in get(genname, envir = envir) : object 'testthat_print' not found</code></pre>
+<div class="sourceCode" id="cb6"><pre class="downlit">
+<span class="co">#install_github("gandalfnicolas/SADCAT")</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">SADCAT</span><span class="op">)</span>
 <span class="co">#install.packages("quanteda")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://quanteda.io">quanteda</a></span><span class="op">)</span> </code></pre></div>
-<pre><code>## Warning: package 'quanteda' was built under R version 4.0.3</code></pre>
-<pre><code>## Package version: 2.1.2</code></pre>
-<pre><code>## Parallel computing: 2 of 20 threads used.</code></pre>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://quanteda.io">quanteda</a></span><span class="op">)</span> </pre></div>
+<pre><code>## Warning: package 'quanteda' was built under R version 3.6.3</code></pre>
+<pre><code>## Package version: 3.0.0
+## Unicode version: 10.0
+## ICU version: 61.1</code></pre>
+<pre><code>## Parallel computing: 12 of 12 threads used.</code></pre>
 <pre><code>## See https://quanteda.io for tutorials and examples.</code></pre>
-<pre><code>## 
-## Attaching package: 'quanteda'</code></pre>
-<pre><code>## The following object is masked from 'package:utils':
-## 
-##     View</code></pre>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#install.packages("tidyverse")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit">
+<span class="co">#install.packages("tidyverse")</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></pre></div>
+<pre><code>## Warning: package 'tidyverse' was built under R version 3.6.2</code></pre>
+<pre><code>## Warning: replacing previous import 'vctrs::data_frame' by 'tibble::data_frame'
+## when loading 'dplyr'</code></pre>
 <pre><code>## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --</code></pre>
 <pre><code>## v ggplot2 3.3.2     v purrr   0.3.4
-## v tibble  3.0.3     v dplyr   1.0.2
-## v tidyr   1.1.2     v stringr 1.4.0
-## v readr   1.3.1     v forcats 0.5.0</code></pre>
+## v tibble  3.1.2     v dplyr   1.0.1
+## v tidyr   1.0.0     v stringr 1.4.0
+## v readr   1.3.1     v forcats 0.4.0</code></pre>
+<pre><code>## Warning: package 'ggplot2' was built under R version 3.6.3</code></pre>
+<pre><code>## Warning: package 'tidyr' was built under R version 3.6.2</code></pre>
+<pre><code>## Warning: package 'purrr' was built under R version 3.6.3</code></pre>
+<pre><code>## Warning: package 'dplyr' was built under R version 3.6.3</code></pre>
 <pre><code>## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#install.packages("stringr")</span>
+<div class="sourceCode" id="cb21"><pre class="downlit">
+<span class="co">#install.packages("stringr")</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://stringr.tidyverse.org">stringr</a></span><span class="op">)</span>
 <span class="co">#install.packages("psych")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://personality-project.org/r/psych/">psych</a></span><span class="op">)</span></code></pre></div>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://personality-project.org/r/psych/">psych</a></span><span class="op">)</span></pre></div>
+<pre><code>## Warning: package 'psych' was built under R version 3.6.3</code></pre>
 <pre><code>## 
 ## Attaching package: 'psych'</code></pre>
 <pre><code>## The following objects are masked from 'package:ggplot2':
 ## 
 ##     %+%, alpha</code></pre>
 <p>Load dictionaries: Choose long or short version</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">Full_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/Dictionaries.html">Dictionaries</a></span>
+<div class="sourceCode" id="cb25"><pre class="downlit">
+<span class="va">Full_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/Dictionaries.html">Dictionaries</a></span>
 
 <span class="va">Pre_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/All.steps_Dictionaries.html">All.steps_Dictionaries</a></span>
 
 
 <span class="va">Full_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/Dictionaries_FT.html">Dictionaries_FT</a></span>
 
-<span class="va">Pre_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/All.steps_Dictionaries_FT.html">All.steps_Dictionaries_FT</a></span></code></pre></div>
+<span class="va">Pre_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/All.steps_Dictionaries_FT.html">All.steps_Dictionaries_FT</a></span></pre></div>
 <p>Preprocess dictionaries</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Include only dictionary entries that are single words</span>
+<div class="sourceCode" id="cb26"><pre class="downlit">
+<span class="co"># Include only dictionary entries that are single words</span>
 <span class="va">Pre_Dictionaries</span><span class="op">$</span><span class="va">values0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">Pre_Dictionaries</span><span class="op">$</span><span class="va">values0</span><span class="op">)</span>
 
 <span class="va">Pre_Dictionaries</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">Pre_Dictionaries</span>, <span class="op">!</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_count.html">str_count</a></span><span class="op">(</span><span class="va">Pre_Dictionaries</span><span class="op">$</span><span class="va">values0</span>, <span class="st">' '</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span>
@@ -203,16 +210,16 @@
 
 
 <span class="co">#create quanteda dictionaries</span>
-<span class="va">Dicts_v2</span> <span class="op">=</span> <span class="fu">quanteda</span><span class="fu">::</span><span class="fu"><a href="https://quanteda.io/reference/dictionary.html">dictionary</a></span><span class="op">(</span><span class="va">Dicts_v2</span><span class="op">)</span></code></pre></div>
+<span class="va">Dicts_v2</span> <span class="op">=</span> <span class="fu">quanteda</span><span class="fu">::</span><span class="fu"><a href="https://quanteda.io/reference/dictionary.html">dictionary</a></span><span class="op">(</span><span class="va">Dicts_v2</span><span class="op">)</span></pre></div>
 <p>Load example data - examine and change your own data accordingly to match this format.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">obituaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va">Obituary_data</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="downlit">
+<span class="va">obituaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va">Obituary_data</span></pre></div>
 <p>Some preprocessing of the data</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">obituaries</span><span class="op">$</span><span class="va">Beliefs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">obituaries</span><span class="op">$</span><span class="va">Beliefs</span><span class="op">)</span></code></pre></div>
-<pre><code>## Warning: NAs introduced by coercion</code></pre>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">obituaries</span><span class="op">$</span><span class="va">Text</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">tolower</a></span><span class="op">(</span><span class="va">obituaries</span><span class="op">$</span><span class="va">Text</span><span class="op">)</span> <span class="co">#transform to lower case</span>
+<div class="sourceCode" id="cb28"><pre class="downlit">
+<span class="va">obituaries</span><span class="op">$</span><span class="va">Beliefs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">obituaries</span><span class="op">$</span><span class="va">Beliefs</span><span class="op">)</span>
+
+
+<span class="va">obituaries</span><span class="op">$</span><span class="va">Text</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">tolower</a></span><span class="op">(</span><span class="va">obituaries</span><span class="op">$</span><span class="va">Text</span><span class="op">)</span> <span class="co">#transform to lower case</span>
 
 
 <span class="co">#Preprocess target text</span>
@@ -223,10 +230,10 @@
 <span class="va">string_stemmed</span><span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html">vector</a></span><span class="op">(</span><span class="op">)</span>
 <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">toks</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
   <span class="va">string_stemmed</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">string_stemmed</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">toks</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, collapse<span class="op">=</span><span class="st">' '</span><span class="op">)</span><span class="op">)</span>
-<span class="op">}</span></code></pre></div>
+<span class="op">}</span></pre></div>
 <p>Match text data to dictionaries and format</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#Match target text to dictionaries</span>
+<div class="sourceCode" id="cb29"><pre class="downlit">
+<span class="co">#Match target text to dictionaries</span>
 <span class="va">toks_dict_pre</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://quanteda.io/reference/tokens_lookup.html">tokens_lookup</a></span><span class="op">(</span><span class="va">toks</span>, dictionary <span class="op">=</span> <span class="va">Dicts_v2</span>, levels <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
 
 
@@ -262,14 +269,14 @@
          warmth_dir <span class="op">=</span> <span class="va">warmth_dic_hi</span> <span class="op">-</span> <span class="va">warmth_dic_lo</span>,
          competence_dir <span class="op">=</span> <span class="va">competence_dic_hi</span> <span class="op">-</span> <span class="va">competence_dic_lo</span>,
          beliefs_dir <span class="op">=</span> <span class="va">beliefs_dic_hi</span> <span class="op">-</span> <span class="va">beliefs_dic_lo</span>
-         <span class="op">)</span></code></pre></div>
+         <span class="op">)</span></pre></div>
 <p>Write data</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.csv</a></span><span class="op">(</span><span class="va">toks_dict</span>, <span class="st">"obituaries dict.csv"</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="downlit">
+<span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.csv</a></span><span class="op">(</span><span class="va">toks_dict</span>, <span class="st">"obituaries dict.csv"</span><span class="op">)</span></pre></div>
 <p>Example analysis</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">Sociability_mod</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">Sociability</span> <span class="op">~</span> <span class="va">sociability_dir</span>,data <span class="op">=</span>  <span class="va">toks_dict</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">Sociability_mod</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="downlit">
+<span class="va">Sociability_mod</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">Sociability</span> <span class="op">~</span> <span class="va">sociability_dir</span>,data <span class="op">=</span>  <span class="va">toks_dict</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">Sociability_mod</span><span class="op">)</span></pre></div>
 <pre><code>## 
 ## Call:
 ## lm(formula = Sociability ~ sociability_dir, data = toks_dict)

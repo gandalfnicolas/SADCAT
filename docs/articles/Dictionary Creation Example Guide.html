@@ -75,7 +75,7 @@
 
       
 
-      </header><script src="Dictionary%20Creation%20Example%20Guide_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+      </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Dictionary Creation Example Guide</h1>
@@ -90,25 +90,28 @@
     
 <p>THIS GUIDE IS FOR CREATING NEW DICTIONARIES USING THE PACKAGE. FOR USING THE STEREOTYPE CONTENT DICTIONARIES DESCRIBED IN THE PAPER, SEE THE Text Coding Example Guide.</p>
 <p>You may need to load wordnet and indicate the path to the wordnet dictionaries manually. You will need to have the files for these dictionaries (<a href="https://wordnet.princeton.edu/download" class="uri">https://wordnet.princeton.edu/download</a>)</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">SADCAT</span><span class="op">)</span>
+<div class="sourceCode" id="cb1"><pre class="downlit">
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">SADCAT</span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://wordnet.princeton.edu/">wordnet</a></span><span class="op">)</span>
+<span class="co">#&gt; Warning: package 'wordnet' was built under R version 3.6.3</span>
 <span class="co">#&gt; Warning in initDict(): cannot find WordNet 'dict' directory: please set the</span>
 <span class="co">#&gt; environment variable WNHOME to its parent</span>
-<span class="fu"><a href="https://rdrr.io/pkg/wordnet/man/setDict.html">setDict</a></span><span class="op">(</span><span class="st">"D:\\dict"</span><span class="op">)</span></code></pre></div>
+<span class="co">#&gt; Warning in initDict(): cannot find WordNet 'dict' directory: please set the</span>
+<span class="co">#&gt; environment variable WNHOME to its parent</span>
+<span class="fu"><a href="https://rdrr.io/pkg/wordnet/man/setDict.html">setDict</a></span><span class="op">(</span><span class="st">"D:\\dict"</span><span class="op">)</span></pre></div>
 <p>Through SADCAT you have a number of functions at your disposal to create novel dictionaries through Wordnet expansion, given an initial set of seed words. The package also includes the Stereotype Content Dictionaries developed by Nicolas, Bai, &amp; Fiske, 2020. For more information on how to use the dictionaries, please see gandalfnicolas.com. The current document briefly explains the functions for new dictionary creation.</p>
 <p>For use as an example, let’s assume we are interested in creating a dictionary of words semantically related to the concept of wine, as organized in Wordnet. We start by collecting a list of seed words, such as:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">term</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"wine"</span>,<span class="st">"vino"</span>,<span class="st">"sommelier"</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="downlit">
+<span class="va">term</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"wine"</span>,<span class="st">"vino"</span>,<span class="st">"sommelier"</span><span class="op">)</span></pre></div>
 <p>Since Wordnet works through the specific senses of words (one of its advantages), we need to make a manual step in which we input the desired senses (these can be found by going through, e.g., online Wordnet: <a href="http://wordnetweb.princeton.edu/perl/webwn" class="uri">http://wordnetweb.princeton.edu/perl/webwn</a>). In this case, we want the first sense of wine and vino, and the first sense of sommelier. But if we wanted a words semantically relate to wine as a color, we would use the second sense. We also need to provide the Part of Speech (POS) which can also be retrieved from Wordnet. Note that the columns of your data Input should be named terms, Pos, and sense. Make sure strings are not factors.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">PoS</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"NOUN"</span>,<span class="st">"NOUN"</span>,<span class="st">"NOUN"</span><span class="op">)</span>
+<div class="sourceCode" id="cb3"><pre class="downlit">
+<span class="va">PoS</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"NOUN"</span>,<span class="st">"NOUN"</span>,<span class="st">"NOUN"</span><span class="op">)</span>
 <span class="va">sense</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>
 
-<span class="va">Input</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">term</span>,<span class="va">PoS</span>,<span class="va">sense</span>, stringsAsFactors <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></code></pre></div>
+<span class="va">Input</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">term</span>,<span class="va">PoS</span>,<span class="va">sense</span>, stringsAsFactors <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></pre></div>
 <p>We can use the function Full_Expand to obtain: see also, similar, attributes, hyponyms, antonyms, and derivationally related forms. Antonyms can be turned off if desired. You can obtain synsets instead of words by specifying syns = T.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">Wine_Dict</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="fu"><a href="../reference/Full_Expand.html">Full_Expand</a></span><span class="op">(</span>datax <span class="op">=</span> <span class="va">Input</span>, antonym <span class="op">=</span> <span class="cn">T</span>, syns <span class="op">=</span> <span class="cn">F</span><span class="op">)</span>
+<div class="sourceCode" id="cb4"><pre class="downlit">
+<span class="va">Wine_Dict</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="fu"><a href="../reference/Full_Expand.html">Full_Expand</a></span><span class="op">(</span>datax <span class="op">=</span> <span class="va">Input</span>, antonym <span class="op">=</span> <span class="cn">T</span>, syns <span class="op">=</span> <span class="cn">F</span><span class="op">)</span>
 <span class="co">#&gt; [1] "W"</span>
 <span class="co">#&gt; [1] "W"</span>
 <span class="co">#&gt; [1] "W"</span>
@@ -117,7 +120,7 @@
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">Wine_Dict</span>, n <span class="op">=</span> <span class="fl">15</span><span class="op">)</span>
 <span class="co">#&gt;  [1] "wine"         "vino"         "sommelier"    "wine waiter"  "wine steward"</span>
 <span class="co">#&gt;  [6] "winy"         "winey"        "vinous"       "vinaceous"    "vinify"      </span>
-<span class="co">#&gt; [11] "tasty"        "vintage"      "red wine"     "white wine"   "blush wine"</span></code></pre></div>
+<span class="co">#&gt; [11] "tasty"        "vintage"      "red wine"     "white wine"   "blush wine"</span></pre></div>
 <p>As shown, the seed words have bee expanded. the full list has 102 wine-related words, up from three. Other functions, always starting with “get_” break down the process to obtain different semantic relations.</p>
 <p>Other useful functions for cleaning text daya included work better when dealing with single words and may be time consuming. Full_preprocess incorporates all of them, including a spellcheck described in Nicolas, Bai, &amp; Fiske.</p>
   </div>
