@@ -25,7 +25,7 @@ library(pkgdown)
 Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\FULL dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
 All.steps_Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\Pre dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
 All.steps_Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full dictionaries 070121 no w2v_glove_SBERT.csv", stringsAsFactors = F) 
-Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full Dictionaries preprocessed only 062921 no w2v_glove_SBERT.csv", stringsAsFactors = F) 
+Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full Dictionaries preprocessed only 062921 no VECS.csv", stringsAsFactors = F) 
 Full_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full_Vectors AVG.csv", stringsAsFactors = F) ##not updated on 062921 like others
 Seed_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Seed vectors Average 070121.csv", stringsAsFactors = F)
 Seed_Vectors_allwords_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\SeedXallwords vectors 070121.csv", stringsAsFactors = F)

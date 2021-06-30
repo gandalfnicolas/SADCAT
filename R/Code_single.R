@@ -8,7 +8,7 @@
 #' @export Code_single
 
 Code_single = function(data, text = "word", more2na = T){
-  res = merge(x = data, y = Dictionaries, by.x = text, by.y = "word", all.x =T)
+  res = merge(x = data, y = Dictionaries, by.x = text, by.y = "word", all.x = T)
   res= dplyr::mutate_at(res,vars(contains("_dict")),funs(ifelse(is.na(.),0,.)))
   Dicts_v3pre = unique(Dictionaries$word)
   res$NONE = as.numeric(!(as.matrix(res[[text]]) %in% as.matrix(Dicts_v3pre)))
