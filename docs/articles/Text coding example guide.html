@@ -95,207 +95,154 @@
 <p>To install packages, remove # and run.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit">
 <span class="co">#install.packages("devtools")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-lib/devtools">devtools</a></span><span class="op">)</span></pre></div>
-<pre><code>## Warning: package 'devtools' was built under R version 3.6.2</code></pre>
-<pre><code>## Loading required package: usethis</code></pre>
-<pre><code>## Warning: package 'usethis' was built under R version 3.6.3</code></pre>
-<pre><code>## Error in get(genname, envir = envir) : object 'testthat_print' not found</code></pre>
-<div class="sourceCode" id="cb6"><pre class="downlit">
-<span class="co">#install_github("gandalfnicolas/SADCAT")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">SADCAT</span><span class="op">)</span>
-<span class="co">#install.packages("quanteda")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://quanteda.io">quanteda</a></span><span class="op">)</span> </pre></div>
-<pre><code>## Warning: package 'quanteda' was built under R version 3.6.3</code></pre>
-<pre><code>## Package version: 3.0.0
-## Unicode version: 10.0
-## ICU version: 61.1</code></pre>
-<pre><code>## Parallel computing: 12 of 12 threads used.</code></pre>
-<pre><code>## See https://quanteda.io for tutorials and examples.</code></pre>
-<div class="sourceCode" id="cb11"><pre class="downlit">
-<span class="co">#install.packages("tidyverse")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></pre></div>
-<pre><code>## Warning: package 'tidyverse' was built under R version 3.6.2</code></pre>
-<pre><code>## Warning: replacing previous import 'vctrs::data_frame' by 'tibble::data_frame'
-## when loading 'dplyr'</code></pre>
-<pre><code>## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --</code></pre>
-<pre><code>## v ggplot2 3.3.2     v purrr   0.3.4
-## v tibble  3.1.2     v dplyr   1.0.1
-## v tidyr   1.0.0     v stringr 1.4.0
-## v readr   1.3.1     v forcats 0.4.0</code></pre>
-<pre><code>## Warning: package 'ggplot2' was built under R version 3.6.3</code></pre>
-<pre><code>## Warning: package 'tidyr' was built under R version 3.6.2</code></pre>
-<pre><code>## Warning: package 'purrr' was built under R version 3.6.3</code></pre>
-<pre><code>## Warning: package 'dplyr' was built under R version 3.6.3</code></pre>
-<pre><code>## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()</code></pre>
-<div class="sourceCode" id="cb21"><pre class="downlit">
-<span class="co">#install.packages("stringr")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://stringr.tidyverse.org">stringr</a></span><span class="op">)</span>
-<span class="co">#install.packages("psych")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://personality-project.org/r/psych/">psych</a></span><span class="op">)</span></pre></div>
-<pre><code>## Warning: package 'psych' was built under R version 3.6.3</code></pre>
-<pre><code>## 
-## Attaching package: 'psych'</code></pre>
-<pre><code>## The following objects are masked from 'package:ggplot2':
-## 
-##     %+%, alpha</code></pre>
+<span class="co"># library(devtools)</span>
+<span class="co"># #install_github("gandalfnicolas/SADCAT")</span>
+<span class="co"># library(SADCAT)</span>
+<span class="co"># #install.packages("quanteda")</span>
+<span class="co"># library(quanteda) </span>
+<span class="co"># #install.packages("tidyverse")</span>
+<span class="co"># library(tidyverse)</span>
+<span class="co"># #install.packages("stringr")</span>
+<span class="co"># library(stringr)</span>
+<span class="co"># #install.packages("psych")</span>
+<span class="co"># library(psych)</span></pre></div>
 <p>Load dictionaries: Choose long or short version</p>
-<div class="sourceCode" id="cb25"><pre class="downlit">
-<span class="va">Full_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/Dictionaries.html">Dictionaries</a></span>
-
-<span class="va">Pre_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/All.steps_Dictionaries.html">All.steps_Dictionaries</a></span>
-
-
-<span class="va">Full_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/Dictionaries_FT.html">Dictionaries_FT</a></span>
-
-<span class="va">Pre_Dictionaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va"><a href="../reference/All.steps_Dictionaries_FT.html">All.steps_Dictionaries_FT</a></span></pre></div>
+<div class="sourceCode" id="cb2"><pre class="downlit">
+<span class="co"># Full_Dictionaries = SADCAT::Dictionaries</span>
+<span class="co"># </span>
+<span class="co"># Pre_Dictionaries = SADCAT::All.steps_Dictionaries</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># Full_Dictionaries = SADCAT::Dictionaries_FT</span>
+<span class="co"># </span>
+<span class="co"># Pre_Dictionaries = SADCAT::All.steps_Dictionaries_FT</span></pre></div>
 <p>Preprocess dictionaries</p>
-<div class="sourceCode" id="cb26"><pre class="downlit">
+<div class="sourceCode" id="cb3"><pre class="downlit">
 <span class="co"># Include only dictionary entries that are single words</span>
-<span class="va">Pre_Dictionaries</span><span class="op">$</span><span class="va">values0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">Pre_Dictionaries</span><span class="op">$</span><span class="va">values0</span><span class="op">)</span>
-
-<span class="va">Pre_Dictionaries</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">Pre_Dictionaries</span>, <span class="op">!</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_count.html">str_count</a></span><span class="op">(</span><span class="va">Pre_Dictionaries</span><span class="op">$</span><span class="va">values0</span>, <span class="st">' '</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span>
-
-
-<span class="co"># Stem, and transform into a format suitable for Quanteda. Here, we are only using high directional values of the dictionaries.</span>
-
-<span class="va">Pre_Dictionaries2</span> <span class="op">=</span> <span class="va">Pre_Dictionaries</span> <span class="op">%&gt;%</span>
-  
-  <span class="fu">transmute</span><span class="op">(</span>values0 <span class="op">=</span> <span class="fu"><a href="https://quanteda.io/reference/tokens_wordstem.html">char_wordstem</a></span><span class="op">(</span><span class="va">values0</span>, language <span class="op">=</span> <span class="fu"><a href="https://quanteda.io/reference/quanteda_options.html">quanteda_options</a></span><span class="op">(</span><span class="st">"language_stemmer"</span><span class="op">)</span><span class="op">)</span>,
-         
-         Sociability_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Sociability_dict</span> <span class="op">==</span> <span class="fl">1</span>, <span class="va">values0</span>, <span class="st">""</span><span class="op">)</span>,
-         Morality_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Morality_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Ability_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Ability_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Assertiveness_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Agency_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Status_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Status_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Warmth_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Warmth_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Competence_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Competence_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Beliefs_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Beliefs_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         
-         Sociability_dic_hi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Sociability_dict_hi</span> <span class="op">==</span> <span class="fl">1</span>, <span class="va">values0</span>, <span class="st">""</span><span class="op">)</span>,
-         Morality_dic_hi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Morality_dict_hi</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Ability_dic_hi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Ability_dict_hi</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Assertiveness_dic_hi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Agency_dict_hi</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Status_dic_hi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Status_dict_hi</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Warmth_dic_hi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Warmth_dict_hi</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Competence_dic_hi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Competence_dict_hi</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Beliefs_dic_hi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Beliefs_dict_hi</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         
-         Sociability_dic_lo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Sociability_dict_lo</span> <span class="op">==</span> <span class="fl">1</span>, <span class="va">values0</span>, <span class="st">""</span><span class="op">)</span>,
-         Morality_dic_lo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Morality_dict_lo</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Ability_dic_lo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Ability_dict_lo</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Assertiveness_dic_lo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Agency_dict_lo</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Status_dic_lo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Status_dict_lo</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Warmth_dic_lo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Warmth_dict_lo</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Competence_dic_lo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Competence_dict_lo</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Beliefs_dic_lo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Beliefs_dict_lo</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         
-         Health_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">health_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Family_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">relative_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Emotion_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">feeling_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Nationality_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Geography_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Occupation_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">work_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span>,
-         Appearance_dic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">Appearance_dict</span> <span class="op">==</span><span class="fl">1</span>, <span class="va">values0</span>,<span class="st">""</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">values0</span><span class="op">)</span>
-
-
-<span class="va">Dicts_v2</span> <span class="op">=</span> 
-<span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">Pre_Dictionaries2</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">Pre_Dictionaries2</span><span class="op">[[</span><span class="va">x</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="va">Pre_Dictionaries2</span><span class="op">[[</span><span class="va">x</span><span class="op">]</span><span class="op">]</span> <span class="op">!=</span> <span class="st">""</span><span class="op">]</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">Dicts_v2</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">Pre_Dictionaries2</span><span class="op">)</span>
-
-<span class="va">Dicts_v2</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">Dicts_v2</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
-
-
-<span class="co">#create quanteda dictionaries</span>
-<span class="va">Dicts_v2</span> <span class="op">=</span> <span class="fu">quanteda</span><span class="fu">::</span><span class="fu"><a href="https://quanteda.io/reference/dictionary.html">dictionary</a></span><span class="op">(</span><span class="va">Dicts_v2</span><span class="op">)</span></pre></div>
+<span class="co"># Pre_Dictionaries$values0 = as.character(Pre_Dictionaries$values0)</span>
+<span class="co"># </span>
+<span class="co"># Pre_Dictionaries = filter(Pre_Dictionaries, !str_count(Pre_Dictionaries$values0, ' ') &gt; 0)</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># # Stem, and transform into a format suitable for Quanteda. Here, we are only using high directional values of the dictionaries.</span>
+<span class="co"># </span>
+<span class="co"># Pre_Dictionaries2 = Pre_Dictionaries %&gt;%</span>
+<span class="co">#   </span>
+<span class="co">#   transmute(values0 = char_wordstem(values0, language = quanteda_options("language_stemmer")),</span>
+<span class="co">#          </span>
+<span class="co">#          Sociability_dic = ifelse(Sociability_dict == 1, values0, ""),</span>
+<span class="co">#          Morality_dic = ifelse(Morality_dict ==1, values0,""),</span>
+<span class="co">#          Ability_dic = ifelse(Ability_dict ==1, values0,""),</span>
+<span class="co">#          Assertiveness_dic = ifelse(Agency_dict ==1, values0,""),</span>
+<span class="co">#          Status_dic = ifelse(Status_dict ==1, values0,""),</span>
+<span class="co">#          Warmth_dic = ifelse(Warmth_dict ==1, values0,""),</span>
+<span class="co">#          Competence_dic = ifelse(Competence_dict ==1, values0,""),</span>
+<span class="co">#          Beliefs_dic = ifelse(Beliefs_dict ==1, values0,""),</span>
+<span class="co">#          </span>
+<span class="co">#          Sociability_dic_hi = ifelse(Sociability_dict_hi == 1, values0, ""),</span>
+<span class="co">#          Morality_dic_hi = ifelse(Morality_dict_hi ==1, values0,""),</span>
+<span class="co">#          Ability_dic_hi = ifelse(Ability_dict_hi ==1, values0,""),</span>
+<span class="co">#          Assertiveness_dic_hi = ifelse(Agency_dict_hi ==1, values0,""),</span>
+<span class="co">#          Status_dic_hi = ifelse(Status_dict_hi ==1, values0,""),</span>
+<span class="co">#          Warmth_dic_hi = ifelse(Warmth_dict_hi ==1, values0,""),</span>
+<span class="co">#          Competence_dic_hi = ifelse(Competence_dict_hi ==1, values0,""),</span>
+<span class="co">#          Beliefs_dic_hi = ifelse(Beliefs_dict_hi ==1, values0,""),</span>
+<span class="co">#          </span>
+<span class="co">#          Sociability_dic_lo = ifelse(Sociability_dict_lo == 1, values0, ""),</span>
+<span class="co">#          Morality_dic_lo = ifelse(Morality_dict_lo ==1, values0,""),</span>
+<span class="co">#          Ability_dic_lo = ifelse(Ability_dict_lo ==1, values0,""),</span>
+<span class="co">#          Assertiveness_dic_lo = ifelse(Agency_dict_lo ==1, values0,""),</span>
+<span class="co">#          Status_dic_lo = ifelse(Status_dict_lo ==1, values0,""),</span>
+<span class="co">#          Warmth_dic_lo = ifelse(Warmth_dict_lo ==1, values0,""),</span>
+<span class="co">#          Competence_dic_lo = ifelse(Competence_dict_lo ==1, values0,""),</span>
+<span class="co">#          Beliefs_dic_lo = ifelse(Beliefs_dict_lo ==1, values0,""),</span>
+<span class="co">#          </span>
+<span class="co">#          Health_dic = ifelse(health_dict ==1, values0,""),</span>
+<span class="co">#          Family_dic = ifelse(relative_dict ==1, values0,""),</span>
+<span class="co">#          Emotion_dic = ifelse(feeling_dict ==1, values0,""),</span>
+<span class="co">#          Nationality_dic = ifelse(Geography_dict ==1, values0,""),</span>
+<span class="co">#          Occupation_dic = ifelse(work_dict ==1, values0,""),</span>
+<span class="co">#          Appearance_dic = ifelse(Appearance_dict ==1, values0,"")) %&gt;%</span>
+<span class="co">#   </span>
+<span class="co">#   dplyr::select(-values0)</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># Dicts_v2 = </span>
+<span class="co"># lapply(1:length(Pre_Dictionaries2), function(x) Pre_Dictionaries2[[x]][Pre_Dictionaries2[[x]] != ""])</span>
+<span class="co"># </span>
+<span class="co"># names(Dicts_v2) = names(Pre_Dictionaries2)</span>
+<span class="co"># </span>
+<span class="co"># Dicts_v2 = lapply(Dicts_v2, function(x) x[!is.na(x)])</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># #create quanteda dictionaries</span>
+<span class="co"># Dicts_v2 = quanteda::dictionary(Dicts_v2)</span></pre></div>
 <p>Load example data - examine and change your own data accordingly to match this format.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit">
-<span class="va">obituaries</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="va">Obituary_data</span></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit">
+<span class="co">#obituaries = SADCAT::Obituary_data</span></pre></div>
 <p>Some preprocessing of the data</p>
-<div class="sourceCode" id="cb28"><pre class="downlit">
-<span class="va">obituaries</span><span class="op">$</span><span class="va">Beliefs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">obituaries</span><span class="op">$</span><span class="va">Beliefs</span><span class="op">)</span>
-
-
-<span class="va">obituaries</span><span class="op">$</span><span class="va">Text</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">tolower</a></span><span class="op">(</span><span class="va">obituaries</span><span class="op">$</span><span class="va">Text</span><span class="op">)</span> <span class="co">#transform to lower case</span>
-
-
-<span class="co">#Preprocess target text</span>
-<span class="va">toks</span> <span class="op">&lt;-</span> <span class="fu">quanteda</span><span class="fu">::</span><span class="fu"><a href="https://quanteda.io/reference/tokens.html">tokens</a></span><span class="op">(</span><span class="va">obituaries</span><span class="op">$</span><span class="va">Text</span>, remove_numbers <span class="op">=</span> <span class="cn">T</span>, remove_punct <span class="op">=</span> <span class="cn">T</span>, remove_symbols <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
-
-<span class="va">toks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://quanteda.io/reference/tokens_wordstem.html">tokens_wordstem</a></span><span class="op">(</span><span class="va">toks</span>, language <span class="op">=</span> <span class="fu"><a href="https://quanteda.io/reference/quanteda_options.html">quanteda_options</a></span><span class="op">(</span><span class="st">"language_stemmer"</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">string_stemmed</span><span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html">vector</a></span><span class="op">(</span><span class="op">)</span>
-<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">toks</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
-  <span class="va">string_stemmed</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">string_stemmed</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">toks</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, collapse<span class="op">=</span><span class="st">' '</span><span class="op">)</span><span class="op">)</span>
-<span class="op">}</span></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit">
+<span class="co"># obituaries$Beliefs = as.numeric(obituaries$Beliefs)</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># obituaries$Text = tolower(obituaries$Text) #transform to lower case</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># #Preprocess target text</span>
+<span class="co"># toks &lt;- quanteda::tokens(obituaries$Text, remove_numbers = T, remove_punct = T, remove_symbols = T)</span>
+<span class="co"># </span>
+<span class="co"># toks &lt;- tokens_wordstem(toks, language = quanteda_options("language_stemmer"))</span>
+<span class="co"># </span>
+<span class="co"># string_stemmed= vector()</span>
+<span class="co"># for(i in 1:length(toks)){</span>
+<span class="co">#   string_stemmed = rbind(string_stemmed, paste(toks[[i]], collapse=' '))</span>
+<span class="co"># }</span></pre></div>
 <p>Match text data to dictionaries and format</p>
-<div class="sourceCode" id="cb29"><pre class="downlit">
-<span class="co">#Match target text to dictionaries</span>
-<span class="va">toks_dict_pre</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://quanteda.io/reference/tokens_lookup.html">tokens_lookup</a></span><span class="op">(</span><span class="va">toks</span>, dictionary <span class="op">=</span> <span class="va">Dicts_v2</span>, levels <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
-
-
-<span class="co">#Transform to a document-feature dataframe</span>
-<span class="va">toks_dict_pre</span> <span class="op">=</span> <span class="fu"><a href="https://quanteda.io/reference/convert.html">convert</a></span><span class="op">(</span><span class="fu"><a href="https://quanteda.io/reference/dfm.html">dfm</a></span><span class="op">(</span><span class="va">toks_dict_pre</span><span class="op">)</span>, to <span class="op">=</span> <span class="st">"data.frame"</span><span class="op">)</span>
-
-
-<span class="co">#Bind together</span>
-<span class="va">toks_dict</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">toks_dict_pre</span>,
-                  <span class="fu"><a href="https://quanteda.io/reference/ntoken.html">ntoken</a></span><span class="op">(</span><span class="va">toks</span><span class="op">)</span>, <span class="co">#raw count</span>
-                  <span class="fu"><a href="https://quanteda.io/reference/ntoken.html">ntype</a></span><span class="op">(</span><span class="va">toks</span><span class="op">)</span>, <span class="co">#distinct count</span>
-                  <span class="va">string_stemmed</span>,
-                  <span class="va">obituaries</span><span class="op">)</span>
-
-
-<span class="co">#Get percentage of words in the specific text that belong to each dictionary</span>
-<span class="va">toks_dict</span> <span class="op">=</span> <span class="va">toks_dict</span> <span class="op">%&gt;%</span>
-  <span class="fu">mutate_at</span><span class="op">(</span><span class="fu">vars</span><span class="op">(</span><span class="va">sociability_dic</span><span class="op">:</span><span class="va">appearance_dic</span><span class="op">)</span>, .funs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>percent <span class="op">=</span> <span class="op">~</span><span class="op">(</span><span class="va">.</span><span class="op">/</span><span class="va">`ntoken(toks)`</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-
-
-<span class="co">#Get binary indicator: is dictionary in text or not?</span>
-<span class="va">toks_dict</span> <span class="op">=</span> <span class="va">toks_dict</span> <span class="op">%&gt;%</span>
-  <span class="fu">mutate_at</span><span class="op">(</span><span class="fu">vars</span><span class="op">(</span><span class="va">sociability_dic</span><span class="op">:</span><span class="va">appearance_dic</span><span class="op">)</span>, .funs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>binary <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">.</span> <span class="op">&gt;</span> <span class="fl">0</span> , <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-
-
-<span class="co">#Create direction indicators</span>
-<span class="va">toks_dict</span> <span class="op">=</span> <span class="va">toks_dict</span> <span class="op">%&gt;%</span>
-  <span class="fu">mutate</span><span class="op">(</span>sociability_dir <span class="op">=</span> <span class="va">sociability_dic_hi</span> <span class="op">-</span> <span class="va">sociability_dic_lo</span>,
-         morality_dir <span class="op">=</span> <span class="va">morality_dic_hi</span> <span class="op">-</span> <span class="va">morality_dic_lo</span>,
-         ability_dir <span class="op">=</span>  <span class="va">ability_dic_hi</span> <span class="op">-</span> <span class="va">ability_dic_lo</span>,
-         assertiveness_dir <span class="op">=</span> <span class="va">assertiveness_dic_hi</span> <span class="op">-</span> <span class="va">assertiveness_dic_lo</span>,
-         status_dir <span class="op">=</span> <span class="va">status_dic_hi</span> <span class="op">-</span> <span class="va">status_dic_lo</span>,
-         warmth_dir <span class="op">=</span> <span class="va">warmth_dic_hi</span> <span class="op">-</span> <span class="va">warmth_dic_lo</span>,
-         competence_dir <span class="op">=</span> <span class="va">competence_dic_hi</span> <span class="op">-</span> <span class="va">competence_dic_lo</span>,
-         beliefs_dir <span class="op">=</span> <span class="va">beliefs_dic_hi</span> <span class="op">-</span> <span class="va">beliefs_dic_lo</span>
-         <span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit">
+<span class="co"># #Match target text to dictionaries</span>
+<span class="co"># toks_dict_pre &lt;- tokens_lookup(toks, dictionary = Dicts_v2, levels = 1)</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># #Transform to a document-feature dataframe</span>
+<span class="co"># toks_dict_pre = convert(dfm(toks_dict_pre), to = "data.frame")</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># #Bind together</span>
+<span class="co"># toks_dict = cbind(toks_dict_pre,</span>
+<span class="co">#                   ntoken(toks), #raw count</span>
+<span class="co">#                   ntype(toks), #distinct count</span>
+<span class="co">#                   string_stemmed,</span>
+<span class="co">#                   obituaries)</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># #Get percentage of words in the specific text that belong to each dictionary</span>
+<span class="co"># toks_dict = toks_dict %&gt;%</span>
+<span class="co">#   mutate_at(vars(sociability_dic:appearance_dic), .funs = list(percent = ~(./`ntoken(toks)`)))</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># #Get binary indicator: is dictionary in text or not?</span>
+<span class="co"># toks_dict = toks_dict %&gt;%</span>
+<span class="co">#   mutate_at(vars(sociability_dic:appearance_dic), .funs = list(binary = ~ifelse(. &gt; 0 , 1, 0)))</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># #Create direction indicators</span>
+<span class="co"># toks_dict = toks_dict %&gt;%</span>
+<span class="co">#   mutate(sociability_dir = sociability_dic_hi - sociability_dic_lo,</span>
+<span class="co">#          morality_dir = morality_dic_hi - morality_dic_lo,</span>
+<span class="co">#          ability_dir =  ability_dic_hi - ability_dic_lo,</span>
+<span class="co">#          assertiveness_dir = assertiveness_dic_hi - assertiveness_dic_lo,</span>
+<span class="co">#          status_dir = status_dic_hi - status_dic_lo,</span>
+<span class="co">#          warmth_dir = warmth_dic_hi - warmth_dic_lo,</span>
+<span class="co">#          competence_dir = competence_dic_hi - competence_dic_lo,</span>
+<span class="co">#          beliefs_dir = beliefs_dic_hi - beliefs_dic_lo</span>
+<span class="co">#          )</span></pre></div>
 <p>Write data</p>
-<div class="sourceCode" id="cb30"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.csv</a></span><span class="op">(</span><span class="va">toks_dict</span>, <span class="st">"obituaries dict.csv"</span><span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit">
+<span class="co">#write.csv(toks_dict, "obituaries dict.csv")</span></pre></div>
 <p>Example analysis</p>
-<div class="sourceCode" id="cb31"><pre class="downlit">
-<span class="va">Sociability_mod</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">Sociability</span> <span class="op">~</span> <span class="va">sociability_dir</span>,data <span class="op">=</span>  <span class="va">toks_dict</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">Sociability_mod</span><span class="op">)</span></pre></div>
-<pre><code>## 
-## Call:
-## lm(formula = Sociability ~ sociability_dir, data = toks_dict)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -2.8837 -0.4459  0.0226  0.6478  1.3037 
-## 
-## Coefficients:
-##                 Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)      3.78998    0.06350  59.688   &lt;2e-16 ***
-## sociability_dir  0.09371    0.01352   6.932    2e-11 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 0.8095 on 351 degrees of freedom
-##   (147 observations deleted due to missingness)
-## Multiple R-squared:  0.1204, Adjusted R-squared:  0.1179 
-## F-statistic: 48.05 on 1 and 351 DF,  p-value: 1.999e-11</code></pre>
+<div class="sourceCode" id="cb8"><pre class="downlit">
+<span class="co"># Sociability_mod = lm(Sociability ~ sociability_dir,data =  toks_dict)</span>
+<span class="co"># summary(Sociability_mod)</span></pre></div>
 <div id="variables" class="section level4">
 <h4 class="hasAnchor">
 <a href="#variables" class="anchor"></a>Variables:</h4>

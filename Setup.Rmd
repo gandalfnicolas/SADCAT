@@ -73,3 +73,83 @@ use_vignette("Text coding example guide")
 pkgdown::build_site()
 ```
 
+```{r}
+# library(SADCAT)
+
+# SADCAT:::Code_single
+# 
+# Code_singlex = function (data, text = "word", more2na = T) 
+# {
+#     res = merge(x = data, y = Dictionaries, by.x = text, by.y = "word", 
+#         all.x = T)
+#     res2 = dplyr::select(res, contains("_dict"))
+#     for(i in colnames(res2)){
+#     res2[i] = apply(res2[i], 1, function(x) ifelse(is.na(x), 0, x)  )
+#     }
+#     res = dplyr::select(res, -contains("_dict"))
+#     res = cbind(res,res2)
+#     Dicts_v3pre = unique(Dictionaries$word)
+#     res$NONE = as.numeric(!(as.matrix(res[[text]]) %in% as.matrix(Dicts_v3pre)))
+#     res$NONE2 = ifelse(stringr::str_count(res[[text]], "\\S+") > 
+#         2, NA, as.numeric(!(res[[text]]) %in% as.matrix(Dicts_v3pre)))
+#     if (more2na == F) {
+#         return(res)
+#     }
+#     else {
+#         data.table::setDT(res)
+#         nm1 <- grep("_dict", names(res), value = TRUE)
+#         for (j in nm1) {
+#             data.table::set(res, i = NULL, j = j, value = ifelse(stringr::str_count(res[[text]], 
+#                 "\\S+") > 2, NA, res[[j]]))
+#         }
+#         return(res)
+#     }
+# }
+# 
+# 
+# Code_sentx = function(data, raw_text = "rawword", preproc_text = "word"){
+#   SENT_dictv1 = Sentiments[,-c(8,9,10)]
+#   SENT_dictv2 = Sentiments %>%
+#     dplyr::select(word = word4,Val_bing2=Val_bing,Val_NRC2=Val_NRC,Val_afinn2=Val_afinn,Val_loughran2 =Val_loughran,Val_sentiwn2 =Val_sentiwn)%>%
+#     dplyr::group_by(word)%>%
+#     dplyr::summarize_all(funs(mean(.,na.rm=T)))
+#   data$tv = sapply(data[[raw_text]], tolower)
+#   data$tv = sapply(data$tv, trimws)
+#   data2 = merge(x = data, y =SENT_dictv1, by.x = "tv",by.y = "word", all.x = TRUE) #Find first if there is a match with original response - different lemmas (next code) might have different sentiment, so this is ideal
+#   data3 = merge(x = data2, y = SENT_dictv2, by.x = preproc_text,by.y = "word", all.x = TRUE)
+#   return(data3)
+# }
+# 
+# dtatat = data.frame(TEStt = c("hello","warm"))
+# dtatat$TEStt = as.character(dtatat$TEStt)
+# 
+# TRYYc = SADCAT::Code_words(dtatat,"TEStt")
+# 
+# Code_sentx
+# 
+# SADCAT:::Code_single
+```
+
+```{r}
+# SENT_dictv1 = Sentiments[,-c(8,9,10)]
+# SENT_dictv2 = Sentiments %>%
+#     dplyr::select(word = word4,Val_bing2=Val_bing,Val_NRC2=Val_NRC,Val_afinn2=Val_afinn,Val_loughran2 =Val_loughran,Val_sentiwn2 =Val_sentiwn)
+# SENT_dictv3 = aggregate(formula = cbind(Val_bing2, Val_NRC2, Val_afinn2,Val_loughran2,Val_sentiwn2) ~ word,
+#                           data = SENT_dictv2,
+#                           FUN = function(x){
+#                             c(mean(x,na.rm=T))
+#                           })  
+# SENT_dictv3 = by(SENT_dictv2,
+#                  INDICES = list(SENT_dictv2$word),
+#                  FUN = function(x){
+#                    data.frame(word = unique(x$word),
+#                               Val_bing2 = mean(x$Val_bing2,na.rm=T),
+#                               Val_NRC2 = mean(x$Val_NRC2,na.rm=T),
+#                               Val_afinn2 = mean(x$Val_afinn2,na.rm=T),
+#                               Val_loughran2 = mean(x$Val_loughran2,na.rm=T),
+#                               Val_sentiwn2 = mean(x$Val_sentiwn2,na.rm=T))
+#                  })
+# do.call(rbind,SENT_dictv3)
+
+```
+

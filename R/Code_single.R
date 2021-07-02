@@ -9,7 +9,12 @@
 
 Code_single = function(data, text = "word", more2na = T){
   res = merge(x = data, y = Dictionaries, by.x = text, by.y = "word", all.x = T)
-  res= dplyr::mutate_at(res,vars(contains("_dict")),funs(ifelse(is.na(.),0,.)))
+  res2 = dplyr::select(res, contains("_dict"))
+  for(i in colnames(res2)){
+    res2[i] = apply(res2[i], 1, function(x) ifelse(is.na(x), 0, x)  )
+  }
+  res = dplyr::select(res, -contains("_dict"))
+  res = cbind(res,res2)
   Dicts_v3pre = unique(Dictionaries$word)
   res$NONE = as.numeric(!(as.matrix(res[[text]]) %in% as.matrix(Dicts_v3pre)))
   res$NONE2 = ifelse(stringr::str_count(res[[text]], "\\S+") > 2,NA,as.numeric(!(res[[text]]) %in% as.matrix(Dicts_v3pre)))
