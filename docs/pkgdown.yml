@@ -1,9 +1,8 @@
-pandoc: 2.7.1
+pandoc: 2.7.3
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
-  Dictionary Creation Example Guide: Dictionary Creation Example Guide.html
-  introduction: introduction.html
-  Text coding example guide: Text coding example guide.html
-last_built: 2021-07-02T00:44Z
+  Dictionary_Creation_Example_Guide: Dictionary_Creation_Example_Guide.html
+  Text_Coding_Example_Guide: Text_Coding_Example_Guide.html
+last_built: 2021-07-24T01:22Z
 
