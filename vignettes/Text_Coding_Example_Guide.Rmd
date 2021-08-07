@@ -28,7 +28,7 @@ Alternatively, this code also gives you direct access to the dictionaries in the
 ```{r}
 #(remove pound sign from next lines to run if packages are not installed.)
 
-#install.packages("devtools") 
+# 1: install.packages("devtools") 
 library(devtools)
 #install_github("gandalfnicolas/SADCAT")
 library(SADCAT)
@@ -40,33 +40,49 @@ library(tidyverse)
 library(stringr)
 #install.packages("psych")
 library(psych)
+#install.packages("tm")
+library(tm)
+#install.packages("textstem")
+library(textstem)
 
-# Load dictionaries: Using the most extensive dictionaries here.
+#2:  Load dictionaries: Using the most extensive dictionaries here. Switch to "SADCAT::Dictionaries_FT" for a smaller dictionary (i.e., it may miss some words related to the dimensions, but it may also make fewer coding mistakes when applying the dictionaries to domains different to the ones they were developed for originally).
 Pre_Dictionaries = SADCAT::All.steps_Dictionaries
 
 
-# initial preprocess
+
+#3: initial preprocess
 Pre_Dictionaries$values0 = as.character(Pre_Dictionaries$tv)
 
 Pre_Dictionaries$values0 <- enc2utf8(as.character(Pre_Dictionaries$values0))
 
 Pre_Dictionaries$values0 = tolower(Pre_Dictionaries$values0) #transform to lower case
 
-# Stem (If you prefer the text to not be stemmed, skip this step, and also skip the stemming step for your data later on)
+#4: Lemmatize words. If lemmatization is taking too long on your data (step 8), you can opt to skip this step, or try to stem the responses instead. Please see quanteda language_stemmer documentation if you prefer to stem.
 
-toks <- quanteda::tokens(Pre_Dictionaries$values0, remove_numbers = T, remove_punct = T, remove_symbols = T)
+toks = VCorpus(VectorSource(Pre_Dictionaries$values0))
 
-toks <- tokens_wordstem(toks, language = quanteda_options("language_stemmer"))
+corpusx <- tm_map(toks, lemmatize_strings)
 
-string_stemmed = vector()
-for(i in 1:length(toks)){
-  string_stemmed = rbind(string_stemmed, paste(toks[[i]], collapse=' '))
+corpusx <- tm_map(corpusx, delete_ending_Ss)
+
+corpusx2 <- tm_map(corpusx, PlainTextDocument)
+
+corpusx2 <- data.frame(text=unlist(sapply(corpusx2, `[`, "content")), 
+    stringsAsFactors=F)
+
+corpusx2 = filter(corpusx2, text != "")
+
+corpusx2 <- quanteda::tokens(corpusx2$text, remove_numbers = T, remove_punct = T, remove_symbols = T)
+
+string_new = vector()
+for(i in 1:length(corpusx2)){
+  string_new = rbind(string_new, paste(corpusx2[[i]], collapse=' '))
 }
 
-Pre_Dictionaries$values0 = string_stemmed
+Pre_Dictionaries$values0 = string_new
 
 
-# transform into a format suitable for Quanteda dictionary coding. Here we create multiple dictionaries, for different contructs (e.g., Sociability, Morality, etc.). Dictionaries ending in "_dic" encode ALL the words for that construct. Dictionaries ending in "_hi" encode only high directional words for the construct (e.g., "friendly" for Sociability), while those ending in "_lo" encode low directional words (e.g., "unfriendly" for Sociability). Dictionaries ending in "_pos" or "_neg" encode positively and negatively valence words for each construct, respectively (direction and valence often, but not always, correlate). See Nicolas, Bai, & Fiske, 2020 for more information.
+#5: transform into a format suitable for Quanteda dictionary coding. Here we create multiple dictionaries, for different contructs (e.g., Sociability, Morality, etc.). Dictionaries ending in "_dic" encode ALL the words for that construct. Dictionaries ending in "_hi" encode only high directional words for the construct (e.g., "friendly" for Sociability), while those ending in "_lo" encode low directional words (e.g., "unfriendly" for Sociability). Dictionaries ending in "_pos" or "_neg" encode positively and negatively valence words for each construct, respectively (direction and valence often, but not always, correlate). See Nicolas, Bai, & Fiske, 2021 for more information.
 
 Pre_Dictionaries2 = Pre_Dictionaries %>%
   
@@ -154,12 +170,12 @@ names(Dicts_v2) = names(Pre_Dictionaries2)
 Dicts_v2 = lapply(Dicts_v2, function(x) x[!is.na(x)])
 
 
-#create quanteda dictionaries
+#6: create quanteda dictionaries
 Dicts_v2 = quanteda::dictionary(Dicts_v2)
 
 
 
-#Load data
+#7: Load your data. Here, for illustration, we are using the obituaries data from Nicolas, Bai, & Fiske (2021).
 obituaries = SADCAT::Obituary_data
 
 obituaries$Text <- enc2utf8(as.character(obituaries$Text)) #UTF-8 encoding
@@ -168,44 +184,56 @@ obituaries$Beliefs = as.numeric(obituaries$Beliefs)
 
 obituaries$Text = tolower(obituaries$Text) #transform to lower case
 
-
-#Preprocess target text
 toks <- quanteda::tokens(obituaries$Text, remove_numbers = T, remove_punct = T, remove_symbols = T)
 
-toks <- tokens_wordstem(toks, language = quanteda_options("language_stemmer"))
+#8: Lemmatize: if you skipped this step before, skip it here as well.
 
-string_stemmed= vector()
+toks = VCorpus(VectorSource(obituaries$Text))
+
+corpusxy <- tm_map(toks, lemmatize_strings)
+
+corpusxy <- tm_map(corpusxy, delete_ending_Ss)
+
+toks <- tm_map(corpusxy, PlainTextDocument)
+
+toks <- data.frame(text=unlist(sapply(toks, `[`, "content")), 
+    stringsAsFactors=F)
+
+toks = filter(toks, text != "")
+
+toks <- quanteda::tokens(toks$text, remove_numbers = T, remove_punct = T, remove_symbols = T)
+
+string_lemma = vector()
 for(i in 1:length(toks)){
-  string_stemmed = rbind(string_stemmed, paste(toks[[i]], collapse=' '))
+  string_lemma = rbind(string_lemma, paste(toks[[i]], collapse=' '))
 }
 
-#Match target text to dictionaries
+
+#9: Match target text to dictionaries & convert to document-feature data; bind data.
 toks_dict_pre <- tokens_lookup(toks, dictionary = Dicts_v2, levels = 1)
 
 
-#Transform to a document-feature dataframe
 toks_dict_pre = convert(dfm(toks_dict_pre), to = "data.frame")
 
 
-#Bind together
 toks_dict = cbind(toks_dict_pre,
                   ntoken(toks), #raw count
                   ntype(toks), #distinct count
-                  string_stemmed,
+                  string_lemma,
                   obituaries)
 
 
-#Get percentage of words in the specific text that belong to each dictionary
+#10: Get percentage of words in the specific text that belong to each dictionary
 toks_dict = toks_dict %>%
   mutate_at(vars(sociability_dic:appearance_dic), .funs = list(percent = ~(./`ntoken(toks)`)))
 
 
-#Get binary indicator: is dictionary in text or not?
+#11: Get binary indicator: is dictionary in text or not?
 toks_dict = toks_dict %>%
   mutate_at(vars(sociability_dic:appearance_dic), .funs = list(binary = ~ifelse(. > 0 , 1, 0)))
 
 
-#Create direction indicators: Positive scores indicate text is more high (vs. low) directional, negative scores indicate the text is more low (vs. high) directional, for each dimension tested. This code can be modified to create other indicators (e.g., for valence subtract _neg from _pos variables.).
+#12: Create direction indicators: Positive scores indicate text is more high (vs. low) directional, negative scores indicate the text is more low (vs. high) directional, for each dimension tested. This code can be modified to create other indicators (e.g., for valence subtract _neg from _pos variables.).
 
 toks_dict = toks_dict %>%
   mutate(sociability_dir = sociability_dic_hi - sociability_dic_lo,
@@ -218,7 +246,7 @@ toks_dict = toks_dict %>%
          beliefs_dir = beliefs_dic_hi - beliefs_dic_lo
          )
 
-#Write data
+#13: Write data
 write.csv(toks_dict, "obituaries dict.csv")
 
 
@@ -236,7 +264,6 @@ write.csv(toks_dict, "obituaries dict.csv")
 
 Sociability_mod = lm(Sociability ~ sociability_dir,data =  toks_dict)
 summary(Sociability_mod)
-
 
 
 ```
