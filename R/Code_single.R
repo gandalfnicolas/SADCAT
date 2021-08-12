@@ -8,7 +8,8 @@
 #' @export Code_single
 
 Code_single = function(data, text = "word", more2na = T){
-  res = merge(x = data, y = Dictionaries, by.x = text, by.y = "word", all.x = T)
+  Dictionariesx = dplyr::select(SADCAT::Dictionaries,-c(Val_bing:Val))
+  res = merge(x = data, y = Dictionariesx, by.x = text, by.y = "word", all.x = T)
   res2 = dplyr::select(res, contains("_dict"))
   for(i in colnames(res2)){
     res2[i] = apply(res2[i], 1, function(x) ifelse(is.na(x), 0, x)  )

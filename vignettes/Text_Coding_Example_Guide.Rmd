@@ -184,8 +184,6 @@ obituaries$Beliefs = as.numeric(obituaries$Beliefs)
 
 obituaries$Text = tolower(obituaries$Text) #transform to lower case
 
-toks <- quanteda::tokens(obituaries$Text, remove_numbers = T, remove_punct = T, remove_symbols = T)
-
 #8: Lemmatize: if you skipped this step before, skip it here as well.
 
 toks = VCorpus(VectorSource(obituaries$Text))
