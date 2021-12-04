@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Lemmatizer — Lemmatize • SADCAT</title>
+<title>Clean Large Text — clean_large_text • SADCAT</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Lemmatizer — Lemmatize" />
-<meta property="og:description" content="This function allows you lemmatize words using the treetag lemmatizer" />
+<meta property="og:title" content="Clean Large Text — clean_large_text" />
+<meta property="og:description" content="This function allows you to preprocess text responses with more than 2 words." />
 
 
 
@@ -118,33 +118,29 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Lemmatizer</h1>
+    <h1>Clean Large Text</h1>
     
-    <div class="hidden name"><code>Lemmatize.Rd</code></div>
+    <div class="hidden name"><code>clean_large_text.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This function allows you lemmatize words using the treetag lemmatizer</p>
+    <p>This function allows you to preprocess text responses with more than 2 words.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>Lemmatize</span><span class='op'>(</span><span class='va'>word</span>, print <span class='op'>=</span> <span class='cn'>T</span>, debug <span class='op'>=</span> <span class='cn'>F</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>clean_large_text</span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>word</th>
-      <td><p>word to lemmatize, if multiple use loop/apply/dplyr</p></td>
-    </tr>
-    <tr>
-      <th>print</th>
-      <td><p>Whether to print word being lemmatized. Useful for long lists of words. Defaults to TRUE</p></td>
+      <th>x</th>
+      <td><p>responses to clean</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>lemmatized words</p>
+    <p>response vector that is preprocessed</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

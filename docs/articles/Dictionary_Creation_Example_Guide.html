@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dictionary Creation Example Guide • SADCAT</title>
+<title>Dictionary_Creation_Example_Guide • SADCAT</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Dictionary Creation Example Guide">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Dictionary_Creation_Example_Guide">
 <meta property="og:description" content="SADCAT">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -54,10 +54,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/Dictionary_Creation_Example_Guide.html">Dictionary Creation Example Guide</a>
+      <a href="../articles/Dictionary_Creation_Example_Guide.html">Dictionary_Creation_Example_Guide</a>
     </li>
     <li>
-      <a href="../articles/Text_Coding_Example_Guide.html">Text Coding Example Guide</a>
+      <a href="../articles/Text_Coding_Example_Guide.html">Text_Coding_Example_Guide</a>
     </li>
   </ul>
 </li>
@@ -72,10 +72,10 @@
 
       
 
-      </header><script src="Dictionary_Creation_Example_Guide_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+      </header><script src="Dictionary_Creation_Example_Guide_files/header-attrs-2.10/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Dictionary Creation Example Guide</h1>
+      <h1 data-toc-skip>Dictionary_Creation_Example_Guide</h1>
             
       
       
@@ -87,37 +87,6 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">SADCAT</span><span class="op">)</span></code></pre></div>
-<p>THIS GUIDE IS FOR CREATING NEW DICTIONARIES USING THE PACKAGE. FOR USING THE STEREOTYPE CONTENT DICTIONARIES DESCRIBED IN THE PAPER, SEE THE Text Coding Example Guide.</p>
-<p>You may need to load wordnet and indicate the path to the wordnet dictionaries manually. You will need to have the files for these dictionaries (<a href="https://wordnet.princeton.edu/download" class="uri">https://wordnet.princeton.edu/download</a>)</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://wordnet.princeton.edu/">wordnet</a></span><span class="op">)</span>
-<span class="co">#&gt; Warning in initDict(): cannot find WordNet 'dict' directory: please set the</span>
-<span class="co">#&gt; environment variable WNHOME to its parent</span>
-<span class="fu"><a href="https://rdrr.io/pkg/wordnet/man/setDict.html">setDict</a></span><span class="op">(</span><span class="st">"D:\\dict"</span><span class="op">)</span></code></pre></div>
-<p>Through SADCAT you have a number of functions at your disposal to create novel dictionaries through Wordnet expansion, given an initial set of seed words. The package also includes the Stereotype Content Dictionaries developed by Nicolas, Bai, &amp; Fiske, 2020. For more information on how to use the dictionaries, please see gandalfnicolas.com. The current document briefly explains the functions for new dictionary creation.</p>
-<p>For use as an example, let’s assume we are interested in creating a dictionary of words semantically related to the concept of wine, as organized in Wordnet. We start by collecting a list of seed words, such as:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">term</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"wine"</span>,<span class="st">"vino"</span>,<span class="st">"sommelier"</span><span class="op">)</span></code></pre></div>
-<p>Since Wordnet works through the specific senses of words (one of its advantages), we need to make a manual step in which we input the desired senses (these can be found by going through, e.g., online Wordnet: <a href="http://wordnetweb.princeton.edu/perl/webwn" class="uri">http://wordnetweb.princeton.edu/perl/webwn</a>). In this case, we want the first sense of wine and vino, and the first sense of sommelier. But if we wanted a words semantically relate to wine as a color, we would use the second sense. We also need to provide the Part of Speech (POS) which can also be retrieved from Wordnet. Note that the columns of your data Input should be named terms, Pos, and sense. Make sure strings are not factors.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">PoS</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"NOUN"</span>,<span class="st">"NOUN"</span>,<span class="st">"NOUN"</span><span class="op">)</span>
-<span class="va">sense</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>
-
-<span class="va">Input</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">term</span>,<span class="va">PoS</span>,<span class="va">sense</span>, stringsAsFactors <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></code></pre></div>
-<p>We can use the function Full_Expand to obtain: see also, similar, attributes, hyponyms, antonyms, and derivationally related forms. Antonyms can be turned off if desired. You can obtain synsets instead of words by specifying syns = T.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">Wine_Dict</span> <span class="op">=</span> <span class="fu">SADCAT</span><span class="fu">::</span><span class="fu"><a href="../reference/Full_Expand.html">Full_Expand</a></span><span class="op">(</span>datax <span class="op">=</span> <span class="va">Input</span>, antonym <span class="op">=</span> <span class="cn">T</span>, syns <span class="op">=</span> <span class="cn">F</span><span class="op">)</span>
-<span class="co">#&gt; [1] "W"</span>
-<span class="co">#&gt; [1] "W"</span>
-<span class="co">#&gt; [1] "W"</span>
-<span class="co">#&gt; [1] "W"</span>
-
-<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">Wine_Dict</span>, n <span class="op">=</span> <span class="fl">15</span><span class="op">)</span>
-<span class="co">#&gt;  [1] "wine"         "vino"         "sommelier"    "wine waiter"  "wine steward"</span>
-<span class="co">#&gt;  [6] "winy"         "winey"        "vinous"       "vinaceous"    "vinify"      </span>
-<span class="co">#&gt; [11] "tasty"        "vintage"      "red wine"     "white wine"   "blush wine"</span></code></pre></div>
-<p>As shown, the seed words have bee expanded. the full list has 102 wine-related words, up from three. Other functions, always starting with “get_” break down the process to obtain different semantic relations.</p>
-<p>Other useful functions for cleaning text daya included work better when dealing with single words and may be time consuming. Full_preprocess incorporates all of them, including a spellcheck described in Nicolas, Bai, &amp; Fiske.</p>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

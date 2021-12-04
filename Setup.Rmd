@@ -15,8 +15,8 @@ library(pkgdown)
 ```{r}
 Dictionaries_FT = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\FULL dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
 All.steps_Dictionaries_FT = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Pre dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
-All.steps_Dictionaries = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Full dictionaries 080621 no vecs.csv", stringsAsFactors = F) 
-Dictionaries = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Full Dictionaries preprocessed 080621 no vecs.csv", stringsAsFactors = F) 
+All.steps_Dictionaries = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Large Dictionaries 120321.csv", stringsAsFactors = F) 
+Dictionaries = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Preprocessed Only Dictionaries 120321.csv", stringsAsFactors = F) 
 Full_Vectors_Avg = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Full_Vectors AVG.csv", stringsAsFactors = F) ##not updated on 062921 like others
 Seed_Vectors_Avg = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Seed vectors Average 080221.csv", stringsAsFactors = F)
 Seed_Vectors_personcontext_Avg = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Project\\Seed vectors person context Average 080221.csv", stringsAsFactors = F)
@@ -26,8 +26,8 @@ Obituary_data = read.csv("C:\\Users\\Gandalf\\Dropbox\\Dictionary creation Proje
 #######
 Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\FULL dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
 All.steps_Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\Pre dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
-All.steps_Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full dictionaries 070121 no vecs.csv", stringsAsFactors = F) 
-Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full Dictionaries preprocessed 080621 no vecs.csv", stringsAsFactors = F) 
+All.steps_Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Large Dictionaries 120321.csv", stringsAsFactors = F) 
+Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Preprocessed Only Dictionaries 120321.csv", stringsAsFactors = F) 
 Full_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full_Vectors AVG.csv", stringsAsFactors = F) ##not updated on 062921 like others
 Seed_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Seed vectors Average 080221.csv", stringsAsFactors = F)
 Seed_Vectors_personcontext_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Seed vectors person context Average 080221.csv", stringsAsFactors = F)
@@ -61,8 +61,8 @@ document()
 
 
 ```{r}
-#usethis::use_vignette("my-vignette")
-#usethis::use_vignette("Text_Coding_Example_Guide")
+usethis::use_vignette("Dictionary_Creation_Example_Guide")
+usethis::use_vignette("Text_Coding_Example_Guide")
 ```
 
 
