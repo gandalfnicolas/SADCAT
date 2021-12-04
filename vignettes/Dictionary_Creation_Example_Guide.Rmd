@@ -17,3 +17,44 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(SADCAT)
 ```
+
+
+THIS GUIDE IS FOR CREATING NEW DICTIONARIES USING THE PACKAGE. FOR USING THE STEREOTYPE CONTENT DICTIONARIES DESCRIBED IN THE PAPER, SEE THE Text Coding Example Guide.
+
+
+You may need to load wordnet and indicate the path to the wordnet dictionaries manually. You will need to have the files for these dictionaries (https://wordnet.princeton.edu/download)
+
+```{r}
+library(wordnet)
+
+setDict("D:\\dict")
+```
+
+Through SADCAT you have a number of functions at your disposal to create novel dictionaries through Wordnet expansion, given an initial set of seed words. The package also includes the Stereotype Content Dictionaries developed by Nicolas, Bai, & Fiske, 2020. For more information on how to use the dictionaries, please see gandalfnicolas.com. The current document briefly explains the functions for new dictionary creation.
+
+For use as an example, let’s assume we are interested in creating a dictionary of words semantically related to the concept of wine, as organized in Wordnet. We start by collecting a list of seed words, such as:
+
+```{r}
+term = c("wine","vino","sommelier")
+```
+
+Since Wordnet works through the specific senses of words (one of its advantages), we need to make a manual step in which we input the desired senses (these can be found by going through, e.g., online Wordnet: http://wordnetweb.princeton.edu/perl/webwn). In this case, we want the first sense of wine and vino, and the first sense of sommelier. But if we wanted a words semantically relate to wine as a color, we would use the second sense. We also need to provide the Part of Speech (POS) which can also be retrieved from Wordnet. Note that the columns of your data Input should be named terms, Pos, and sense. Make sure strings are not factors.
+
+```{r}
+PoS = c("NOUN","NOUN","NOUN")
+sense = c(1,1,1)
+
+Input = data.frame(term,PoS,sense, stringsAsFactors = F)
+```
+
+We can use the function Full_Expand to obtain: see also, similar, attributes, hyponyms, antonyms, and derivationally related forms. Antonyms can be turned off if desired. You can obtain synsets instead of words by specifying syns = T.
+
+```{r}
+Wine_Dict = SADCAT::Full_Expand(datax = Input, antonym = T, syns = F)
+
+head(Wine_Dict, n = 15)
+```
+
+As shown, the seed words have bee expanded. the full list has 102 wine-related words, up from three. Other functions, always starting with “get_” break down the process to obtain different semantic relations.
+
+Other useful functions for cleaning text daya included work better when dealing with single words and may be time consuming. Full_preprocess incorporates all of them, including a spellcheck described in Nicolas, Bai, & Fiske.

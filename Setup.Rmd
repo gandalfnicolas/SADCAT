@@ -60,11 +60,6 @@ document()
 ```
 
 
-```{r}
-usethis::use_vignette("Dictionary_Creation_Example_Guide")
-usethis::use_vignette("Text_Coding_Example_Guide")
-```
-
 
 ```{r}
 devtools::install(build_vignettes = T)
