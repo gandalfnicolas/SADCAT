@@ -3,9 +3,19 @@ title: "Text_Coding_Example_Guide"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Text_Coding_Example_Guide}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
+
+This guide uses a slightly different procedure than the paper (Nicolas, Bai, & Fiske, 2020), with better performance for responses > 2 words. 
+
+To use, examine and understand the structure of the obituaries file, and format your own text responses in the same format. Then replace the appropriate variables to run your text responses through the code provided to obtain all the dictionaries codings. Make sure all packages are properly installed and loaded.
+
+Alternatively, this code also gives you direct access to the dictionaries in the first lines (e.g., SADCAT::All.steps_Dictionaries), which you can then transfer to your software or approach of choice for coding text. 
+
+Once all preprocessing is completed, please check that preprocessing completed as expected, and that your coding is not being particularly affected by irrelevant words that may be more common in your data than in the development data (some code is provided for this purpose after step 9). 
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -14,17 +24,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(SADCAT)
-```
-
-
-
-This guide uses a slightly different procedure than the paper (Nicolas, Bai, & Fiske, 2020), with better performance for responses > 2 words. 
-
-To use, examine and understand the structure of the obituaries file, and format your own text responses in the same format. Then replace the appropriate variables to run your text responses through the code provided to obtain all the dictionaries codings. Make sure all packages are properly installed and loaded.
-
-Alternatively, this code also gives you direct access to the dictionaries in the first lines (e.g., SADCAT::All.steps_Dictionaries), which you can then transfer to your software or approach of choice. 
 
 ```{r}
 #(remove pound sign from next lines to run if packages are not installed.)
@@ -62,25 +61,26 @@ Pre_Dictionaries$values0 = tolower(Pre_Dictionaries$values0) #transform to lower
 
 toks = VCorpus(VectorSource(Pre_Dictionaries$values0))
 
-corpusx <- tm_map(toks, lemmatize_strings)
+corpusx <- tm_map(toks, lemmatize_strings) #ignore warnings if they come up
 
-corpusx <- tm_map(corpusx, delete_ending_Ss)
+delete_ending_Ss2 = function(x){
+  unlist(lapply(x, function(y) {paste(sapply(strsplit(y, ' '), delete_ending_Ss), collapse=' ')
+  }))} #creates a function to delete the last letter of each word in text if that letter is an "s" - if prefer not to run this step, also delete from the processing of data in step 8
 
-corpusx2 <- tm_map(corpusx, PlainTextDocument)
+corpusx2 <- tm_map(corpusx, delete_ending_Ss2)
 
-corpusx2 <- data.frame(text=unlist(sapply(corpusx2, `[`, "content")), 
-    stringsAsFactors=F)
+corpusx2 <- tm_map(corpusx2, PlainTextDocument)
 
-corpusx2 = filter(corpusx2, text != "")
+corpusx2 <- t(data.frame(text = sapply(corpusx2, as.character), stringsAsFactors = FALSE))[,1]
 
-corpusx2 <- quanteda::tokens(corpusx2$text, remove_numbers = T, remove_punct = T, remove_symbols = T)
+corpusx2 <- quanteda::tokens(corpusx2, remove_numbers = T, remove_punct = T, remove_symbols = T)
 
 string_new = vector()
 for(i in 1:length(corpusx2)){
   string_new = rbind(string_new, paste(corpusx2[[i]], collapse=' '))
 }
+Pre_Dictionaries$values0 <- string_new
 
-Pre_Dictionaries$values0 = string_new
 
 
 #5: transform into a format suitable for Quanteda dictionary coding. Here we create multiple dictionaries, for different contructs (e.g., Sociability, Morality, etc.). Dictionaries ending in "_dic" encode ALL the words for that construct. Dictionaries ending in "_hi" encode only high directional words for the construct (e.g., "friendly" for Sociability), while those ending in "_lo" encode low directional words (e.g., "unfriendly" for Sociability). Dictionaries ending in "_pos" or "_neg" encode positively and negatively valence words for each construct, respectively (direction and valence often, but not always, correlate). See Nicolas, Bai, & Fiske, 2021 for more information.
@@ -193,24 +193,21 @@ obituaries$Text = tolower(obituaries$Text) #transform to lower case
 
 toks = VCorpus(VectorSource(obituaries$Text))
 
-corpusxy <- tm_map(toks, lemmatize_strings)
+corpusxy = tm_map(toks, removeWords, stopwords('english')) #remove stopwords - optional
 
-corpusxy <- tm_map(corpusxy, delete_ending_Ss)
+corpusxy <- tm_map(corpusxy, lemmatize_strings) #warnings may be expected
 
-toks <- tm_map(corpusxy, PlainTextDocument)
+corpusxy2 <- tm_map(corpusxy, delete_ending_Ss2)
 
-toks <- data.frame(text=unlist(sapply(toks, `[`, "content")), 
-    stringsAsFactors=F)
+toks <- tm_map(corpusxy2, PlainTextDocument)
 
-toks = filter(toks, text != "")
+toks <- t(data.frame(text = sapply(toks, as.character), stringsAsFactors = FALSE))[,1]
 
-toks <- quanteda::tokens(toks$text, remove_numbers = T, remove_punct = T, remove_symbols = T)
+toks <- quanteda::tokens(toks, remove_numbers = T, remove_punct = T, remove_symbols = T)
 
 string_lemma = vector()
 for(i in 1:length(toks)){
-  string_lemma = rbind(string_lemma, paste(toks[[i]], collapse=' '))
-}
-
+  string_lemma = rbind(string_lemma, paste(toks[[i]], collapse=' '))}
 
 #9: Match target text to dictionaries & convert to document-feature data; bind data.
 toks_dict_pre <- tokens_lookup(toks, dictionary = Dicts_v2, nested_scope = "dictionary", exclusive = T, levels = 1)
@@ -225,7 +222,21 @@ toks_dict = cbind(toks_dict_pre,
                   string_lemma,
                   obituaries)
 
-#10: Calculate Valence for responses using a method better suited for responses >2 words. 
+
+#### Optional - examine the words coded into the dictionaries
+
+#Shows the words dictionary matching
+Dictionaries_per_word = kwic(toks, Dicts_v2)[,c("pattern", "keyword")]
+
+# extracts counts for specific dictionaries (change dictionary name to examine different dimensions)
+Dictionaries_per_word_top = table(filter(Dictionaries_per_word,pattern == 'Deviance_dic')$keyword)
+
+#then View(Dictionaries_per_word_top) and sort to find top words.
+View(Dictionaries_per_word_top)
+###
+
+
+#10: Calculate Valence for responses.
 
 toks_dict$valuex = SADCAT::clean_large_text(obituaries$Text)
 
