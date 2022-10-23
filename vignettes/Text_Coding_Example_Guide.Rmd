@@ -8,6 +8,12 @@ vignette: >
 editor_options: 
   chunk_output_type: console
 ---
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
 
 This guide uses a slightly different procedure than the paper (Nicolas, Bai, & Fiske, 2020), with better performance for responses > 2 words. 
 
@@ -17,12 +23,6 @@ Alternatively, this code also gives you direct access to the dictionaries in the
 
 Once all preprocessing is completed, please check that preprocessing completed as expected, and that your coding is not being particularly affected by irrelevant words that may be more common in your data than in the development data (some code is provided for this purpose after step 9). 
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
 
 
 ```{r}
