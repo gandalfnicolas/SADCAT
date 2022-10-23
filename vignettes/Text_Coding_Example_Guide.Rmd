@@ -57,7 +57,7 @@ Pre_Dictionaries$values0 <- enc2utf8(as.character(Pre_Dictionaries$values0))
 
 Pre_Dictionaries$values0 = tolower(Pre_Dictionaries$values0) #transform to lower case
 
-#4: Lemmatize words. If lemmatization is taking too long on your data (step 8), you can opt to skip this step, or try to stem the responses instead. Please see quanteda language_stemmer documentation if you prefer to stem.
+#4: Lemmatize words. If lemmatization is taking too long on your data (step 8), you can opt to skip this step, or try to stem the responses instead. Please see quanteda language_stemmer documentation if you prefer to stem. (Note that, rarely, lemmatization may transform words in such a way that they are miscoded by the dictionaries, so always check your dictionary coding when the process is complete; if any words seem off, it may be due to lemmatization: I recommend removing them or preventing/reverting their lemmatization.)
 
 toks = VCorpus(VectorSource(Pre_Dictionaries$values0))
 
