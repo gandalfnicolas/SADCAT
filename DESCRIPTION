@@ -6,7 +6,7 @@ Authors@R: person("Gandalf", "Nicolas", email = "gandalfn@gmail.com", role = c("
 Description: Dictionary creation with stereotype content dictionaries.
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 Imports: stringi, wordnet, koRpus.lang.en, hunspell, quanteda, purrr, parallel, dplyr,koRpus, data.table, stringr
 Suggests: knitr,
     rmarkdown
