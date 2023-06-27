@@ -15,6 +15,7 @@ clean_symbols = function(word){
   cleaned = gsub('/',"",cleaned,fixed = T)
   cleaned = gsub('#',"",cleaned,fixed = T)
   cleaned = gsub('?',"",cleaned,fixed = T)
+  cleaned = gsub('!',"",cleaned,fixed = T)
   cleaned = gsub('.',"",cleaned,fixed = T)
   cleaned = gsub('%',"",cleaned,fixed = T)
   cleaned = gsub('$',"",cleaned,fixed = T)
