@@ -17,7 +17,7 @@ setDict("C:\\dict")
 ```{r}
 Dictionaries_FT = read.csv("C:\\Users\\Gandalf\\Dropbox\\Research Projects & Files\\Dictionary creation Project\\FULL dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
 All.steps_Dictionaries_FT = read.csv("C:\\Users\\Gandalf\\Dropbox\\Research Projects & Files\\Dictionary creation Project\\Pre dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
-All.steps_Dictionaries = read.csv("C:\\Users\\Gandalf\\Dropbox\\Research Projects & Files\\Dictionary creation Project\\Large Dictionaries 063023 longer.csv", stringsAsFactors = F) 
+All.steps_Dictionaries = read.csv("C:\\Users\\Gandalf\\Dropbox\\Research Projects & Files\\Dictionary creation Project\\Large Dictionaries 021324 longer.csv", stringsAsFactors = F) 
 Dictionaries = read.csv("C:\\Users\\Gandalf\\Dropbox\\Research Projects & Files\\Dictionary creation Project\\Preprocessed Only Dictionaries 063023.csv", stringsAsFactors = F) 
 Full_Vectors_Avg = read.csv("C:\\Users\\Gandalf\\Dropbox\\Research Projects & Files\\Dictionary creation Project\\Full_Vectors AVG.csv", stringsAsFactors = F) ##not updated on 062921 like others
 Seed_Vectors_Avg = read.csv("C:\\Users\\Gandalf\\Dropbox\\Research Projects & Files\\Dictionary creation Project\\Seed vectors Average 080221.csv", stringsAsFactors = F)
@@ -28,7 +28,7 @@ Obituary_data = read.csv("C:\\Users\\Gandalf\\Dropbox\\Research Projects & Files
 #######
 Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\FULL dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
 All.steps_Dictionaries_FT = read.csv("D:\\Dropbox\\Dictionary creation Project\\Pre dictionaries ft shortened 060220.csv", stringsAsFactors = F)##not updated on 062921 like others
-All.steps_Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Large Dictionaries 063023 longer.csv", stringsAsFactors = F) 
+All.steps_Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Large Dictionaries 021324 longer.csv", stringsAsFactors = F) 
 Dictionaries = read.csv("D:\\Dropbox\\Dictionary creation Project\\Preprocessed Only Dictionaries 063023.csv", stringsAsFactors = F) 
 Full_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Full_Vectors AVG.csv", stringsAsFactors = F) ##not updated on 062921 like others
 Seed_Vectors_Avg = read.csv("D:\\Dropbox\\Dictionary creation Project\\Seed vectors Average 080221.csv", stringsAsFactors = F)
