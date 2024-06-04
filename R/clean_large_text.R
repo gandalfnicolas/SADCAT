@@ -5,7 +5,7 @@
 #' @return response vector that is preprocessed
 #' @export clean_large_text
 
-
+# some xs are to prevent word from scoring.
 clean_large_text = function(x){
   require(stringr)
   x <- str_replace(x, pattern = "^", replacement = " ")  ##  Adds a space to the beginning of the text. (Ensures function works on first word in the text)
@@ -44,7 +44,7 @@ clean_large_text = function(x){
   x <- str_replace_all(x, pattern = "\\.( |)\\.( |)\\.( |)(W|w)ell ", replacement = " xwell ")
   x <- str_replace_all(x, pattern = "\\. Well,", replacement = ". xWell ")
   x <- str_replace_all(x, pattern = ": (W|w)ell,", replacement = ": xwell ")
-  x <- str_replace_all(x, pattern = " (W|w)ell-", replacement = " well x")
+  x <- str_replace_all(x, pattern = " (W|w)ell-", replacement = " xwell ")
   x <- str_replace_all(x, pattern = " (W|w)ell,", replacement = " xwell ")
   x <- str_replace_all(x, pattern = "- (O|o)kay,", replacement = " xokay ")
   x <- str_replace_all(x, pattern = ", (O|o)kay,", replacement = " xokay ")
@@ -540,7 +540,7 @@ clean_large_text = function(x){
   x <- str_replace_all(x, pattern = " (W|w)ith (U|u)s (O|o)r (A|a)gainst (U|u)s " , replacement = " with us or xagainst us ")
   x <- str_replace_all(x, pattern = " (N|n)ot (F|f)or (N|n)ot (A|a)gainst " , replacement = " not xfor not xagainst ")
   x <- str_replace_all(x, pattern = " (A|a)nti( - |-| )(s|S)ocial " , replacement = " antisocial ")
-  x <- str_replace_all(x, pattern = " (A|a)nti( - |-| )" , replacement = " anti x")
+  x <- str_replace_all(x, pattern = " (A|a)nti( - |-| )" , replacement = " anti ")
   x <- str_replace_all(x, pattern = " (A|a)wful (L|l)ot " , replacement = " xawful lot ")
   x <- str_replace_all(x, pattern = " (A|a)ccount (B|b)alance[a-z]+ | (A|a)ccount (B|b)alance " , replacement = " account xbalance ")
   x <- str_replace_all(x, pattern = " (B|b)alanc[a-z]+( - |-| )(B|b)udget[a-z]+ | (B|b)alanc[a-z]+( - |-| )(B|b)udget " , replacement = " xbalance budget ")
@@ -1192,7 +1192,7 @@ clean_large_text = function(x){
   x <- str_replace_all(x, pattern = " (B|b)reach (O|o)f (T|t)rust " , replacement = " breach of xtrust ")
   x <- str_replace_all(x, pattern = " (I|i)ncome( - |-| )(T|t)rust[a-z]+ | (I|i)ncome( - |-| )(T|t)rust " , replacement = " income xtrust ")
   x <- str_replace_all(x, pattern = " (T|t)rust( - |-| )(F|f)und[a-z]+ | (T|t)rust( - |-| )(F|f)und " , replacement = " xtrust fund ")
-  x <- str_replace_all(x, pattern = " (U|u)nable (T|t)o " , replacement = " unable to x")
+  x <- str_replace_all(x, pattern = " (U|u)nable (T|t)o " , replacement = " unable to ")
   x <- str_replace_all(x, pattern = " (A|a)merican[a-z]+( - |-| )(U|u)nity " , replacement = " american xunity ")
   x <- str_replace_all(x, pattern = " (C|c)anad[a-z]+( - |-| )(U|u)nity " , replacement = " canadian xunity ")
   x <- str_replace_all(x, pattern = " (N|n)ational( - |-| )(U|u)nity " , replacement = " national xunity ")
