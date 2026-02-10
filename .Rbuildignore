@@ -3,3 +3,6 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^\.claude$
+^Setup\.Rmd$
+^sadcat_pipeline_functions\.R$

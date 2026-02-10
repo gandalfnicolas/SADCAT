@@ -5,16 +5,15 @@
 \alias{Dictionaries}
 \title{Full dictionary codings}
 \format{
-A data frame with 13930 rows and 973 variables:
-\describe{
-  \item{word}{a word in one or more of the dictionaries}
-  \item{_dict}{variables ending in _dict indicate if the word is (1) or not (0) in the dictionary. If accompanied by a _lo it is coding if the word is low & in the dictionary, and if accompanied by a _hi it is coding if the word is high & in the dictionary (i.e., it combines the _dict and _dir variables)}
-  \item{_dir}{variables ending in _dir indicate if the word is high (1), neutral (0) or low (-1) in the dictionary; e.g., friendly is high for sociability; unfriendly is low. Coded as NA if word not in the corresponding dictionary}
-  \item{fasttext}{variables starting in fasttext are the word embedding dimensions for Fasttext trained on 2 million word vectors trained with subword information on Common Crawl (https://fasttext.cc/docs/en/english-vectors.html)}
-  \item{Glove}{variables starting in Glove are the word embedding dimensions for Glove trained on Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors; https://nlp.stanford.edu/projects/glove/) (https://fasttext.cc/docs/en/english-vectors.html)}
-  \item{Word2vec}{variables starting in Word2vec are the word embedding dimensions for Word2vec trained Google News (https://code.google.com/archive/p/word2vec/)}
-  \item{USE}{variables starting in W2v are the word embedding dimensions for Universal Sentence Encoder trained on Common Crawl (https://arxiv.org/abs/1803.11175)}
-  ...
+A data frame with 13930 rows. Key column groups:
+\itemize{
+  \item \code{word}: A word in one or more of the dictionaries
+  \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
+  \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
+  \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
+  \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
+  \item \code{Word2vec.*}: Word2vec embedding dimensions (Google News)
+  \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
 }
 }
 \usage{

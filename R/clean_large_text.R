@@ -7,8 +7,7 @@
 
 # some xs are to prevent word from scoring.
 clean_large_text = function(x){
-  require(stringr)
-  x <- str_replace(x, pattern = "^", replacement = " ")  ##  Adds a space to the beginning of the text. (Ensures function works on first word in the text)
+  x <- stringr::str_replace(x, pattern = "^", replacement = " ")  ##  Adds a space to the beginning of the text. (Ensures function works on first word in the text)
   x <- str_replace(x, pattern = "$", replacement = " ")  ##  Adds a space to the end of the text (Ensures function works on last word in the text)
   x <- str_replace_all(x, pattern = " (A|a)in't ", replacement = " am not ")
   x <- str_replace_all(x, pattern = " (L|l)et's ", replacement = " let us ")
@@ -117,7 +116,7 @@ clean_large_text = function(x){
 
   x <- str_replace_all(x, pattern = ",[^0-9]", replacement = " , ")
   x <- str_replace_all(x, pattern = '"', replacement = ' " ')
-  x <- str_replace_all(x, pattern = "([\\?\\!;:\\*,#•■])", replacement = " \\1 ")
+  x <- str_replace_all(x, pattern = "([\\?\\!;:\\*,#\u2022\u25a0])", replacement = " \\1 ")
   x <- str_replace_all(x, pattern = "-", replacement = " - ")
   x <- str_replace_all(x, pattern = "\\(", replacement = " \\( ")
   x <- str_replace_all(x, pattern = "\\)", replacement = " \\) ")

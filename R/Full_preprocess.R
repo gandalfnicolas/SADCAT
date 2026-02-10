@@ -3,6 +3,8 @@
 #' @description This function applies all response preprocessing functions included in the package. (includes lowering, trimming whitespace, eliminating spaces and symbols, lemmatizing, and spellcheking; some of these only work on single words)
 #' @param words text to preprocess
 #' @param parallelize use parallel processors?
+#' @param print Whether to print progress. Defaults to TRUE
+#' @param debug Whether to pass debug flag to treetag. Defaults to FALSE
 #' @return fully preprocessed words
 #' @export Full_preprocess
 

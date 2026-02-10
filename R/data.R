@@ -2,20 +2,14 @@
 #'
 #' Unprocessed Full dictionary codings, shortened with Fasttext, including the vector codings. May be used for different degrees of preprocessing. (e.g., use if text too extensive to preprocess)
 #'
-#'
-#' @format A data frame with 11291 rows and 1539 variables:
-#' \describe{
-#'   \item{values}{Words as obtained from the literature or Wordnet. No preprocessing}
-#'   \item{values0}{lower-case word values}
-#'   \item{values1}{lower-case word values, no spaces or symbols}
-#'   \item{values2}{lower-case word values, no spaces or symbols, lemmatized}
-#'   \item{values3}{lower-case word values, no spaces or symbols, lemmatized, with no ending Ss (not real words. These are the values averaged over in the final dictionaries)}
-#'   \item{_dict}{variables ending in _dict indicate if the word is (1) or not (0) in the dictionary. If accompanied by a _lo it is coding if the word is low & in the dictionary, and if accompanied by a _hi it is coding if the word is high & in the dictionary (i.e., it combines the _dict and _dir variables)}
-#'   \item{_dir}{variables ending in _dir indicate if the word is high (1), neutral (0) or low (-1) in the dictionary; e.g., friendly is high for sociability; unfriendly is low. Coded as NA if word not in the corresponding dictionary}
-#'   \item{fasttext}{variables starting in fasttext are the word embedding dimensions for Fasttext trained on 2 million word vectors trained with subword information on Common Crawl (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Glove}{variables starting in Glove are the word embedding dimensions for Glove trained on Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors; https://nlp.stanford.edu/projects/glove/) (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Word2vec}{variables starting in Word2vec are the word embedding dimensions for Word2vec trained Google News (https://code.google.com/archive/p/word2vec/)}
-#'   ...
+#' @format A data frame with 11291 rows and 1539 variables. Key column groups:
+#' \itemize{
+#'   \item \code{values}, \code{values0}-\code{values3}: Words at different preprocessing stages
+#'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
+#'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
+#'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
+#'   \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
+#'   \item \code{Word2vec.*}: Word2vec embedding dimensions (Google News)
 #' }
 "All.steps_Dictionaries_FT"
 
@@ -24,21 +18,15 @@
 #'
 #' Unprocessed Full dictionary codings, including the vector codings. May be used for different degrees of preprocessing. (e.g., use if text too extensive to preprocess)
 #'
-#'
-#' @format A data frame with 14449 rows and 1499 variables:
-#' \describe{
-#'   \item{values}{Words as obtained from the literature or Wordnet. No preprocessing}
-#'   \item{values0}{lower-case word values}
-#'   \item{values1}{lower-case word values, no spaces or symbols}
-#'   \item{values2}{lower-case word values, no spaces or symbols, lemmatized}
-#'   \item{values3}{lower-case word values, no spaces or symbols, lemmatized, with no ending Ss (not real words. These are the values averaged over in the final dictionaries)}
-#'   \item{_dict}{variables ending in _dict indicate if the word is (1) or not (0) in the dictionary. If accompanied by a _lo it is coding if the word is low & in the dictionary, and if accompanied by a _hi it is coding if the word is high & in the dictionary (i.e., it combines the _dict and _dir variables)}
-#'   \item{_dir}{variables ending in _dir indicate if the word is high (1), neutral (0) or low (-1) in the dictionary; e.g., friendly is high for sociability; unfriendly is low. Coded as NA if word not in the corresponding dictionary}
-#'   \item{fasttext}{variables starting in fasttext are the word embedding dimensions for Fasttext trained on 2 million word vectors trained with subword information on Common Crawl (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Glove}{variables starting in Glove are the word embedding dimensions for Glove trained on Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors; https://nlp.stanford.edu/projects/glove/) (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Word2vec}{variables starting in Word2vec are the word embedding dimensions for Word2vec trained Google News (https://code.google.com/archive/p/word2vec/)}
-#'   \item{USE}{variables starting in W2v are the word embedding dimensions for Universal Sentence Encoder trained on Common Crawl (https://arxiv.org/abs/1803.11175)}
-#'   ...
+#' @format A data frame with 14449 rows. Key column groups:
+#' \itemize{
+#'   \item \code{values}, \code{values0}-\code{values3}: Words at different preprocessing stages
+#'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
+#'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
+#'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
+#'   \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
+#'   \item \code{Word2vec.*}: Word2vec embedding dimensions (Google News)
+#'   \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
 #' }
 "All.steps_Dictionaries"
 
@@ -47,17 +35,15 @@
 #'
 #' Full dictionary codings, shortened with fasttext, including the vector codings
 #'
-#'
-#' @format A data frame with 13930 rows and 973 variables:
-#' \describe{
-#'   \item{word}{a word in one or more of the dictionaries}
-#'   \item{_dict}{variables ending in _dict indicate if the word is (1) or not (0) in the dictionary. If accompanied by a _lo it is coding if the word is low & in the dictionary, and if accompanied by a _hi it is coding if the word is high & in the dictionary (i.e., it combines the _dict and _dir variables)}
-#'   \item{_dir}{variables ending in _dir indicate if the word is high (1), neutral (0) or low (-1) in the dictionary; e.g., friendly is high for sociability; unfriendly is low. Coded as NA if word not in the corresponding dictionary}
-#'   \item{fasttext}{variables starting in fasttext are the word embedding dimensions for Fasttext trained on 2 million word vectors trained with subword information on Common Crawl (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Glove}{variables starting in Glove are the word embedding dimensions for Glove trained on Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors; https://nlp.stanford.edu/projects/glove/) (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Word2vec}{variables starting in Word2vec are the word embedding dimensions for Word2vec trained Google News (https://code.google.com/archive/p/word2vec/)}
-#'   \item{USE}{variables starting in W2v are the word embedding dimensions for Universal Sentence Encoder trained on Common Crawl (https://arxiv.org/abs/1803.11175)}
-#'   ...
+#' @format A data frame with 13930 rows. Key column groups:
+#' \itemize{
+#'   \item \code{word}: A word in one or more of the dictionaries
+#'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
+#'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
+#'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
+#'   \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
+#'   \item \code{Word2vec.*}: Word2vec embedding dimensions (Google News)
+#'   \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
 #' }
 "Dictionaries_FT"
 
@@ -66,17 +52,15 @@
 #'
 #' Full dictionary codings, including the vector codings
 #'
-#'
-#' @format A data frame with 13930 rows and 973 variables:
-#' \describe{
-#'   \item{word}{a word in one or more of the dictionaries}
-#'   \item{_dict}{variables ending in _dict indicate if the word is (1) or not (0) in the dictionary. If accompanied by a _lo it is coding if the word is low & in the dictionary, and if accompanied by a _hi it is coding if the word is high & in the dictionary (i.e., it combines the _dict and _dir variables)}
-#'   \item{_dir}{variables ending in _dir indicate if the word is high (1), neutral (0) or low (-1) in the dictionary; e.g., friendly is high for sociability; unfriendly is low. Coded as NA if word not in the corresponding dictionary}
-#'   \item{fasttext}{variables starting in fasttext are the word embedding dimensions for Fasttext trained on 2 million word vectors trained with subword information on Common Crawl (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Glove}{variables starting in Glove are the word embedding dimensions for Glove trained on Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors; https://nlp.stanford.edu/projects/glove/) (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Word2vec}{variables starting in Word2vec are the word embedding dimensions for Word2vec trained Google News (https://code.google.com/archive/p/word2vec/)}
-#'   \item{USE}{variables starting in W2v are the word embedding dimensions for Universal Sentence Encoder trained on Common Crawl (https://arxiv.org/abs/1803.11175)}
-#'   ...
+#' @format A data frame with 13930 rows. Key column groups:
+#' \itemize{
+#'   \item \code{word}: A word in one or more of the dictionaries
+#'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
+#'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
+#'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
+#'   \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
+#'   \item \code{Word2vec.*}: Word2vec embedding dimensions (Google News)
+#'   \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
 #' }
 "Dictionaries"
 
@@ -85,15 +69,13 @@
 #'
 #' Average word embeddings for expanded dictionaries
 #'
-#'
-#' @format A data frame with 56 rows and 901 variables:
-#' \describe{
-#'   \item{Dictionary}{Name of the dictionary that the word embeddings are representing.}
-#'   \item{fasttext}{variables starting in fasttext are the word embedding dimensions for Fasttext trained on 2 million word vectors trained with subword information on Common Crawl (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Glove}{variables starting in Glove are the word embedding dimensions for Glove trained on Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors; https://nlp.stanford.edu/projects/glove/) (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Word2vec}{variables starting in Word2vec are the word embedding dimensions for Word2vec trained Google News (https://code.google.com/archive/p/word2vec/)}
-#'   \item{USE}{variables starting in W2v are the word embedding dimensions for Universal Sentence Encoder trained on Common Crawl (https://arxiv.org/abs/1803.11175)}
-#'   ...
+#' @format A data frame with 56 rows. Key column groups:
+#' \itemize{
+#'   \item \code{Dictionary}: Name of the dictionary the embeddings represent
+#'   \item \code{ft.*}: Fasttext word embedding dimensions (Common Crawl)
+#'   \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
+#'   \item \code{w2v.*}: Word2vec embedding dimensions (Google News)
+#'   \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
 #' }
 "Full_Vectors_Avg"
 
@@ -102,15 +84,14 @@
 #'
 #' Average Word embeddings for seed dictionaries
 #'
-#'
-#' @format A data frame with 30 rows and 901 variables:
-#' \describe{
-#'   \item{Dictionary}{Name of the dictionary that the word embeddings are representing.}
-#'   \item{fasttext}{variables starting in fasttext are the word embedding dimensions for Fasttext trained on 2 million word vectors trained with subword information on Common Crawl (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Glove}{variables starting in Glove are the word embedding dimensions for Glove trained on Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors; https://nlp.stanford.edu/projects/glove/) (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{W2v}{variables starting in W2v are the word embedding dimensions for Word2vec trained Google News (https://code.google.com/archive/p/word2vec/)}
-#'   \item{USE}{variables starting in W2v are the word embedding dimensions for Universal Sentence Encoder trained on Common Crawl (https://arxiv.org/abs/1803.11175)}
-#'   ...
+#' @format A data frame with seed vectors. Key column groups:
+#' \itemize{
+#'   \item \code{Dictionary}: Name of the dictionary the embeddings represent
+#'   \item \code{ft.*}: Fasttext word embedding dimensions
+#'   \item \code{Glove.*}: GloVe word embedding dimensions
+#'   \item \code{w2v.*}: Word2vec embedding dimensions
+#'   \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
+#'   \item \code{SBERT.*}: SBERT embedding dimensions (if available)
 #' }
 "Seed_Vectors_Avg"
 
@@ -119,22 +100,47 @@
 #'
 #' Full spanish dictionaries. Word embedding values are based on english data.
 #'
-#'
-#' @format A data frame:
-#' \describe{
-#'   \item{Palabra}{Spanish word, not stemmed but some preprocessing (e.g., no symbols, spaces, accents)}
-#'   \item{Palabra_stem}{Stemmed version of Palabra}
-#'   \item{values}{Words as obtained from the literature or Wordnet. No preprocessing}
-#'   \item{values0}{lower-case word values}
-#'   \item{values1}{lower-case word values, no spaces or symbols}
-#'   \item{values2}{lower-case word values, no spaces or symbols, lemmatized}
-#'   \item{values3}{lower-case word values, no spaces or symbols, lemmatized, with no ending Ss (not real words. These are the values averaged over in the final dictionaries)}
-#'   \item{_dict}{variables ending in _dict indicate if the word is (1) or not (0) in the dictionary. If accompanied by a _lo it is coding if the word is low & in the dictionary, and if accompanied by a _hi it is coding if the word is high & in the dictionary (i.e., it combines the _dict and _dir variables)}
-#'   \item{_dir}{variables ending in _dir indicate if the word is high (1), neutral (0) or low (-1) in the dictionary; e.g., friendly is high for sociability; unfriendly is low. Coded as NA if word not in the corresponding dictionary}
-#'   \item{fasttext}{variables starting in fasttext are the word embedding dimensions for Fasttext trained on 2 million word vectors trained with subword information on Common Crawl (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Glove}{variables starting in Glove are the word embedding dimensions for Glove trained on Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors; https://nlp.stanford.edu/projects/glove/) (https://fasttext.cc/docs/en/english-vectors.html)}
-#'   \item{Word2vec}{variables starting in Word2vec are the word embedding dimensions for Word2vec trained Google News (https://code.google.com/archive/p/word2vec/)}
-#'   ...
+#' @format A data frame. Key column groups:
+#' \itemize{
+#'   \item \code{Palabra}: Spanish word, not stemmed but some preprocessing (no symbols, spaces, accents)
+#'   \item \code{Palabra_stem}: Stemmed version of Palabra
+#'   \item \code{values}, \code{values0}-\code{values3}: Words at different preprocessing stages
+#'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
+#'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
+#'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
+#'   \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
+#'   \item \code{Word2vec.*}: Word2vec embedding dimensions (Google News)
 #' }
 "Spanishdicts"
 
+
+#' Example obituary data for text coding
+#'
+#' Example obituary data for use with the text coding pipeline
+#'
+#' @format A data frame with obituary text responses
+"Obituary_data"
+
+
+#' Average word embeddings for seed dictionaries (all words)
+#'
+#' Average word embeddings for seed dictionaries using all words
+#'
+#' @format A data frame with seed vectors computed from all words
+"Seed_Vectors_allwords_Avg"
+
+
+#' Average word embeddings for seed dictionaries (person context)
+#'
+#' Average word embeddings for seed dictionaries using person context words
+#'
+#' @format A data frame with seed vectors computed from person context words
+"Seed_Vectors_personcontext_Avg"
+
+
+#' Sentiment lexicon data
+#'
+#' Combined sentiment lexicon data used for valence scoring
+#'
+#' @format A data frame with sentiment words and their valence scores
+"Sentiments"

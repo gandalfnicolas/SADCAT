@@ -3,6 +3,7 @@
 #' @description This function allows you lemmatize words using the treetag lemmatizer
 #' @param word word to lemmatize, if multiple use loop/apply/dplyr
 #' @param print Whether to print word being lemmatized. Useful for long lists of words. Defaults to TRUE
+#' @param debug Whether to pass debug flag to treetag. Defaults to FALSE
 #' @return lemmatized words
 #' @export Lemmatize
 

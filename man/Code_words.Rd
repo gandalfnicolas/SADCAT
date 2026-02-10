@@ -19,6 +19,12 @@ Code_words(
 \item{text}{string name of a variable (vector) of text to code into the dictionaries}
 
 \item{more2na}{if text has more than 2 words, transform to na}
+
+\item{parallelize}{use parallel processors? Defaults to TRUE}
+
+\item{print}{Whether to print progress. Defaults to TRUE}
+
+\item{debug}{Whether to pass debug flag to treetag. Defaults to FALSE}
 }
 \value{
 Original dataframe with additional columns for codings

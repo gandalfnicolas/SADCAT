@@ -10,6 +10,8 @@ Lemmatize(word, print = T, debug = F)
 \item{word}{word to lemmatize, if multiple use loop/apply/dplyr}
 
 \item{print}{Whether to print word being lemmatized. Useful for long lists of words. Defaults to TRUE}
+
+\item{debug}{Whether to pass debug flag to treetag. Defaults to FALSE}
 }
 \value{
 lemmatized words

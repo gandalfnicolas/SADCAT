@@ -10,6 +10,10 @@ Full_preprocess(words, parallelize = T, print = T, debug = F)
 \item{words}{text to preprocess}
 
 \item{parallelize}{use parallel processors?}
+
+\item{print}{Whether to print progress. Defaults to TRUE}
+
+\item{debug}{Whether to pass debug flag to treetag. Defaults to FALSE}
 }
 \value{
 fully preprocessed words

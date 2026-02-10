@@ -11,7 +11,8 @@ editor_options:
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  eval = FALSE
 )
 ```
 
@@ -309,7 +310,7 @@ toks_dictnonepre = toks_dict %>%
 toks_dict$None2y = toks_dictnonepre$None2y
 
 #15: Write data
-write.csv(toks_dict, "obituaries dict.csv")
+write.csv(toks_dict, "obituaries_dict.csv")
 
 
 #### Variables:

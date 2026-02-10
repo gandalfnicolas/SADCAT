@@ -5,14 +5,13 @@
 \alias{Full_Vectors_Avg}
 \title{Average Word embeddings for expanded dictionaries}
 \format{
-A data frame with 56 rows and 901 variables:
-\describe{
-  \item{Dictionary}{Name of the dictionary that the word embeddings are representing.}
-  \item{fasttext}{variables starting in fasttext are the word embedding dimensions for Fasttext trained on 2 million word vectors trained with subword information on Common Crawl (https://fasttext.cc/docs/en/english-vectors.html)}
-  \item{Glove}{variables starting in Glove are the word embedding dimensions for Glove trained on Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors; https://nlp.stanford.edu/projects/glove/) (https://fasttext.cc/docs/en/english-vectors.html)}
-  \item{Word2vec}{variables starting in Word2vec are the word embedding dimensions for Word2vec trained Google News (https://code.google.com/archive/p/word2vec/)}
-  \item{USE}{variables starting in W2v are the word embedding dimensions for Universal Sentence Encoder trained on Common Crawl (https://arxiv.org/abs/1803.11175)}
-  ...
+A data frame with 56 rows. Key column groups:
+\itemize{
+  \item \code{Dictionary}: Name of the dictionary the embeddings represent
+  \item \code{ft.*}: Fasttext word embedding dimensions (Common Crawl)
+  \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
+  \item \code{w2v.*}: Word2vec embedding dimensions (Google News)
+  \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
 }
 }
 \usage{

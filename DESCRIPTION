@@ -6,10 +6,18 @@ Authors@R: person("Gandalf", "Nicolas", email = "gandalfn@gmail.com", role = c("
 Description: Dictionary creation with stereotype content dictionaries.
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
-Imports: stringi, wordnet, koRpus.lang.en, hunspell, quanteda, purrr, parallel, dplyr,koRpus, data.table, stringr
+LazyDataCompression: xz
+RoxygenNote: 7.3.3
+Imports: stringi, wordnet, hunspell, quanteda, purrr, parallel, dplyr, koRpus, data.table, stringr, tidytext, lsa, plyr
 Suggests: knitr,
-    rmarkdown
+    rmarkdown,
+    reticulate,
+    SemNetDictionaries,
+    lme4,
+    multcomp,
+    emmeans,
+    koRpus.lang.en,
+    tidyr
 VignetteBuilder: knitr
 License: NA
 Depends: 

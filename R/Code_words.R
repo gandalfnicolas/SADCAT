@@ -4,6 +4,9 @@
 #' @param data dataframe including the text to code
 #' @param text string name of a variable (vector) of text to code into the dictionaries
 #' @param more2na if text has more than 2 words, transform to na
+#' @param parallelize use parallel processors? Defaults to TRUE
+#' @param print Whether to print progress. Defaults to TRUE
+#' @param debug Whether to pass debug flag to treetag. Defaults to FALSE
 #' @return Original dataframe with additional columns for codings
 #' @export Code_words
 
