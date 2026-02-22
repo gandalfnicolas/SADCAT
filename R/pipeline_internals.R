@@ -67,9 +67,15 @@ apply_single_valence_dict <- function(toksval, dict_obj, name, is_lexicoder = FA
     result$positive <- result$positive + result$neg_negative
   }
 
-  # Binarize
-  neg_col <- if (is_lexicoder) "negative" else paste0("negative_", name)
-  pos_col <- if (is_lexicoder) "positive" else paste0("positive_", name)
+  # Binarize — find pos/neg columns from actual dfm result (case-insensitive)
+  result_cols <- setdiff(colnames(result), "doc_id")
+  if (is_lexicoder) {
+    neg_col <- "negative"
+    pos_col <- "positive"
+  } else {
+    neg_col <- grep("^negative", result_cols, value = TRUE, ignore.case = TRUE)[1]
+    pos_col <- grep("^positive", result_cols, value = TRUE, ignore.case = TRUE)[1]
+  }
 
   neg_binary <- ifelse(result[[neg_col]] > 0, 1, 0)
   pos_binary <- ifelse(result[[pos_col]] > 0, 1, 0)
