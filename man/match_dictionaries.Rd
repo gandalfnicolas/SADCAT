@@ -2,14 +2,16 @@
 % Please edit documentation in R/match_dictionaries.R
 \name{match_dictionaries}
 \alias{match_dictionaries}
-\title{Match Text Against SADCAT Dictionaries}
+\title{Match Text Against SADCAT and/or SOCATS Dictionaries}
 \usage{
 match_dictionaries(
   data,
   text_col = "tv3",
   response_col = "tv",
   valence_col = "ValyNA",
-  sadcat_dict = NULL
+  sadcat_dict = NULL,
+  socats_dict = NULL,
+  socats = FALSE
 )
 }
 \arguments{
@@ -21,15 +23,22 @@ match_dictionaries(
 
 \item{valence_col}{Name of combined valence-NA column (default "ValyNA")}
 
-\item{sadcat_dict}{Pre-computed quanteda dictionary. If NULL, calls prepare_sadcat_dictionaries()}
+\item{sadcat_dict}{Pre-computed SADCAT quanteda dictionary. If NULL and
+\code{sadcat = TRUE} (default), calls \code{prepare_sadcat_dictionaries()}.
+Set to FALSE to skip SADCAT matching entirely.}
+
+\item{socats_dict}{Pre-computed SOCATS quanteda dictionary. If NULL and
+\code{socats = TRUE}, calls \code{prepare_socats_dictionaries()}.}
+
+\item{socats}{Logical. Match against SOCATS dictionaries? (default FALSE)}
 }
 \value{
 The input data with many new columns: dictionary counts, percentages,
   binary indicators, direction scores, per-dimension valence, etc.
 }
 \description{
-Match text responses against SADCAT dictionaries.
-Tokenizes response text, matches against SADCAT stereotype dictionaries,
-and computes binary indicators, percentages, direction scores, and
-per-dimension valence/direction columns.
+Match text responses against SADCAT stereotype dictionaries
+and/or SOCATS social category dictionaries. Tokenizes response text,
+matches against dictionaries, and computes binary indicators, percentages,
+direction scores, and per-dimension valence/direction columns.
 }

@@ -9,7 +9,7 @@
 #' @param response_col Column with original response for negation/NA checks (default "response")
 #' @param group_cols Grouping columns for aggregation (default c("Synonym.GroupX", "Group", "Level"))
 #' @param stages Character vector of stages to run. Default: all stages.
-#'   Options: "preprocess", "valence", "dictionaries", "embeddings", "seeds", "aggregate"
+#'   Options: "preprocess", "valence", "dictionaries", "socats", "embeddings", "seeds", "aggregate"
 #' @param spellcheck Run spell-checking in preprocessing? (default TRUE)
 #' @param singularize_text Run singularization in preprocessing? (default TRUE)
 #' @param java_home Path to Java JRE for spell-checking
@@ -38,7 +38,7 @@ process_responses <- function(data,
                               response_col = "response",
                               group_cols = c("Synonym.GroupX", "Group", "Level"),
                               stages = c("preprocess", "valence", "dictionaries",
-                                         "embeddings", "seeds", "aggregate"),
+                                         "socats", "embeddings", "seeds", "aggregate"),
                               # Preprocessing params
                               spellcheck = TRUE,
                               singularize_text = TRUE,
@@ -96,13 +96,20 @@ process_responses <- function(data,
   }
 
   # ---- Stage 3+4: Dictionaries ----
-  if ("dictionaries" %in% stages) {
-    sadcat_dict <- prepare_sadcat_dictionaries()
+  if ("dictionaries" %in% stages || "socats" %in% stages) {
+    do_sadcat <- "dictionaries" %in% stages
+    do_socats <- "socats" %in% stages
+
+    sadcat_dict_obj <- if (do_sadcat) prepare_sadcat_dictionaries() else FALSE
+    socats_dict_obj <- if (do_socats) prepare_socats_dictionaries() else NULL
+
     data <- match_dictionaries(data,
                                text_col = "tv3",
                                response_col = "tv",
                                valence_col = "ValyNA",
-                               sadcat_dict = sadcat_dict)
+                               sadcat_dict = sadcat_dict_obj,
+                               socats_dict = socats_dict_obj,
+                               socats = do_socats)
     if (save_intermediates) {
       utils::write.csv(data, paste0(save_prefix, "_3_dictionaries.csv"), row.names = FALSE)
     }

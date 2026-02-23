@@ -9,7 +9,8 @@ process_responses(
   text_col = "responsex",
   response_col = "response",
   group_cols = c("Synonym.GroupX", "Group", "Level"),
-  stages = c("preprocess", "valence", "dictionaries", "embeddings", "seeds", "aggregate"),
+  stages = c("preprocess", "valence", "dictionaries", "socats", "embeddings", "seeds",
+    "aggregate"),
   spellcheck = TRUE,
   singularize_text = TRUE,
   java_home = "C:\\\\Program Files\\\\Java\\\\jre-1.8",
@@ -40,7 +41,7 @@ process_responses(
 \item{group_cols}{Grouping columns for aggregation (default c("Synonym.GroupX", "Group", "Level"))}
 
 \item{stages}{Character vector of stages to run. Default: all stages.
-Options: "preprocess", "valence", "dictionaries", "embeddings", "seeds", "aggregate"}
+Options: "preprocess", "valence", "dictionaries", "socats", "embeddings", "seeds", "aggregate"}
 
 \item{spellcheck}{Run spell-checking in preprocessing? (default TRUE)}
 

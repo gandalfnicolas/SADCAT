@@ -49,7 +49,8 @@ aggregate_responses <- function(data,
              "_valy3$|_dirx3$|",
              "^SBERT_|^Gemini_|",
              "\\.seed$|",
-             "^traditional$"),
+             "^traditional$|",
+             "^Age_dir$|^RaceGeo_dir$|^SexualOr_dir$|^Gender_dir\\."),
       all_names, value = TRUE
     )
   }
