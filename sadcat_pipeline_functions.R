@@ -471,7 +471,7 @@ score_valence <- function(data,
   valuex <- SADCAT::clean_large_text(data[[text_col]])
   toksval <- quanteda::tokens(valuex)
 
-  # 1. Lexicoder (LSD2015) — built-in quanteda dictionary
+  # 1. Lexicoder (LSD2015) -- built-in quanteda dictionary
   lex_result <- apply_single_valence_dict(toksval, quanteda::data_dictionary_LSD2015,
                                           "lexicoder", is_lexicoder = TRUE)
 
@@ -505,8 +505,15 @@ score_valence <- function(data,
   val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
   valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
 
-  data$Valy <- rowMeans(data[, val_cols, drop = FALSE], na.rm = TRUE)
-  data$ValyNA <- rowMeans(data[, valna_cols, drop = FALSE], na.rm = TRUE)
+  data <- rowMeans(data[, val_cols, drop = FALSE], na.rm = TRUE)
+  data <- rowMeans(data[, valna_cols, drop = FALSE], na.rm = TRUE)
+
+  # Ensure valence family columns are NA when the original response is missing
+  data <- .mask_missing_response_cols(
+    data,
+    response_col,
+    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNA$")
+  )
 
   # Replace NaN with NA
   data <- replace_nan_with_na(data)
@@ -691,8 +698,9 @@ prepare_sadcat_dictionaries <- function(pre_dictionaries = SADCAT::All.steps_Dic
 #' @export
 match_dictionaries <- function(data,
                                text_col = "tv3",
-                               response_col = "tv",
+                               response_col = response_col,
                                valence_col = "ValyNA",
+                               valence_raw_col = "Valy",
                                sadcat_dict = NULL) {
   message("--- Stage 4: Matching dictionaries ---")
 
@@ -702,9 +710,9 @@ match_dictionaries <- function(data,
   }
 
   # ---- Prepare text for matching (tv3 -> tv4) ----
-  data$tv4 <- enc2utf8(as.character(data[[text_col]]))
-  data$tv4 <- tolower(data$tv4)
-  data$tv4 <- gsub("-", " ", data$tv4)
+  data <- enc2utf8(as.character(data[[text_col]]))
+  data <- tolower(data)
+  data <- gsub("-", " ", data)
 
   # Remove ending Ss
   delete_ending_Ss2_internal <- function(x) {
@@ -713,10 +721,10 @@ match_dictionaries <- function(data,
       paste(sapply(strsplit(y, ' '), SADCAT::delete_ending_Ss), collapse = ' ')
     }))
   }
-  data$tv4 <- vapply(data$tv4, delete_ending_Ss2_internal, character(1))
+  data <- vapply(data, delete_ending_Ss2_internal, character(1))
 
   # ---- Tokenize and match ----
-  toks <- quanteda::tokens(data$tv4, remove_numbers = FALSE,
+  toks <- quanteda::tokens(data, remove_numbers = FALSE,
                            remove_punct = TRUE, remove_symbols = TRUE)
 
   toks_dict_pre <- quanteda::tokens_lookup(toks, dictionary = sadcat_dict,
@@ -725,20 +733,15 @@ match_dictionaries <- function(data,
   toks_dict_df <- quanteda::convert(quanteda::dfm(toks_dict_pre), to = "data.frame")
 
   # Combine with token count and original data
-  toks_dict_df$ntoken <- quanteda::ntoken(toks)
+  toks_dict_df <- quanteda::ntoken(toks)
   toks_dict <- cbind(toks_dict_df, data)
 
   # ---- Identify dictionary column names (lowercase from quanteda output) ----
-  # quanteda lowercases all dictionary names
   dict_cols_all <- tolower(names(sadcat_dict))
-
-  # First and last dictionary columns for range-based operations
-  first_dic <- dict_cols_all[1]
-  last_dic <- dict_cols_all[length(dict_cols_all)]
 
   # ---- Percentages ----
   for (col in dict_cols_all) {
-    toks_dict[[paste0(col, "_percent")]] <- toks_dict[[col]] / toks_dict$ntoken
+    toks_dict[[paste0(col, "_percent")]] <- toks_dict[[col]] / toks_dict
   }
 
   # ---- Binary indicators ----
@@ -757,7 +760,6 @@ match_dictionaries <- function(data,
   }
 
   # ---- Binary2: NA if response is NA ----
-  # For all base and non-directional dimensions
   all_base_dims <- c(.SADCAT_DIR_DIMS, .SADCAT_NDIR_DIMS)
   for (dim in all_base_dims) {
     binary_col <- paste0(tolower(dim), "_dic_binary")
@@ -772,21 +774,28 @@ match_dictionaries <- function(data,
   binary2_cols <- grep("_dic_binary2$", names(toks_dict), value = TRUE)
   if (length(binary2_cols) > 0) {
     row_sums <- rowSums(toks_dict[, binary2_cols, drop = FALSE], na.rm = FALSE)
-    toks_dict$None2y <- ifelse(is.na(row_sums), NA, ifelse(row_sums > 0, 0, 1))
+    toks_dict <- ifelse(is.na(row_sums), NA, ifelse(row_sums > 0, 0, 1))
   }
 
-  # ---- Per-dimension ValyNA (NA if not in that dimension) ----
+  # ---- Per-dimension Valy / ValyNA (NA if not in that dimension) ----
   for (dim in all_base_dims) {
     binary_col <- paste0(tolower(dim), "_dic_binary")
+    valy_dim <- paste0(dim, "_Valy")
     valyna_dim <- paste0(dim, "_ValyNA")
+
+    if (binary_col %in% names(toks_dict) && valence_raw_col %in% names(toks_dict)) {
+      toks_dict[[valy_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
+                                      NA, toks_dict[[valence_raw_col]])
+    }
     if (binary_col %in% names(toks_dict) && valence_col %in% names(toks_dict)) {
       toks_dict[[valyna_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
                                         NA, toks_dict[[valence_col]])
     }
   }
+
   # NONE ValyNA
   if ("None2y" %in% names(toks_dict) && valence_col %in% names(toks_dict)) {
-    toks_dict$NONE_ValyNA <- ifelse(toks_dict$None2y == 0, NA, toks_dict[[valence_col]])
+    toks_dict <- ifelse(toks_dict == 0, NA, toks_dict[[valence_col]])
   }
 
   # ---- Negation reversal for direction scores ----
@@ -802,18 +811,25 @@ match_dictionaries <- function(data,
     }
   }
 
-  # ---- Fix valy3 and dirx3: NA if binary==0 OR binary2 is NA ----
-  # Directional dimensions: valy3 and dirx3
+  # ---- Fix valy3/valyNA3 and dirx3: NA if binary==0 OR binary2 is NA ----
+  # Directional dimensions: valy3, valyNA3, and dirx3
   for (dim in .SADCAT_DIR_DIMS) {
     binary_col <- paste0(tolower(dim), "_dic_binary")
     binary2_col <- paste0(tolower(dim), "_dic_binary2")
+    valy_dim <- paste0(dim, "_Valy")
     valyna_dim <- paste0(dim, "_ValyNA")
     valy3_col <- paste0(dim, "_valy3")
+    valyna3_col <- paste0(dim, "_valyNA3")
     dirx_col <- paste0(dim, "_dirx")
     dirx3_col <- paste0(dim, "_dirx3")
 
-    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
+    if (all(c(binary_col, binary2_col, valy_dim) %in% names(toks_dict))) {
       toks_dict[[valy3_col]] <- ifelse(
+        toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
+        NA, toks_dict[[valy_dim]])
+    }
+    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
+      toks_dict[[valyna3_col]] <- ifelse(
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
         NA, toks_dict[[valyna_dim]])
     }
@@ -824,21 +840,38 @@ match_dictionaries <- function(data,
     }
   }
 
-  # Non-directional dimensions: valy3 only (no dirx)
+  # Non-directional dimensions: valy3 and valyNA3
   ndir_for_valy3 <- c("Occupation", "Emotion", "Deviance", "Socialgroups",
                        "Geography", "Appearance", "Other", "OtherwFam")
   for (dim in ndir_for_valy3) {
     binary_col <- paste0(tolower(dim), "_dic_binary")
     binary2_col <- paste0(tolower(dim), "_dic_binary2")
+    valy_dim <- paste0(dim, "_Valy")
     valyna_dim <- paste0(dim, "_ValyNA")
     valy3_col <- paste0(dim, "_valy3")
+    valyna3_col <- paste0(dim, "_valyNA3")
 
-    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
+    if (all(c(binary_col, binary2_col, valy_dim) %in% names(toks_dict))) {
       toks_dict[[valy3_col]] <- ifelse(
+        toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
+        NA, toks_dict[[valy_dim]])
+    }
+    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
+      toks_dict[[valyna3_col]] <- ifelse(
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
         NA, toks_dict[[valyna_dim]])
     }
   }
+
+  # Ensure dictionary-derived valence/direction families are NA when response is missing
+  toks_dict <- .mask_missing_response_cols(
+    toks_dict,
+    response_col,
+    cols_or_patterns = c(
+      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "_dirx$", "_dirx2$", "_dirx3$"
+    )
+  )
 
   # Replace NaN with NA
   toks_dict <- replace_nan_with_na(toks_dict)
@@ -917,11 +950,11 @@ compute_embeddings <- function(data,
 
     # Set embeddings to NA where response is NA
     sbert_cols <- paste0("SBERT_", seq_len(ncol(encoding_df)))
-    if (response_col %in% names(data)) {
-      for (col in sbert_cols) {
-        data[[col]] <- ifelse(is.na(data[[response_col]]), NA, data[[col]])
-      }
-    }
+    data <- .mask_missing_response_cols(
+      data,
+      response_col,
+      cols_or_patterns = c("^SBERT_\\d+$")
+    )
 
     if (verbose) message("  SBERT complete. Added ", length(sbert_cols), " columns.")
   }
@@ -1006,11 +1039,11 @@ compute_embeddings <- function(data,
 
     # Set embeddings to NA where response is NA
     gemini_cols <- paste0("Gemini_", seq_len(ncol(gemini_df)))
-    if (response_col %in% names(data)) {
-      for (col in gemini_cols) {
-        data[[col]] <- ifelse(is.na(data[[response_col]]), NA, data[[col]])
-      }
-    }
+    data <- .mask_missing_response_cols(
+      data,
+      response_col,
+      cols_or_patterns = c("^Gemini_\\d+$")
+    )
 
     if (verbose) message("  Gemini complete. Added ", length(gemini_cols), " columns.")
   }
@@ -1042,6 +1075,7 @@ compute_seed_similarities <- function(data,
                                       embedding_prefix = "SBERT",
                                       seed_vectors = SADCAT::Seed_Vectors_Avg,
                                       method = "correlation",
+                                      response_col = "response",
                                       verbose = TRUE) {
   message("--- Stage 6: Computing seed similarities (", embedding_prefix, ") ---")
 
@@ -1062,7 +1096,7 @@ compute_seed_similarities <- function(data,
   }
 
   # Extract seed info
-  Seed_Vectors_names <- paste0(as.character(seed_vectors$Dictionary), ".seed")
+  Seed_Vectors_names <- paste0(as.character(seed_vectors), ".seed")
 
   # Extract seed embedding matrix (dims x seeds)
   Seed_Matrix <- seed_vectors %>%
@@ -1097,6 +1131,13 @@ compute_seed_similarities <- function(data,
 
   # Bind to data
   data <- cbind(data, sim_df)
+
+  # Ensure seed columns are NA when the original response is missing
+  data <- .mask_missing_response_cols(
+    data,
+    response_col,
+    cols_or_patterns = names(sim_df)
+  )
 
   if (verbose) message("  Seed similarities complete. Added ", ncol(sim_df), " columns.")
   return(data)
@@ -1154,7 +1195,7 @@ aggregate_responses <- function(data,
       paste0("^Valy$|^ValyNA$|",
              "_dic_binary2$|^None2y$|",
              "_ValyNA$|^NONE_ValyNA$|",
-             "_valy3$|_dirx3$|",
+             "_valy3$|_valyNA3$|_dirx3$|",
              "^SBERT_|^Gemini_|",
              "\\.seed$|",
              "^traditional$"),
@@ -1240,14 +1281,14 @@ aggregate_responses <- function(data,
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }
 
-    # Valence noNA: _valy3 columns
-    valy3_cols <- grep("_valy3$", names(result), value = TRUE)
-    for (col in valy3_cols) {
+    # Valence noNA: _valy3 and _valyNA3 columns
+    valy_cols <- grep("_valy3$|_valyNA3$", names(result), value = TRUE)
+    for (col in valy_cols) {
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }
 
     if (verbose) {
-      message("  Created ", length(dirx3_cols) + length(valy3_cols), " noNA columns.")
+      message("  Created ", length(dirx3_cols) + length(valy_cols), " noNA columns.")
     }
   }
 
@@ -1362,8 +1403,9 @@ process_responses <- function(data,
     sadcat_dict <- prepare_sadcat_dictionaries()
     data <- match_dictionaries(data,
                                text_col = "tv3",
-                               response_col = "tv",
+                               response_col = response_col,
                                valence_col = "ValyNA",
+                               valence_raw_col = "Valy",
                                sadcat_dict = sadcat_dict)
     if (save_intermediates) {
       write.csv(data, paste0(save_prefix, "_3_dictionaries.csv"), row.names = FALSE)
@@ -1399,12 +1441,25 @@ process_responses <- function(data,
       data <- compute_seed_similarities(data,
                                         embedding_prefix = prefix_name,
                                         method = seed_method,
+                                        response_col = response_col,
                                         verbose = verbose)
     }
     if (save_intermediates) {
       write.csv(data, paste0(save_prefix, "_5_seeds.csv"), row.names = FALSE)
     }
   }
+
+  # Final targeted masking pass for missing responses
+  data <- .mask_missing_response_cols(
+    data,
+    response_col,
+    cols_or_patterns = c(
+      "^Val_", "^Valy$", "^ValyNA$",
+      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "_dirx$", "_dirx2$", "_dirx3$",
+      "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"
+    )
+  )
 
   result$long <- data
 
@@ -1429,3 +1484,698 @@ process_responses <- function(data,
 
   return(result)
 }
+
+
+
+
+
+
+
+# =============================================================================
+# PATCHED OVERRIDES (2026-02-23)
+# =============================================================================
+
+.mask_missing_response_cols <- function(data, response_col, cols_or_patterns) {
+  if (is.null(response_col) || !(response_col %in% names(data))) {
+    return(data)
+  }
+  if (is.null(cols_or_patterns) || length(cols_or_patterns) == 0) {
+    return(data)
+  }
+
+  missing_idx <- is.na(data[[response_col]])
+  if (!any(missing_idx)) {
+    return(data)
+  }
+
+  target_cols <- character(0)
+  for (item in cols_or_patterns) {
+    if (is.na(item) || !nzchar(item)) {
+      next
+    }
+    if (item %in% names(data)) {
+      target_cols <- c(target_cols, item)
+      next
+    }
+    matches <- grep(item, names(data), value = TRUE)
+    if (length(matches) > 0) {
+      target_cols <- c(target_cols, matches)
+    }
+  }
+
+  target_cols <- unique(target_cols)
+  if (length(target_cols) == 0) {
+    return(data)
+  }
+
+  data[missing_idx, target_cols] <- NA
+  data
+}
+
+score_valence <- function(data,
+                          text_col = "tv",
+                          response_col = "response") {
+  message("--- Stage 2: Scoring valence (5 dictionaries) ---")
+
+  valuex <- SADCAT::clean_large_text(data[[text_col]])
+  toksval <- quanteda::tokens(valuex)
+
+  lex_result <- apply_single_valence_dict(toksval, quanteda::data_dictionary_LSD2015,
+                                          "lexicoder", is_lexicoder = TRUE)
+  nrc_dict <- build_sentiment_dictionary("nrc")
+  nrc_result <- apply_single_valence_dict(toksval, nrc_dict, "NRC")
+  bing_dict <- build_sentiment_dictionary("bing")
+  bing_result <- apply_single_valence_dict(toksval, bing_dict, "bing")
+  afinn_dict <- build_sentiment_dictionary("afinn")
+  afinn_result <- apply_single_valence_dict(toksval, afinn_dict, "affin")
+  loughran_dict <- build_sentiment_dictionary("loughran")
+  loughran_result <- apply_single_valence_dict(toksval, loughran_dict, "loughran")
+
+  data <- cbind(data, lex_result, nrc_result, bing_result, afinn_result, loughran_result)
+
+  data <- dplyr::mutate(data,
+    Val_lexicoder = ifelse(grepl(.NEGATION_PATTERN_VAL, .data[[response_col]]),
+                           Val_lexicoder * -1, Val_lexicoder))
+
+  val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
+  valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
+
+  data$Valy <- rowMeans(data[, val_cols, drop = FALSE], na.rm = TRUE)
+  data$ValyNA <- rowMeans(data[, valna_cols, drop = FALSE], na.rm = TRUE)
+
+  data <- .mask_missing_response_cols(
+    data,
+    response_col,
+    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNA$")
+  )
+
+  data <- replace_nan_with_na(data)
+
+  message("  Valence scoring complete. Columns added: ",
+          paste(c(val_cols, valna_cols, "Valy", "ValyNA"), collapse = ", "))
+  return(data)
+}
+
+match_dictionaries <- function(data,
+                               text_col = "tv3",
+                               response_col = "tv",
+                               valence_col = "ValyNA",
+                               valence_raw_col = "Valy",
+                               sadcat_dict = NULL) {
+  message("--- Stage 4: Matching dictionaries ---")
+
+  if (is.null(sadcat_dict)) {
+    sadcat_dict <- prepare_sadcat_dictionaries()
+  }
+
+  data$tv4 <- enc2utf8(as.character(data[[text_col]]))
+  data$tv4 <- tolower(data$tv4)
+  data$tv4 <- gsub("-", " ", data$tv4)
+
+  delete_ending_Ss2_internal <- function(x) {
+    if (is.na(x)) return(x)
+    unlist(lapply(x, function(y) {
+      paste(sapply(strsplit(y, ' '), SADCAT::delete_ending_Ss), collapse = ' ')
+    }))
+  }
+  data$tv4 <- vapply(data$tv4, delete_ending_Ss2_internal, character(1))
+
+  toks <- quanteda::tokens(data$tv4, remove_numbers = FALSE,
+                           remove_punct = TRUE, remove_symbols = TRUE)
+
+  toks_dict_pre <- quanteda::tokens_lookup(toks, dictionary = sadcat_dict,
+                                           nested_scope = "dictionary",
+                                           exclusive = TRUE, levels = 1)
+  toks_dict_df <- quanteda::convert(quanteda::dfm(toks_dict_pre), to = "data.frame")
+
+  toks_dict_df$ntoken <- quanteda::ntoken(toks)
+  toks_dict <- cbind(toks_dict_df, data)
+
+  dict_cols_all <- tolower(names(sadcat_dict))
+
+  for (col in dict_cols_all) {
+    toks_dict[[paste0(col, "_percent")]] <- toks_dict[[col]] / toks_dict$ntoken
+  }
+
+  for (col in dict_cols_all) {
+    toks_dict[[paste0(col, "_binary")]] <- ifelse(toks_dict[[col]] > 0, 1, 0)
+  }
+
+  for (dim in .SADCAT_DIR_DIMS) {
+    hi_col <- paste0(tolower(dim), "_dic_hi_binary")
+    lo_col <- paste0(tolower(dim), "_dic_lo_binary")
+    dirx_col <- paste0(dim, "_dirx")
+    if (hi_col %in% names(toks_dict) && lo_col %in% names(toks_dict)) {
+      toks_dict[[dirx_col]] <- toks_dict[[hi_col]] - toks_dict[[lo_col]]
+    }
+  }
+
+  all_base_dims <- c(.SADCAT_DIR_DIMS, .SADCAT_NDIR_DIMS)
+  for (dim in all_base_dims) {
+    binary_col <- paste0(tolower(dim), "_dic_binary")
+    binary2_col <- paste0(tolower(dim), "_dic_binary2")
+    if (binary_col %in% names(toks_dict)) {
+      toks_dict[[binary2_col]] <- ifelse(is.na(toks_dict[[response_col]]),
+                                         NA, toks_dict[[binary_col]])
+    }
+  }
+
+  binary2_cols <- grep("_dic_binary2$", names(toks_dict), value = TRUE)
+  if (length(binary2_cols) > 0) {
+    row_sums <- rowSums(toks_dict[, binary2_cols, drop = FALSE], na.rm = FALSE)
+    toks_dict$None2y <- ifelse(is.na(row_sums), NA, ifelse(row_sums > 0, 0, 1))
+  }
+
+  for (dim in all_base_dims) {
+    binary_col <- paste0(tolower(dim), "_dic_binary")
+    valy_dim <- paste0(dim, "_Valy")
+    valyna_dim <- paste0(dim, "_ValyNA")
+
+    if (binary_col %in% names(toks_dict) && valence_raw_col %in% names(toks_dict)) {
+      toks_dict[[valy_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
+                                      NA, toks_dict[[valence_raw_col]])
+    }
+    if (binary_col %in% names(toks_dict) && valence_col %in% names(toks_dict)) {
+      toks_dict[[valyna_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
+                                        NA, toks_dict[[valence_col]])
+    }
+  }
+
+  if ("None2y" %in% names(toks_dict) && valence_col %in% names(toks_dict)) {
+    toks_dict$NONE_ValyNA <- ifelse(toks_dict$None2y == 0, NA, toks_dict[[valence_col]])
+  }
+
+  for (dim in .SADCAT_DIR_DIMS) {
+    dirx_col <- paste0(dim, "_dirx")
+    dirx2_col <- paste0(dim, "_dirx2")
+    if (dirx_col %in% names(toks_dict)) {
+      toks_dict[[dirx2_col]] <- ifelse(
+        grepl(.NEGATION_PATTERN, toks_dict[[response_col]]),
+        toks_dict[[dirx_col]] * -1,
+        toks_dict[[dirx_col]]
+      )
+    }
+  }
+
+  for (dim in .SADCAT_DIR_DIMS) {
+    binary_col <- paste0(tolower(dim), "_dic_binary")
+    binary2_col <- paste0(tolower(dim), "_dic_binary2")
+    valy_dim <- paste0(dim, "_Valy")
+    valyna_dim <- paste0(dim, "_ValyNA")
+    valy3_col <- paste0(dim, "_valy3")
+    valyna3_col <- paste0(dim, "_valyNA3")
+    dirx_col <- paste0(dim, "_dirx")
+    dirx3_col <- paste0(dim, "_dirx3")
+
+    if (all(c(binary_col, binary2_col, valy_dim) %in% names(toks_dict))) {
+      toks_dict[[valy3_col]] <- ifelse(
+        toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
+        NA, toks_dict[[valy_dim]])
+    }
+    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
+      toks_dict[[valyna3_col]] <- ifelse(
+        toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
+        NA, toks_dict[[valyna_dim]])
+    }
+    if (all(c(binary_col, binary2_col, dirx_col) %in% names(toks_dict))) {
+      toks_dict[[dirx3_col]] <- ifelse(
+        toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
+        NA, toks_dict[[dirx_col]])
+    }
+  }
+
+  ndir_for_valy3 <- c("Occupation", "Emotion", "Deviance", "Socialgroups",
+                       "Geography", "Appearance", "Other", "OtherwFam")
+  for (dim in ndir_for_valy3) {
+    binary_col <- paste0(tolower(dim), "_dic_binary")
+    binary2_col <- paste0(tolower(dim), "_dic_binary2")
+    valy_dim <- paste0(dim, "_Valy")
+    valyna_dim <- paste0(dim, "_ValyNA")
+    valy3_col <- paste0(dim, "_valy3")
+    valyna3_col <- paste0(dim, "_valyNA3")
+
+    if (all(c(binary_col, binary2_col, valy_dim) %in% names(toks_dict))) {
+      toks_dict[[valy3_col]] <- ifelse(
+        toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
+        NA, toks_dict[[valy_dim]])
+    }
+    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
+      toks_dict[[valyna3_col]] <- ifelse(
+        toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
+        NA, toks_dict[[valyna_dim]])
+    }
+  }
+
+  toks_dict <- .mask_missing_response_cols(
+    toks_dict,
+    response_col,
+    cols_or_patterns = c(
+      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "_dirx$", "_dirx2$", "_dirx3$"
+    )
+  )
+
+  toks_dict <- replace_nan_with_na(toks_dict)
+
+  message("  Dictionary matching complete.")
+  return(toks_dict)
+}
+
+compute_embeddings <- function(data,
+                               text_col = "tv",
+                               methods = c("sbert"),
+                               sbert_model = "paraphrase-mpnet-base-v2",
+                               sbert_dims = 768L,
+                               gemini_api_key = NULL,
+                               gemini_model = "gemini-embedding-exp-03-07",
+                               gemini_dims = 2000L,
+                               gemini_batch_size = 10L,
+                               gemini_sleep = 63,
+                               gemini_task_type = "SEMANTIC_SIMILARITY",
+                               response_col = "response",
+                               verbose = TRUE) {
+
+  if (!requireNamespace("reticulate", quietly = TRUE)) {
+    stop("Package 'reticulate' is required for compute_embeddings(). Install with: install.packages('reticulate')")
+  }
+
+  message("--- Stage 5: Computing embeddings ---")
+
+  unique_text <- unique(data[[text_col]])
+  unique_text <- unique_text[!is.na(unique_text) & unique_text != ""]
+  if (verbose) message("  Unique text values to encode: ", length(unique_text))
+
+  if ("sbert" %in% tolower(methods)) {
+    if (verbose) message("  Computing SBERT embeddings (model: ", sbert_model, ")...")
+
+    st <- reticulate::import("sentence_transformers")
+    model_sbert <- st$SentenceTransformer(sbert_model)
+
+    encoding_matrix <- model_sbert$encode(unique_text)
+    encoding_df <- as.data.frame(reticulate::py_to_r(encoding_matrix))
+    colnames(encoding_df) <- paste0("SBERT_", seq_len(ncol(encoding_df)))
+
+    sbert_vecs <- data.frame(word = unique_text, encoding_df, stringsAsFactors = FALSE)
+
+    join_by <- stats::setNames("word", text_col)
+    data <- dplyr::left_join(data, sbert_vecs, by = join_by)
+
+    sbert_cols <- paste0("SBERT_", seq_len(ncol(encoding_df)))
+    data <- .mask_missing_response_cols(
+      data,
+      response_col,
+      cols_or_patterns = c("^SBERT_\\d+$")
+    )
+
+    if (verbose) message("  SBERT complete. Added ", length(sbert_cols), " columns.")
+  }
+
+  if ("gemini" %in% tolower(methods)) {
+    api_key <- gemini_api_key
+    if (is.null(api_key) || api_key == "") {
+      api_key <- Sys.getenv("GEMINI_API_KEY")
+    }
+    if (is.null(api_key) || api_key == "") {
+      stop("Gemini API key not found. Provide via gemini_api_key parameter or set GEMINI_API_KEY environment variable.")
+    }
+
+    if (verbose) message("  Computing Gemini embeddings (model: ", gemini_model,
+                         ", dims: ", gemini_dims, ")...")
+
+    genai <- reticulate::import("google.genai")
+    types <- reticulate::import("google.genai.types")
+
+    client <- genai$Client(api_key = api_key)
+
+    config <- types$EmbedContentConfig(
+      output_dimensionality = as.integer(gemini_dims),
+      task_type = gemini_task_type
+    )
+
+    text_list <- as.list(unique_text)
+    all_embeddings <- list()
+    n_batches <- ceiling(length(text_list) / gemini_batch_size)
+
+    for (i in seq(1, length(text_list), by = gemini_batch_size)) {
+      batch_num <- ceiling(i / gemini_batch_size)
+      batch_end <- min(i + gemini_batch_size - 1, length(text_list))
+      batch <- text_list[i:batch_end]
+
+      if (verbose) message("    Batch ", batch_num, " / ", n_batches,
+                           " (items ", i, "-", batch_end, ")")
+
+      result <- tryCatch({
+        client$models$embed_content(
+          model = gemini_model,
+          contents = batch,
+          config = config
+        )
+      }, error = function(e) {
+        warning("  Batch ", batch_num, " failed: ", conditionMessage(e))
+        NULL
+      })
+
+      if (!is.null(result)) {
+        all_embeddings <- c(all_embeddings, list(result))
+      }
+
+      if (batch_end < length(text_list)) {
+        if (verbose) message("    Sleeping ", gemini_sleep, " seconds (rate limit)...")
+        Sys.sleep(gemini_sleep)
+      }
+    }
+
+    flat_embeddings <- list()
+    for (batch_result in all_embeddings) {
+      for (emb in batch_result$embeddings) {
+        flat_embeddings <- c(flat_embeddings, list(emb$values))
+      }
+    }
+
+    gemini_matrix <- do.call(rbind, flat_embeddings)
+    gemini_df <- as.data.frame(gemini_matrix)
+    colnames(gemini_df) <- paste0("Gemini_", seq_len(ncol(gemini_df)))
+
+    gemini_vecs <- data.frame(word = unique_text[seq_len(nrow(gemini_df))],
+                              gemini_df, stringsAsFactors = FALSE)
+
+    join_by <- stats::setNames("word", text_col)
+    data <- dplyr::left_join(data, gemini_vecs, by = join_by)
+
+    gemini_cols <- paste0("Gemini_", seq_len(ncol(gemini_df)))
+    data <- .mask_missing_response_cols(
+      data,
+      response_col,
+      cols_or_patterns = c("^Gemini_\\d+$")
+    )
+
+    if (verbose) message("  Gemini complete. Added ", length(gemini_cols), " columns.")
+  }
+
+  message("  Embedding computation complete.")
+  return(data)
+}
+
+compute_seed_similarities <- function(data,
+                                      embedding_prefix = "SBERT",
+                                      seed_vectors = SADCAT::Seed_Vectors_Avg,
+                                      method = "correlation",
+                                      response_col = "response",
+                                      verbose = TRUE) {
+  message("--- Stage 6: Computing seed similarities (", embedding_prefix, ") ---")
+
+  seed_emb_cols <- grep(paste0("^", embedding_prefix, "_"), names(seed_vectors), value = TRUE)
+  if (length(seed_emb_cols) == 0) {
+    message("  No columns matching prefix '", embedding_prefix,
+            "' found in seed_vectors. Skipping seed similarity computation.")
+    return(data)
+  }
+
+  data_emb_cols <- grep(paste0("^", embedding_prefix, "_\\d+$"), names(data), value = TRUE)
+  if (length(data_emb_cols) == 0) {
+    message("  No embedding columns matching prefix '", embedding_prefix,
+            "' found in data. Skipping seed similarity computation.")
+    return(data)
+  }
+
+  Seed_Vectors_names <- paste0(as.character(seed_vectors$Dictionary), ".seed")
+
+  Seed_Matrix <- seed_vectors %>%
+    dplyr::select(dplyr::all_of(seed_emb_cols)) %>%
+    t()
+
+  colnames(Seed_Matrix) <- Seed_Vectors_names
+
+  if (verbose) message("  Computing ", method, " between ",
+                       length(data_emb_cols), " dims and ",
+                       ncol(Seed_Matrix), " seed vectors...")
+
+  response_matrix <- data[, data_emb_cols, drop = FALSE]
+
+  if (method == "correlation") {
+    sim_matrix <- t(apply(response_matrix, 1, function(z) {
+      cor(as.numeric(z), Seed_Matrix)
+    }))
+  } else if (method == "cosine") {
+    sim_matrix <- t(apply(response_matrix, 1, function(z) {
+      cosinize(z, Seed_Matrix)
+    }))
+  } else {
+    stop("method must be 'correlation' or 'cosine'")
+  }
+
+  colnames(sim_matrix) <- paste0(embedding_prefix, "_", Seed_Vectors_names)
+  sim_df <- as.data.frame(sim_matrix)
+
+  data <- cbind(data, sim_df)
+
+  data <- .mask_missing_response_cols(
+    data,
+    response_col,
+    cols_or_patterns = names(sim_df)
+  )
+
+  if (verbose) message("  Seed similarities complete. Added ", ncol(sim_df), " columns.")
+  return(data)
+}
+
+aggregate_responses <- function(data,
+                                group_cols = c("Synonym.GroupX", "Group", "Level"),
+                                sum_cols = NULL,
+                                mean_cols = NULL,
+                                distinct_cols = NULL,
+                                extra_sum_cols = NULL,
+                                extra_mean_cols = NULL,
+                                extra_distinct_cols = NULL,
+                                create_noNA = TRUE,
+                                verbose = TRUE) {
+  message("--- Stage 7: Aggregating responses ---")
+
+  all_names <- names(data)
+
+  if (is.null(sum_cols)) {
+    sum_cols <- grep("_dic_binary2$|^None2y$|^traditional$", all_names, value = TRUE)
+  }
+  if (!is.null(extra_sum_cols)) {
+    extra_sum_cols <- extra_sum_cols[extra_sum_cols %in% all_names]
+    sum_cols <- unique(c(sum_cols, extra_sum_cols))
+  }
+
+  if (is.null(mean_cols)) {
+    mean_cols <- grep(
+      paste0("^Valy$|^ValyNA$|",
+             "_dic_binary2$|^None2y$|",
+             "_ValyNA$|^NONE_ValyNA$|",
+             "_valy3$|_valyNA3$|_dirx3$|",
+             "^SBERT_|^Gemini_|",
+             "\\.seed$|",
+             "^traditional$"),
+      all_names, value = TRUE
+    )
+  }
+  if (!is.null(extra_mean_cols)) {
+    extra_mean_cols <- extra_mean_cols[extra_mean_cols %in% all_names]
+    mean_cols <- unique(c(mean_cols, extra_mean_cols))
+  }
+
+  if (is.null(distinct_cols)) {
+    distinct_cols <- grep("Warning$|^Level$", all_names, value = TRUE)
+    distinct_cols <- setdiff(distinct_cols, group_cols)
+  }
+  if (!is.null(extra_distinct_cols)) {
+    extra_distinct_cols <- extra_distinct_cols[extra_distinct_cols %in% all_names]
+    distinct_cols <- unique(c(distinct_cols, extra_distinct_cols))
+  }
+
+  missing_groups <- setdiff(group_cols, all_names)
+  if (length(missing_groups) > 0) {
+    stop("Group columns not found in data: ", paste(missing_groups, collapse = ", "))
+  }
+
+  if (verbose) {
+    message("  Sum columns: ", length(sum_cols))
+    message("  Mean columns: ", length(mean_cols))
+    message("  Distinct columns: ", length(distinct_cols))
+  }
+
+  if (length(sum_cols) > 0) {
+    sum_data <- data %>%
+      dplyr::select(dplyr::all_of(c(group_cols, sum_cols))) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(group_cols))) %>%
+      dplyr::summarise(dplyr::across(dplyr::everything(), ~sum(., na.rm = TRUE)),
+                       .groups = "drop")
+    sum_rename <- setdiff(names(sum_data), group_cols)
+    names(sum_data)[names(sum_data) %in% sum_rename] <- paste0(sum_rename, "_Sum")
+  } else {
+    sum_data <- NULL
+  }
+
+  if (length(mean_cols) > 0) {
+    mean_data <- data %>%
+      dplyr::select(dplyr::all_of(c(group_cols, mean_cols))) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(group_cols))) %>%
+      dplyr::summarise(dplyr::across(dplyr::everything(), ~mean(., na.rm = TRUE)),
+                       .groups = "drop")
+  } else {
+    mean_data <- NULL
+  }
+
+  if (length(distinct_cols) > 0) {
+    distinct_data <- data %>%
+      dplyr::select(dplyr::all_of(c(group_cols, distinct_cols))) %>%
+      dplyr::distinct()
+  } else {
+    distinct_data <- NULL
+  }
+
+  parts <- Filter(Negate(is.null), list(distinct_data, mean_data, sum_data))
+  if (length(parts) == 0) {
+    stop("No columns selected for aggregation.")
+  }
+  result <- plyr::join_all(parts, by = group_cols, type = "left")
+
+  result <- replace_nan_with_na(result)
+
+  if (create_noNA) {
+    dirx3_cols <- grep("_dirx3$", names(result), value = TRUE)
+    for (col in dirx3_cols) {
+      result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
+    }
+
+    valy_cols <- grep("_valy3$|_valyNA3$", names(result), value = TRUE)
+    for (col in valy_cols) {
+      result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
+    }
+
+    if (verbose) {
+      message("  Created ", length(dirx3_cols) + length(valy_cols), " noNA columns.")
+    }
+  }
+
+  if (verbose) message("  Aggregation complete. Result: ",
+                       nrow(result), " rows x ", ncol(result), " columns.")
+  return(result)
+}
+
+process_responses <- function(data,
+                              text_col = "responsex",
+                              response_col = "response",
+                              group_cols = c("Synonym.GroupX", "Group", "Level"),
+                              stages = c("preprocess", "valence", "dictionaries",
+                                         "embeddings", "seeds", "aggregate"),
+                              spellcheck = TRUE,
+                              singularize_text = TRUE,
+                              java_home = "C:\\Program Files\\Java\\jre-1.8",
+                              wordnet_dict = "C:\\dict",
+                              valence_text_col = "tv",
+                              embedding_methods = c("sbert"),
+                              sbert_model = "paraphrase-mpnet-base-v2",
+                              gemini_api_key = NULL,
+                              gemini_dims = 2000L,
+                              gemini_batch_size = 10L,
+                              gemini_sleep = 63,
+                              seed_method = "correlation",
+                              extra_sum_cols = NULL,
+                              extra_mean_cols = NULL,
+                              extra_distinct_cols = NULL,
+                              save_intermediates = FALSE,
+                              save_prefix = "pipeline",
+                              verbose = TRUE) {
+
+  message("========================================")
+  message("SADCAT Pipeline: process_responses()")
+  message("Stages: ", paste(stages, collapse = " -> "))
+  message("========================================")
+
+  result <- list(long = NULL, agg = NULL)
+
+  if ("preprocess" %in% stages) {
+    data <- preprocess_text(data,
+                            text_col = text_col,
+                            spellcheck = spellcheck,
+                            singularize = singularize_text,
+                            java_home = java_home,
+                            wordnet_dict = wordnet_dict,
+                            verbose = verbose)
+    if (save_intermediates) write.csv(data, paste0(save_prefix, "_1_preprocessed.csv"), row.names = FALSE)
+  }
+
+  if ("valence" %in% stages) {
+    data <- score_valence(data, text_col = valence_text_col, response_col = response_col)
+    if (save_intermediates) write.csv(data, paste0(save_prefix, "_2_valence.csv"), row.names = FALSE)
+  }
+
+  if ("dictionaries" %in% stages) {
+    sadcat_dict <- prepare_sadcat_dictionaries()
+    data <- match_dictionaries(data,
+                               text_col = "tv3",
+                               response_col = response_col,
+                               valence_col = "ValyNA",
+                               valence_raw_col = "Valy",
+                               sadcat_dict = sadcat_dict)
+    if (save_intermediates) write.csv(data, paste0(save_prefix, "_3_dictionaries.csv"), row.names = FALSE)
+  }
+
+  if ("embeddings" %in% stages) {
+    data <- compute_embeddings(data,
+                               text_col = "tv",
+                               methods = embedding_methods,
+                               sbert_model = sbert_model,
+                               gemini_api_key = gemini_api_key,
+                               gemini_dims = gemini_dims,
+                               gemini_batch_size = gemini_batch_size,
+                               gemini_sleep = gemini_sleep,
+                               response_col = response_col,
+                               verbose = verbose)
+    if (save_intermediates) write.csv(data, paste0(save_prefix, "_4_embeddings.csv"), row.names = FALSE)
+  }
+
+  if ("seeds" %in% stages) {
+    for (prefix in embedding_methods) {
+      prefix_upper <- toupper(substr(prefix, 1, 1))
+      prefix_name <- paste0(prefix_upper, substr(prefix, 2, nchar(prefix)))
+      if (tolower(prefix) == "sbert") prefix_name <- "SBERT"
+      if (tolower(prefix) == "gemini") prefix_name <- "Gemini"
+
+      data <- compute_seed_similarities(data,
+                                        embedding_prefix = prefix_name,
+                                        method = seed_method,
+                                        response_col = response_col,
+                                        verbose = verbose)
+    }
+    if (save_intermediates) write.csv(data, paste0(save_prefix, "_5_seeds.csv"), row.names = FALSE)
+  }
+
+  data <- .mask_missing_response_cols(
+    data,
+    response_col,
+    cols_or_patterns = c(
+      "^Val_", "^Valy$", "^ValyNA$",
+      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "_dirx$", "_dirx2$", "_dirx3$",
+      "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"
+    )
+  )
+
+  result$long <- data
+
+  if ("aggregate" %in% stages) {
+    result$agg <- aggregate_responses(data,
+                                      group_cols = group_cols,
+                                      extra_sum_cols = extra_sum_cols,
+                                      extra_mean_cols = extra_mean_cols,
+                                      extra_distinct_cols = extra_distinct_cols,
+                                      verbose = verbose)
+    if (save_intermediates) write.csv(result$agg, paste0(save_prefix, "_6_aggregated.csv"), row.names = FALSE)
+  }
+
+  message("========================================")
+  message("Pipeline complete!")
+  if (!is.null(result$long)) message("  Long data: ", nrow(result$long), " rows x ", ncol(result$long), " cols")
+  if (!is.null(result$agg)) message("  Aggregated: ", nrow(result$agg), " rows x ", ncol(result$agg), " cols")
+  message("========================================")
+
+  return(result)
+}
+
+

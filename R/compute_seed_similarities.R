@@ -9,6 +9,7 @@
 #' @param embedding_prefix Prefix identifying embedding columns (default "SBERT")
 #' @param seed_vectors Seed vector data. Default: Seed_Vectors_Avg
 #' @param method "correlation" (default, uses cor()) or "cosine" (uses lsa::cosine())
+#' @param response_col Column used to set seed columns to NA where response is missing (default "response")
 #' @param verbose Print progress? (default TRUE)
 #' @return The input data with new columns: \code{prefix_SeedName.seed}
 #' @export compute_seed_similarities
@@ -17,6 +18,7 @@ compute_seed_similarities <- function(data,
                                       embedding_prefix = "SBERT",
                                       seed_vectors = Seed_Vectors_Avg,
                                       method = "correlation",
+                                      response_col = "response",
                                       verbose = TRUE) {
   message("--- Stage 6: Computing seed similarities (", embedding_prefix, ") ---")
 
@@ -72,6 +74,13 @@ compute_seed_similarities <- function(data,
 
   # Bind to data
   data <- cbind(data, sim_df)
+
+  # Ensure seed columns are NA when the original response is missing
+  data <- .mask_missing_response_cols(
+    data,
+    response_col,
+    cols_or_patterns = names(sim_df)
+  )
 
   if (verbose) message("  Seed similarities complete. Added ", ncol(sim_df), " columns.")
   return(data)

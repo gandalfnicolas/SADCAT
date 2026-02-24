@@ -64,11 +64,11 @@ compute_embeddings <- function(data,
 
     # Set embeddings to NA where response is NA
     sbert_cols <- paste0("SBERT_", seq_len(ncol(encoding_df)))
-    if (response_col %in% names(data)) {
-      for (col in sbert_cols) {
-        data[[col]] <- ifelse(is.na(data[[response_col]]), NA, data[[col]])
-      }
-    }
+    data <- .mask_missing_response_cols(
+      data,
+      response_col,
+      cols_or_patterns = c("^SBERT_\\d+$")
+    )
 
     if (verbose) message("  SBERT complete. Added ", length(sbert_cols), " columns.")
   }
@@ -153,11 +153,11 @@ compute_embeddings <- function(data,
 
     # Set embeddings to NA where response is NA
     gemini_cols <- paste0("Gemini_", seq_len(ncol(gemini_df)))
-    if (response_col %in% names(data)) {
-      for (col in gemini_cols) {
-        data[[col]] <- ifelse(is.na(data[[response_col]]), NA, data[[col]])
-      }
-    }
+    data <- .mask_missing_response_cols(
+      data,
+      response_col,
+      cols_or_patterns = c("^Gemini_\\d+$")
+    )
 
     if (verbose) message("  Gemini complete. Added ", length(gemini_cols), " columns.")
   }
@@ -165,3 +165,4 @@ compute_embeddings <- function(data,
   message("  Embedding computation complete.")
   return(data)
 }
+

@@ -9,6 +9,7 @@ compute_seed_similarities(
   embedding_prefix = "SBERT",
   seed_vectors = Seed_Vectors_Avg,
   method = "correlation",
+  response_col = "response",
   verbose = TRUE
 )
 }
@@ -20,6 +21,8 @@ compute_seed_similarities(
 \item{seed_vectors}{Seed vector data. Default: Seed_Vectors_Avg}
 
 \item{method}{"correlation" (default, uses cor()) or "cosine" (uses lsa::cosine())}
+
+\item{response_col}{Column used to set seed columns to NA where response is missing (default "response")}
 
 \item{verbose}{Print progress? (default TRUE)}
 }

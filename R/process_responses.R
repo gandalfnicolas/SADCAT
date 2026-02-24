@@ -105,8 +105,9 @@ process_responses <- function(data,
 
     data <- match_dictionaries(data,
                                text_col = "tv3",
-                               response_col = "tv",
+                               response_col = response_col,
                                valence_col = "ValyNA",
+                               valence_raw_col = "Valy",
                                sadcat_dict = sadcat_dict_obj,
                                socats_dict = socats_dict_obj,
                                socats = do_socats)
@@ -144,12 +145,25 @@ process_responses <- function(data,
       data <- compute_seed_similarities(data,
                                         embedding_prefix = prefix_name,
                                         method = seed_method,
+                                        response_col = response_col,
                                         verbose = verbose)
     }
     if (save_intermediates) {
       utils::write.csv(data, paste0(save_prefix, "_5_seeds.csv"), row.names = FALSE)
     }
   }
+
+  # Final targeted masking pass for missing responses
+  data <- .mask_missing_response_cols(
+    data,
+    response_col,
+    cols_or_patterns = c(
+      "^Val_", "^Valy$", "^ValyNA$",
+      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "_dirx$", "_dirx2$", "_dirx3$",
+      "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"
+    )
+  )
 
   result$long <- data
 
@@ -174,3 +188,5 @@ process_responses <- function(data,
 
   return(result)
 }
+
+

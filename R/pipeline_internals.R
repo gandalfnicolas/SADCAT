@@ -90,3 +90,46 @@ apply_single_valence_dict <- function(toksval, dict_obj, name, is_lexicoder = FA
   colnames(out) <- c(val_name, valna_name)
   out
 }
+#' Mask selected columns to NA where response text is missing
+#' @param data A data frame
+#' @param response_col Column indicating whether the response is missing
+#' @param cols_or_patterns Character vector of exact column names and/or regex patterns
+#' @return Data frame with selected columns masked to NA for missing responses
+#' @keywords internal
+.mask_missing_response_cols <- function(data, response_col, cols_or_patterns) {
+  if (is.null(response_col) || !(response_col %in% names(data))) {
+    return(data)
+  }
+  if (is.null(cols_or_patterns) || length(cols_or_patterns) == 0) {
+    return(data)
+  }
+
+  missing_idx <- is.na(data[[response_col]])
+  if (!any(missing_idx)) {
+    return(data)
+  }
+
+  target_cols <- character(0)
+  for (item in cols_or_patterns) {
+    if (is.na(item) || !nzchar(item)) {
+      next
+    }
+    if (item %in% names(data)) {
+      target_cols <- c(target_cols, item)
+      next
+    }
+    matches <- grep(item, names(data), value = TRUE)
+    if (length(matches) > 0) {
+      target_cols <- c(target_cols, matches)
+    }
+  }
+
+  target_cols <- unique(target_cols)
+  if (length(target_cols) == 0) {
+    return(data)
+  }
+
+  data[missing_idx, target_cols] <- NA
+  data
+}
+

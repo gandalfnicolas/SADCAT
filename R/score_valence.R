@@ -58,6 +58,13 @@ score_valence <- function(data,
   data$Valy <- rowMeans(data[, val_cols, drop = FALSE], na.rm = TRUE)
   data$ValyNA <- rowMeans(data[, valna_cols, drop = FALSE], na.rm = TRUE)
 
+  # Ensure valence family columns are NA when the original response is missing
+  data <- .mask_missing_response_cols(
+    data,
+    response_col,
+    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNA$")
+  )
+
   # Replace NaN with NA
   data <- replace_nan_with_na(data)
 

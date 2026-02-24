@@ -46,7 +46,7 @@ aggregate_responses <- function(data,
       paste0("^Valy$|^ValyNA$|",
              "_dic_binary2$|^None2y$|",
              "_ValyNA$|^NONE_ValyNA$|",
-             "_valy3$|_dirx3$|",
+             "_valy3$|_valyNA3$|_dirx3$|",
              "^SBERT_|^Gemini_|",
              "\\.seed$|",
              "^traditional$|",
@@ -133,14 +133,14 @@ aggregate_responses <- function(data,
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }
 
-    # Valence noNA: _valy3 columns
-    valy3_cols <- grep("_valy3$", names(result), value = TRUE)
-    for (col in valy3_cols) {
+    # Valence noNA: _valy3 and _valyNA3 columns
+    valy_cols <- grep("_valy3$|_valyNA3$", names(result), value = TRUE)
+    for (col in valy_cols) {
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }
 
     if (verbose) {
-      message("  Created ", length(dirx3_cols) + length(valy3_cols), " noNA columns.")
+      message("  Created ", length(dirx3_cols) + length(valy_cols), " noNA columns.")
     }
   }
 
@@ -148,3 +148,4 @@ aggregate_responses <- function(data,
                        nrow(result), " rows x ", ncol(result), " columns.")
   return(result)
 }
+
