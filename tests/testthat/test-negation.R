@@ -126,3 +126,67 @@ test_that("match_dictionaries keeps negation local in directional outputs", {
   expect_equal(matched["warm but not competent", "Competence_dirx2"], -1)
   expect_equal(matched["warm but not competent", "Competence_dirx3"], -1)
 })
+
+test_that("quanteda tokenization uses safe docnames for duplicate text", {
+  toks <- SADCAT:::.tokenize_quanteda_text(
+    c("warm", "warm", "warm!", "Warm"),
+    prefix = "dup",
+    remove_numbers = FALSE,
+    remove_punct = TRUE,
+    remove_symbols = TRUE
+  )
+
+  expect_equal(names(quanteda::as.list(toks)), paste0("dup_", 1:4))
+})
+
+test_that("match_dictionaries handles identical and normalized-duplicate responses", {
+  dat <- data.frame(
+    row_id = 1:4,
+    response = c("warm", "warm", "warm!", "Warm"),
+    tv = c("warm", "warm", "warm!", "Warm"),
+    tv3 = c("warm", "warm", "warm!", "Warm"),
+    stringsAsFactors = FALSE
+  )
+
+  scored <- SADCAT::score_valence(dat, text_col = "tv", response_col = "response")
+  matched <- NULL
+  expect_no_error({
+    matched <- SADCAT::match_dictionaries(
+      scored,
+      text_col = "tv3",
+      response_col = "response",
+      valence_col = "ValyNA",
+      valence_raw_col = "Valy"
+    )
+  })
+
+  expect_equal(matched$row_id, dat$row_id)
+  expect_equal(nrow(matched), nrow(dat))
+  expect_equal(anyDuplicated(matched$doc_id), 0)
+  expect_equal(matched$Warmth_dirx, rep(1, 4))
+})
+
+test_that("process_responses completes through dictionary matching with duplicate texts", {
+  dat <- data.frame(
+    row_id = 1:4,
+    responsex = c("warm", "warm", "warm!", "Warm"),
+    response = c("warm", "warm", "warm!", "Warm"),
+    stringsAsFactors = FALSE
+  )
+
+  result <- NULL
+  expect_no_error({
+    result <- SADCAT::process_responses(
+      dat,
+      stages = c("preprocess", "valence", "dictionaries"),
+      spellcheck = FALSE,
+      singularize_text = FALSE,
+      verbose = FALSE
+    )
+  })
+
+  expect_equal(result$long$row_id, dat$row_id)
+  expect_equal(nrow(result$long), nrow(dat))
+  expect_equal(anyDuplicated(result$long$doc_id), 0)
+  expect_equal(result$long$Warmth_dirx, rep(1, 4))
+})

@@ -55,11 +55,14 @@ match_dictionaries <- function(data,
       paste(sapply(strsplit(y, ' '), delete_ending_Ss), collapse = ' ')
     }))
   }
-  data$tv4 <- vapply(data$tv4, delete_ending_Ss2_internal, character(1))
+  data$tv4 <- vapply(data$tv4, delete_ending_Ss2_internal, character(1), USE.NAMES = FALSE)
 
   # ---- Tokenize (shared for both dictionaries) ----
-  toks <- quanteda::tokens(data$tv4, remove_numbers = FALSE,
-                           remove_punct = TRUE, remove_symbols = TRUE)
+  toks <- .tokenize_quanteda_text(data$tv4,
+                                  prefix = "response",
+                                  remove_numbers = FALSE,
+                                  remove_punct = TRUE,
+                                  remove_symbols = TRUE)
 
   toks_dict <- data
 

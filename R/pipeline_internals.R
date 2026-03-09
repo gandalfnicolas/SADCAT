@@ -8,6 +8,28 @@ replace_nan_with_na <- function(df) {
   df
 }
 
+#' Prepare character input for quanteda tokenization with stable docnames
+#' @param x A character vector
+#' @param prefix Prefix for generated docnames
+#' @return Character vector with explicit unique names for quanteda
+#' @keywords internal
+.prepare_quanteda_text <- function(x, prefix = "doc") {
+  x <- enc2utf8(as.character(x))
+  x <- unname(x)
+  names(x) <- paste0(prefix, "_", seq_along(x))
+  x
+}
+
+#' Tokenize character input with stable row-based docnames
+#' @param x A character vector
+#' @param prefix Prefix for generated docnames
+#' @param ... Passed to \code{quanteda::tokens()}
+#' @return A quanteda tokens object
+#' @keywords internal
+.tokenize_quanteda_text <- function(x, prefix = "doc", ...) {
+  quanteda::tokens(.prepare_quanteda_text(x, prefix = prefix), ...)
+}
+
 #' Build a quanteda sentiment dictionary from tidytext
 #'
 #' @param name One of "nrc", "bing", "afinn", "loughran"

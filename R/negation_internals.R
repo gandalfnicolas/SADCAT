@@ -57,8 +57,9 @@
     return(character(0))
   }
 
-  toks <- quanteda::tokens(
+  toks <- .tokenize_quanteda_text(
     normalizer(terms),
+    prefix = "term",
     remove_numbers = FALSE,
     remove_punct = TRUE,
     remove_symbols = TRUE
@@ -124,8 +125,9 @@
                                           normalizer,
                                           singularize_words = FALSE,
                                           compound_patterns = NULL) {
-  toks <- quanteda::tokens(
+  toks <- .tokenize_quanteda_text(
     normalizer(text),
+    prefix = "response",
     remove_numbers = FALSE,
     remove_punct = FALSE,
     remove_symbols = FALSE
@@ -334,8 +336,9 @@
   if (!length(terms)) {
     return(rep(FALSE, length(text)))
   }
-  toks <- quanteda::tokens(
+  toks <- .tokenize_quanteda_text(
     .normalize_valence_terms(text),
+    prefix = "phrase",
     remove_numbers = FALSE,
     remove_punct = TRUE,
     remove_symbols = TRUE

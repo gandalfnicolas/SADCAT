@@ -37,14 +37,16 @@ prepare_socats_dictionaries <- function(socats_data = SOCATS_Dictionaries,
     }))
   }
   soccats$values0 <- vapply(soccats$values0,
-                             delete_ending_Ss2_internal,
-                             character(1))
+                            delete_ending_Ss2_internal,
+                            character(1),
+                            USE.NAMES = FALSE)
 
   # Tokenize to remove punctuation and symbols, then reconstruct
-  corpusx <- quanteda::tokens(soccats$values0,
-                              remove_numbers = TRUE,
-                              remove_punct = TRUE,
-                              remove_symbols = TRUE)
+  corpusx <- .tokenize_quanteda_text(soccats$values0,
+                                     prefix = "socats_term",
+                                     remove_numbers = TRUE,
+                                     remove_punct = TRUE,
+                                     remove_symbols = TRUE)
   soccats$values0 <- vapply(seq_along(corpusx), function(i) {
     paste(corpusx[[i]], collapse = ' ')
   }, character(1))

@@ -38,11 +38,15 @@ prepare_sadcat_dictionaries <- function(pre_dictionaries = All.steps_Dictionarie
   }
   Pre_Dictionaries$values0 <- vapply(Pre_Dictionaries$values0,
                                      delete_ending_Ss2_internal,
-                                     character(1))
+                                     character(1),
+                                     USE.NAMES = FALSE)
 
   # Tokenize to remove punctuation and symbols, then reconstruct
-  corpusx2 <- quanteda::tokens(Pre_Dictionaries$values0,
-                               remove_numbers = FALSE, remove_punct = TRUE, remove_symbols = TRUE)
+  corpusx2 <- .tokenize_quanteda_text(Pre_Dictionaries$values0,
+                                      prefix = "sadcat_term",
+                                      remove_numbers = FALSE,
+                                      remove_punct = TRUE,
+                                      remove_symbols = TRUE)
   Pre_Dictionaries$values0 <- vapply(seq_along(corpusx2), function(i) {
     paste(corpusx2[[i]], collapse = ' ')
   }, character(1))

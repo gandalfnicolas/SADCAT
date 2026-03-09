@@ -129,6 +129,17 @@ replace_nan_with_na <- function(df) {
   df
 }
 
+.prepare_quanteda_text <- function(x, prefix = "doc") {
+  x <- enc2utf8(as.character(x))
+  x <- unname(x)
+  names(x) <- paste0(prefix, "_", seq_along(x))
+  x
+}
+
+.tokenize_quanteda_text <- function(x, prefix = "doc", ...) {
+  quanteda::tokens(.prepare_quanteda_text(x, prefix = prefix), ...)
+}
+
 .normalize_valence_text <- function(x) {
   x <- enc2utf8(as.character(x))
   x <- tolower(x)
@@ -185,8 +196,9 @@ replace_nan_with_na <- function(df) {
     return(character(0))
   }
 
-  toks <- quanteda::tokens(
+  toks <- .tokenize_quanteda_text(
     normalizer(terms),
+    prefix = "term",
     remove_numbers = FALSE,
     remove_punct = TRUE,
     remove_symbols = TRUE
@@ -252,8 +264,9 @@ replace_nan_with_na <- function(df) {
                                           normalizer,
                                           singularize_words = FALSE,
                                           compound_patterns = NULL) {
-  toks <- quanteda::tokens(
+  toks <- .tokenize_quanteda_text(
     normalizer(text),
+    prefix = "response",
     remove_numbers = FALSE,
     remove_punct = FALSE,
     remove_symbols = FALSE
@@ -462,8 +475,9 @@ replace_nan_with_na <- function(df) {
   if (!length(terms)) {
     return(rep(FALSE, length(text)))
   }
-  toks <- quanteda::tokens(
+  toks <- .tokenize_quanteda_text(
     .normalize_valence_terms(text),
+    prefix = "phrase",
     remove_numbers = FALSE,
     remove_punct = TRUE,
     remove_symbols = TRUE
@@ -971,11 +985,15 @@ prepare_sadcat_dictionaries <- function(pre_dictionaries = SADCAT::All.steps_Dic
   }
   Pre_Dictionaries$values0 <- vapply(Pre_Dictionaries$values0,
                                      delete_ending_Ss2_internal,
-                                     character(1))
+                                     character(1),
+                                     USE.NAMES = FALSE)
 
   # Tokenize to remove punctuation and symbols, then reconstruct
-  corpusx2 <- quanteda::tokens(Pre_Dictionaries$values0,
-                               remove_numbers = FALSE, remove_punct = TRUE, remove_symbols = TRUE)
+  corpusx2 <- .tokenize_quanteda_text(Pre_Dictionaries$values0,
+                                      prefix = "sadcat_term",
+                                      remove_numbers = FALSE,
+                                      remove_punct = TRUE,
+                                      remove_symbols = TRUE)
   Pre_Dictionaries$values0 <- vapply(seq_along(corpusx2), function(i) {
     paste(corpusx2[[i]], collapse = ' ')
   }, character(1))
@@ -1124,11 +1142,14 @@ match_dictionaries <- function(data,
       paste(sapply(strsplit(y, ' '), SADCAT::delete_ending_Ss), collapse = ' ')
     }))
   }
-  data <- vapply(data, delete_ending_Ss2_internal, character(1))
+  data <- vapply(data, delete_ending_Ss2_internal, character(1), USE.NAMES = FALSE)
 
   # ---- Tokenize and match ----
-  toks <- quanteda::tokens(data, remove_numbers = FALSE,
-                           remove_punct = TRUE, remove_symbols = TRUE)
+  toks <- .tokenize_quanteda_text(data,
+                                  prefix = "response",
+                                  remove_numbers = FALSE,
+                                  remove_punct = TRUE,
+                                  remove_symbols = TRUE)
 
   toks_dict_pre <- quanteda::tokens_lookup(toks, dictionary = sadcat_dict,
                                            nested_scope = "dictionary",
@@ -1977,10 +1998,13 @@ match_dictionaries <- function(data,
       paste(sapply(strsplit(y, ' '), SADCAT::delete_ending_Ss), collapse = ' ')
     }))
   }
-  data$tv4 <- vapply(data$tv4, delete_ending_Ss2_internal, character(1))
+  data$tv4 <- vapply(data$tv4, delete_ending_Ss2_internal, character(1), USE.NAMES = FALSE)
 
-  toks <- quanteda::tokens(data$tv4, remove_numbers = FALSE,
-                           remove_punct = TRUE, remove_symbols = TRUE)
+  toks <- .tokenize_quanteda_text(data$tv4,
+                                  prefix = "response",
+                                  remove_numbers = FALSE,
+                                  remove_punct = TRUE,
+                                  remove_symbols = TRUE)
 
   toks_dict_pre <- quanteda::tokens_lookup(toks, dictionary = sadcat_dict,
                                            nested_scope = "dictionary",
