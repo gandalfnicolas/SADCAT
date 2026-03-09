@@ -14,6 +14,11 @@ replace_nan_with_na <- function(df) {
 #' @return A quanteda dictionary with positive and negative entries
 #' @keywords internal
 build_sentiment_dictionary <- function(name) {
+  cache_key <- paste0("sentiment_dictionary_", name)
+  if (exists(cache_key, envir = .negation_cache, inherits = FALSE)) {
+    return(get(cache_key, envir = .negation_cache, inherits = FALSE))
+  }
+
   if (name == "nrc") {
     sent <- tidytext::get_sentiments("nrc") %>%
       dplyr::filter(sentiment == "positive" | sentiment == "negative")
@@ -46,7 +51,9 @@ build_sentiment_dictionary <- function(name) {
     sent <- dplyr::select(sent, dplyr::all_of(c(pos_col, neg_col)))
   }
   sent_list <- lapply(sent, function(x) x[!is.na(x)])
-  quanteda::dictionary(sent_list)
+  out <- quanteda::dictionary(sent_list)
+  assign(cache_key, out, envir = .negation_cache)
+  out
 }
 
 #' Apply a single sentiment dictionary and compute valence scores

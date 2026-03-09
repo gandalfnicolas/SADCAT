@@ -29,9 +29,14 @@
 # Negation patterns
 .NEGATION_PATTERN <- "[Aa]nti-|[Nn]on-|[Bb]ad at |[Ll]imited |[Nn]ot |[Nn]o |[Nn]ever |[Nn]either |[Hh]ardly |[Ll]ess "
 .NEGATION_PATTERN_VAL <- "[Aa]nti-|[Nn]on-"
+.NEGATION_TOKEN_SEPARATOR <- "__"
+.NEGATION_SCOPE_MAX_TOKENS <- 4L
+.NEGATION_CLAUSE_BREAKERS <- c(".", ",", ";", ":", "!", "?", "but", "however", "though", "although", "yet")
+.NEGATION_CUE_HEADS <- c("anti", "non", "not", "no", "never", "neither", "hardly", "less", "limited")
 
 # Cache environment for memoized dictionary preparation
 .sadcat_cache <- new.env(parent = emptyenv())
+.negation_cache <- new.env(parent = emptyenv())
 
 .onLoad <- function(libname, pkgname) {
   # Package initialization

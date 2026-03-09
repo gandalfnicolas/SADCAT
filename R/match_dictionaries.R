@@ -140,17 +140,9 @@ match_dictionaries <- function(data,
       toks_dict$NONE_ValyNA <- ifelse(toks_dict$None2y == 0, NA, toks_dict[[valence_col]])
     }
 
-    # ---- Negation reversal for direction scores ----
-    for (dim in .SADCAT_DIR_DIMS) {
-      dirx_col <- paste0(dim, "_dirx")
-      dirx2_col <- paste0(dim, "_dirx2")
-      if (dirx_col %in% names(toks_dict)) {
-        toks_dict[[dirx2_col]] <- ifelse(
-          grepl(.NEGATION_PATTERN, toks_dict[[response_col]]),
-          toks_dict[[dirx_col]] * -1,
-          toks_dict[[dirx_col]]
-        )
-      }
+    adjusted_dir <- .compute_adjusted_direction_scores(data[[text_col]], sadcat_dict)
+    for (col in names(adjusted_dir)) {
+      toks_dict[[col]] <- adjusted_dir[[col]]
     }
 
     # ---- Fix valy3/valyNA3 and dirx3: NA if binary==0 OR binary2 is NA ----
@@ -163,6 +155,7 @@ match_dictionaries <- function(data,
       valy3_col <- paste0(dim, "_valy3")
       valyna3_col <- paste0(dim, "_valyNA3")
       dirx_col <- paste0(dim, "_dirx")
+      dirx2_col <- paste0(dim, "_dirx2")
       dirx3_col <- paste0(dim, "_dirx3")
 
       if (all(c(binary_col, binary2_col, valy_dim) %in% names(toks_dict))) {

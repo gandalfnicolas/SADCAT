@@ -16,8 +16,10 @@ Suggests: knitr,
     multcomp,
     emmeans,
     koRpus.lang.en,
-    tidyr
+    tidyr,
+    testthat
 VignetteBuilder: knitr
 License: NA
 Depends: 
     R (>= 2.10)
+Config/testthat/edition: 3
