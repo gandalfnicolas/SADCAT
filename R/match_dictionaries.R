@@ -28,6 +28,8 @@ match_dictionaries <- function(data,
                                socats_dict = NULL,
                                socats = FALSE) {
   message("--- Stage 4: Matching dictionaries ---")
+  .require_data_columns(data, text_col, "match_dictionaries()")
+  .require_data_columns(data, response_col, "match_dictionaries()")
 
   # Determine which dictionaries to match
   do_sadcat <- !identical(sadcat_dict, FALSE)

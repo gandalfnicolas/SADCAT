@@ -6,3 +6,8 @@
 ^\.claude$
 ^Setup\.Rmd$
 ^sadcat_pipeline_functions\.R$
+^\.git$
+^\.gitignore$
+^\.Rhistory$
+^\.{2}Rcheck$
+^nul$

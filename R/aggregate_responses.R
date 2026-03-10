@@ -83,11 +83,14 @@ aggregate_responses <- function(data,
 
   # ---- Sum aggregation ----
   if (length(sum_cols) > 0) {
-    sum_data <- data %>%
-      dplyr::select(dplyr::all_of(c(group_cols, sum_cols))) %>%
-      dplyr::group_by(dplyr::across(dplyr::all_of(group_cols))) %>%
-      dplyr::summarise(dplyr::across(dplyr::everything(), ~sum(., na.rm = TRUE)),
-                       .groups = "drop")
+    sum_data <- dplyr::summarise(
+      dplyr::group_by(
+        dplyr::select(data, dplyr::all_of(c(group_cols, sum_cols))),
+        dplyr::across(dplyr::all_of(group_cols))
+      ),
+      dplyr::across(dplyr::everything(), ~sum(., na.rm = TRUE)),
+      .groups = "drop"
+    )
     # Rename sum columns with _Sum suffix
     sum_rename <- setdiff(names(sum_data), group_cols)
     names(sum_data)[names(sum_data) %in% sum_rename] <- paste0(sum_rename, "_Sum")
@@ -97,20 +100,23 @@ aggregate_responses <- function(data,
 
   # ---- Mean aggregation ----
   if (length(mean_cols) > 0) {
-    mean_data <- data %>%
-      dplyr::select(dplyr::all_of(c(group_cols, mean_cols))) %>%
-      dplyr::group_by(dplyr::across(dplyr::all_of(group_cols))) %>%
-      dplyr::summarise(dplyr::across(dplyr::everything(), ~mean(., na.rm = TRUE)),
-                       .groups = "drop")
+    mean_data <- dplyr::summarise(
+      dplyr::group_by(
+        dplyr::select(data, dplyr::all_of(c(group_cols, mean_cols))),
+        dplyr::across(dplyr::all_of(group_cols))
+      ),
+      dplyr::across(dplyr::everything(), ~mean(., na.rm = TRUE)),
+      .groups = "drop"
+    )
   } else {
     mean_data <- NULL
   }
 
   # ---- Distinct aggregation ----
   if (length(distinct_cols) > 0) {
-    distinct_data <- data %>%
-      dplyr::select(dplyr::all_of(c(group_cols, distinct_cols))) %>%
-      dplyr::distinct()
+    distinct_data <- dplyr::distinct(
+      dplyr::select(data, dplyr::all_of(c(group_cols, distinct_cols)))
+    )
   } else {
     distinct_data <- NULL
   }

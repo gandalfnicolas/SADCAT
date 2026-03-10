@@ -7,6 +7,7 @@ utils::globalVariables(c(
   "All.steps_Dictionaries",
   "Seed_Vectors_Avg",
   "Dictionaries",
+  "SOCATS_Dictionaries",
   # NSE / tidyverse column names used in new pipeline files
   ".data", "sentiment", "Val_lexicoder", "Estimate", "p.value",
   # NSE column names from pre-existing files

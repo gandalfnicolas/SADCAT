@@ -144,3 +144,18 @@
 #'
 #' @format A data frame with sentiment words and their valence scores
 "Sentiments"
+
+
+#' Raw SOCATS social category dictionary
+#'
+#' Source data used by \code{prepare_socats_dictionaries()} to build the
+#' quanteda dictionary for SOCATS social category matching.
+#'
+#' @format A data frame with SOCATS category labels and raw dictionary terms.
+#' Key column groups:
+#' \itemize{
+#'   \item \code{word}: Raw social category term
+#'   \item One binary indicator column per SOCATS category used by the matcher
+#'   \item Category families spanning race/ethnicity, age, sexuality, gender, jobs, and geography
+#' }
+"SOCATS_Dictionaries"

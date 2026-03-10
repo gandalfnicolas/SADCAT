@@ -21,6 +21,7 @@ preprocess_text <- function(data,
                             wordnet_dict = "C:\\dict",
                             verbose = TRUE) {
   if (verbose) message("--- Stage 1: Preprocessing text ---")
+  .require_data_columns(data, text_col, "preprocess_text()")
 
   # Step 1: Lowercase
   data$tv <- tolower(data[[text_col]])

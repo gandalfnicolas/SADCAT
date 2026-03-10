@@ -7,4 +7,23 @@
 
 
 clean_naresponses = function(word){
-  ifelse(word == "" | word == "N	A" | word == "NA" |	word == " " | word =="#N/A" | word == "n/a" | word == 'N/A' | word == 'na' | word == 'an' | word == 'no' | word == 'idk' | word == "nas" | word =="dont know" | word == "don't know"| word == "?",return(NA),return(word))}
+  word <- as.character(word)
+  normalized <- gsub("\t", "", trimws(word), fixed = TRUE)
+  missing_like <- normalized %in% c(
+    "",
+    "NA",
+    "#N/A",
+    "n/a",
+    "N/A",
+    "na",
+    "an",
+    "no",
+    "idk",
+    "nas",
+    "dont know",
+    "don't know",
+    "?"
+  )
+  word[missing_like] <- NA_character_
+  word
+}

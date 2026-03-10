@@ -7,6 +7,9 @@
 
 # some xs are to prevent word from scoring.
 clean_large_text = function(x){
+  str_replace <- stringr::str_replace
+  str_replace_all <- stringr::str_replace_all
+  str_trim <- stringr::str_trim
   x <- stringr::str_replace(x, pattern = "^", replacement = " ")  ##  Adds a space to the beginning of the text. (Ensures function works on first word in the text)
   x <- str_replace(x, pattern = "$", replacement = " ")  ##  Adds a space to the end of the text (Ensures function works on last word in the text)
   x <- str_replace_all(x, pattern = " (A|a)in't ", replacement = " am not ")

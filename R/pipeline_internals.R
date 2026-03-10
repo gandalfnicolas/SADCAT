@@ -8,6 +8,25 @@ replace_nan_with_na <- function(df) {
   df
 }
 
+#' Validate required columns before running a pipeline stage
+#' @param data A data.frame
+#' @param cols Required column names
+#' @param context Short stage/function label for the error message
+#' @return Invisibly returns TRUE
+#' @keywords internal
+.require_data_columns <- function(data, cols, context) {
+  missing_cols <- setdiff(cols, names(data))
+  if (length(missing_cols) > 0) {
+    stop(
+      context,
+      " requires missing column(s): ",
+      paste(missing_cols, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
 #' Prepare character input for quanteda tokenization with stable docnames
 #' @param x A character vector
 #' @param prefix Prefix for generated docnames
@@ -30,6 +49,38 @@ replace_nan_with_na <- function(df) {
   quanteda::tokens(.prepare_quanteda_text(x, prefix = prefix), ...)
 }
 
+#' Check namespace availability
+#' @param pkg Package name
+#' @return Logical scalar
+#' @keywords internal
+.has_namespace <- function(pkg) {
+  requireNamespace(pkg, quietly = TRUE)
+}
+
+#' Wrapper around reticulate::import for testability
+#' @param module Python module name
+#' @return Imported Python module
+#' @keywords internal
+.reticulate_import <- function(module) {
+  reticulate::import(module)
+}
+
+#' Wrapper around reticulate::py_to_r for testability
+#' @param x Python object
+#' @return Converted R object
+#' @keywords internal
+.reticulate_py_to_r <- function(x) {
+  reticulate::py_to_r(x)
+}
+
+#' Wrapper around Sys.sleep for testability
+#' @param seconds Numeric sleep duration
+#' @return NULL invisibly
+#' @keywords internal
+.sleep_seconds <- function(seconds) {
+  Sys.sleep(seconds)
+}
+
 #' Build a quanteda sentiment dictionary from tidytext
 #'
 #' @param name One of "nrc", "bing", "afinn", "loughran"
@@ -42,8 +93,10 @@ build_sentiment_dictionary <- function(name) {
   }
 
   if (name == "nrc") {
-    sent <- tidytext::get_sentiments("nrc") %>%
-      dplyr::filter(sentiment == "positive" | sentiment == "negative")
+    sent <- dplyr::filter(
+      tidytext::get_sentiments("nrc"),
+      sentiment == "positive" | sentiment == "negative"
+    )
     pos_col <- paste0("positive_", name)
     neg_col <- paste0("negative_", name)
     sent[[pos_col]] <- ifelse(sent$sentiment == "positive", tolower(sent$word), NA)
@@ -64,8 +117,10 @@ build_sentiment_dictionary <- function(name) {
     sent[[neg_col]] <- ifelse(sent$value < 0, tolower(sent$word), NA)
     sent <- dplyr::select(sent, dplyr::all_of(c(pos_col, neg_col)))
   } else if (name == "loughran") {
-    sent <- tidytext::get_sentiments("loughran") %>%
-      dplyr::filter(sentiment == "positive" | sentiment == "negative")
+    sent <- dplyr::filter(
+      tidytext::get_sentiments("loughran"),
+      sentiment == "positive" | sentiment == "negative"
+    )
     pos_col <- paste0("positive_", name)
     neg_col <- paste0("negative_", name)
     sent[[pos_col]] <- ifelse(sent$sentiment == "positive", tolower(sent$word), NA)

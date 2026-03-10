@@ -42,9 +42,7 @@ compute_seed_similarities <- function(data,
   Seed_Vectors_names <- paste0(as.character(seed_vectors$Dictionary), ".seed")
 
   # Extract seed embedding matrix (dims x seeds)
-  Seed_Matrix <- seed_vectors %>%
-    dplyr::select(dplyr::all_of(seed_emb_cols)) %>%
-    t()
+  Seed_Matrix <- t(dplyr::select(seed_vectors, dplyr::all_of(seed_emb_cols)))
 
   colnames(Seed_Matrix) <- Seed_Vectors_names
 

@@ -9,10 +9,22 @@
 
 Code_sent = function(data, raw_text = "rawword", preproc_text = "word"){
   SENT_dictv1 = Sentiments[,-c(8,9,10)]
-  SENT_dictv2 = Sentiments %>%
-    dplyr::select(word = word4,Val_bing2=Val_bing,Val_NRC2=Val_NRC,Val_afinn2=Val_afinn,Val_loughran2 =Val_loughran,Val_sentiwn2 =Val_sentiwn)%>%
-    dplyr::group_by(word)%>%
-    dplyr::summarize_all(funs(mean(.,na.rm=T)))
+  SENT_dictv2 = dplyr::summarise(
+    dplyr::group_by(
+      dplyr::select(
+        Sentiments,
+        word = word4,
+        Val_bing2 = Val_bing,
+        Val_NRC2 = Val_NRC,
+        Val_afinn2 = Val_afinn,
+        Val_loughran2 = Val_loughran,
+        Val_sentiwn2 = Val_sentiwn
+      ),
+      word
+    ),
+    dplyr::across(dplyr::everything(), ~ mean(.x, na.rm = TRUE)),
+    .groups = "drop"
+  )
   data$tv = sapply(data[[raw_text]], tolower)
   data$tv = sapply(data$tv, trimws)
   data2 = merge(x = data, y =SENT_dictv1, by.x = "tv",by.y = "word", all.x = TRUE) #Find first if there is a match with original response - different lemmas (next code) might have different sentiment, so this is ideal

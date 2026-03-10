@@ -16,6 +16,10 @@ score_valence <- function(data,
                           text_col = "tv",
                           response_col = "response") {
   message("--- Stage 2: Scoring valence (5 dictionaries) ---")
+  .require_data_columns(data, text_col, "score_valence()")
+  if (!is.null(response_col)) {
+    .require_data_columns(data, response_col, "score_valence()")
+  }
 
   valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
   data <- cbind(data, valence_scores)
