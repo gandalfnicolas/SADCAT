@@ -9,5 +9,13 @@
 ^\.git$
 ^\.gitignore$
 ^\.Rhistory$
+^\.RData$
+^\.Ruserdata$
+^\.Renviron$
+^\.env$
+^\.env\..*$
+^.*\.pem$
+^.*\.p12$
+^.*\.pfx$
 ^\.{2}Rcheck$
 ^nul$

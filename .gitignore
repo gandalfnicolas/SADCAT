@@ -2,6 +2,12 @@
 .Rhistory
 .RData
 .Ruserdata
+.Renviron
+.env
+.env.*
+*.pem
+*.p12
+*.pfx
 inst/doc
 *.tar.gz
 *.Rcheck/
