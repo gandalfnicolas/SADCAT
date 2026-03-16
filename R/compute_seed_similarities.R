@@ -9,7 +9,9 @@
 #' @param embedding_prefix Prefix identifying embedding columns (default "SBERT")
 #' @param seed_vectors Seed vector data. Default: Seed_Vectors_Avg
 #' @param method "correlation" (default, uses cor()) or "cosine" (uses lsa::cosine())
-#' @param response_col Column used to set seed columns to NA where response is missing (default "response")
+#' @param response_col Column used for NA-gating (default: same as text_col, where
+#'   text_col is inferred as the embedding source column). Only needed if your
+#'   NA-indicator column differs from the embedding source.
 #' @param verbose Print progress? (default TRUE)
 #' @return The input data with new columns: \code{prefix_SeedName.seed}
 #' @export compute_seed_similarities
@@ -18,7 +20,7 @@ compute_seed_similarities <- function(data,
                                       embedding_prefix = "SBERT",
                                       seed_vectors = Seed_Vectors_Avg,
                                       method = "correlation",
-                                      response_col = "response",
+                                      response_col = NULL,
                                       verbose = TRUE) {
   message("--- Stage 6: Computing seed similarities (", embedding_prefix, ") ---")
 

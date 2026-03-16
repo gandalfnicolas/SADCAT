@@ -7,14 +7,21 @@
 #' @param parallelize use parallel processors? Defaults to TRUE
 #' @param print Whether to print progress. Defaults to TRUE
 #' @param debug Whether to pass debug flag to treetag. Defaults to FALSE
+#' @param treetagger_path Optional TreeTagger installation directory. If NULL, auto-discovery is used.
 #' @return Original dataframe with additional columns for codings
 #' @export Code_words
 
-Code_words = function(data, text = "word", more2na = T, parallelize = T, print =T, debug=F){
+Code_words = function(data, text = "word", more2na = T, parallelize = T, print =T, debug=F, treetagger_path = NULL){
   dataunique = unique(data[[text]])
   dataunique = data.frame(values = dataunique, stringsAsFactors = F)
   message("preprocessing...")
-  dataunique$preproc_text = Full_preprocess(dataunique$values, parallelize = parallelize)
+  dataunique$preproc_text = Full_preprocess(
+    dataunique$values,
+    parallelize = parallelize,
+    print = print,
+    debug = debug,
+    treetagger_path = treetagger_path
+  )
   message("coding...")
   data2 = merge(x = data, y = dataunique, by.x = text, by.y = "values", all.x =T)
   res = Code_single(data = data2, text = "preproc_text", more2na = more2na)

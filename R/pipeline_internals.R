@@ -81,6 +81,228 @@ replace_nan_with_na <- function(df) {
   Sys.sleep(seconds)
 }
 
+#' Normalize and validate a directory-like path candidate
+#' @param path Candidate path
+#' @return Normalized path string or NULL
+#' @keywords internal
+.normalize_existing_dir <- function(path) {
+  if (is.null(path) || length(path) == 0) {
+    return(NULL)
+  }
+  path <- as.character(path)[1]
+  if (is.na(path) || !nzchar(path)) {
+    return(NULL)
+  }
+  path <- path.expand(path)
+  path <- gsub("\\\\", "/", path)
+  path <- sub("/+$", "", path)
+  if (!dir.exists(path)) {
+    return(NULL)
+  }
+  normalizePath(path, winslash = "/", mustWork = FALSE)
+}
+
+#' Check whether a directory looks like a Java home
+#' @param path Candidate Java home directory
+#' @return Logical scalar
+#' @keywords internal
+.has_java_home <- function(path) {
+  if (is.null(path) || !nzchar(path) || !dir.exists(path)) {
+    return(FALSE)
+  }
+  file.exists(file.path(path, "bin", "java")) || file.exists(file.path(path, "bin", "java.exe"))
+}
+
+#' Normalize candidate Java home path
+#' @param path Candidate Java path/home/bin/java executable
+#' @return Normalized Java home directory or NULL
+#' @keywords internal
+.normalize_java_candidate <- function(path) {
+  if (is.null(path) || length(path) == 0) {
+    return(NULL)
+  }
+  path <- as.character(path)[1]
+  if (is.na(path) || !nzchar(path)) {
+    return(NULL)
+  }
+
+  path <- path.expand(path)
+  path <- gsub("\\\\", "/", path)
+  path <- sub("/+$", "", path)
+
+  if (file.exists(path) && !dir.exists(path)) {
+    b <- tolower(basename(path))
+    if (b %in% c("java", "java.exe")) {
+      path <- dirname(dirname(path))
+    } else {
+      return(NULL)
+    }
+  } else if (dir.exists(path)) {
+    b <- tolower(basename(path))
+    if (b == "bin") {
+      path <- dirname(path)
+    } else if (b == "contents" && dir.exists(file.path(path, "Home"))) {
+      path <- file.path(path, "Home")
+    } else if (dir.exists(file.path(path, "Contents", "Home"))) {
+      path <- file.path(path, "Contents", "Home")
+    }
+  } else {
+    return(NULL)
+  }
+
+  .normalize_existing_dir(path)
+}
+
+#' Resolve JAVA_HOME from explicit path, env vars, PATH, or common install paths
+#' @param java_home Optional explicit JAVA_HOME-like directory
+#' @return Resolved JAVA_HOME directory
+#' @keywords internal
+.resolve_java_home <- function(java_home = NULL) {
+  path_hits <- Sys.which(c("java", "java.exe"))
+  path_hits <- unname(path_hits[nzchar(path_hits)])
+
+  path_candidates <- character(0)
+  if (length(path_hits) > 0) {
+    path_candidates <- c(path_hits[1], dirname(path_hits[1]), dirname(dirname(path_hits[1])))
+  }
+
+  mac_vm_homes <- character(0)
+  mac_vm_root <- "/Library/Java/JavaVirtualMachines"
+  if (dir.exists(mac_vm_root)) {
+    mac_vm_dirs <- list.dirs(mac_vm_root, recursive = FALSE, full.names = TRUE)
+    if (length(mac_vm_dirs) > 0) {
+      mac_vm_homes <- file.path(mac_vm_dirs, "Contents", "Home")
+    }
+  }
+
+  linux_jvm_dirs <- character(0)
+  linux_jvm_root <- "/usr/lib/jvm"
+  if (dir.exists(linux_jvm_root)) {
+    linux_jvm_dirs <- list.dirs(linux_jvm_root, recursive = FALSE, full.names = TRUE)
+  }
+
+  candidates <- c(
+    java_home,
+    Sys.getenv("JAVA_HOME", ""),
+    path_candidates,
+    "C:/Program Files/Java/jre-1.8",
+    "C:/Program Files/Java/jre",
+    "C:/Program Files/Java/jdk",
+    "C:/Program Files/Java",
+    "C:/Program Files (x86)/Java/jre-1.8",
+    "C:/Program Files (x86)/Java/jre",
+    "C:/Program Files (x86)/Java",
+    "/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home",
+    "/usr/local/opt/openjdk/libexec/openjdk.jdk/Contents/Home",
+    "/Library/Java/Home",
+    "/usr/lib/jvm/default-java",
+    "/usr/lib/jvm/java-17-openjdk-amd64",
+    "/usr/lib/jvm/java-11-openjdk-amd64",
+    mac_vm_homes,
+    linux_jvm_dirs
+  )
+
+  candidates <- candidates[!is.na(candidates) & nzchar(candidates)]
+  candidates <- unique(candidates)
+  for (candidate in candidates) {
+    normalized <- .normalize_java_candidate(candidate)
+    if (!is.null(normalized) && .has_java_home(normalized)) {
+      return(normalized)
+    }
+    if (!is.null(normalized) && dir.exists(normalized)) {
+      subdirs <- list.dirs(normalized, recursive = FALSE, full.names = TRUE)
+      if (length(subdirs) > 0) {
+        for (subdir in subdirs) {
+          sub_norm <- .normalize_java_candidate(subdir)
+          if (!is.null(sub_norm) && .has_java_home(sub_norm)) {
+            return(sub_norm)
+          }
+        }
+      }
+    }
+  }
+
+  stop(
+    "Java runtime not found for spell-checking. ",
+    "Set `java_home` or `JAVA_HOME` to a Java home directory that contains `bin/java`."
+  )
+}
+
+#' Check whether a directory looks like a WordNet dict directory
+#' @param path Candidate dict directory
+#' @return Logical scalar
+#' @keywords internal
+.has_wordnet_dict <- function(path) {
+  if (is.null(path) || !nzchar(path) || !dir.exists(path)) {
+    return(FALSE)
+  }
+  file.exists(file.path(path, "index.noun"))
+}
+
+#' Normalize candidate WordNet directory
+#' @param path Candidate dict path or parent folder
+#' @return Normalized dict directory or NULL
+#' @keywords internal
+.normalize_wordnet_candidate <- function(path) {
+  base <- .normalize_existing_dir(path)
+  if (is.null(base)) {
+    return(NULL)
+  }
+  if (tolower(basename(base)) == "dict") {
+    return(base)
+  }
+  dict_child <- .normalize_existing_dir(file.path(base, "dict"))
+  if (!is.null(dict_child)) {
+    return(dict_child)
+  }
+  base
+}
+
+#' Resolve WordNet dict directory from explicit path, env vars, or common locations
+#' @param wordnet_dict Optional explicit WordNet dict path
+#' @return Resolved WordNet dict directory
+#' @keywords internal
+.resolve_wordnet_dict <- function(wordnet_dict = NULL) {
+  wnsearchdir <- Sys.getenv("WNSEARCHDIR", "")
+  wn_home <- Sys.getenv("WNHOME", "")
+
+  candidates <- c(
+    wordnet_dict,
+    Sys.getenv("SADCAT_WORDNET_DICT", ""),
+    Sys.getenv("WORDNET_DICT", ""),
+    wnsearchdir,
+    wn_home,
+    file.path(wn_home, "dict"),
+    "C:/dict",
+    "C:/WordNet/2.1/dict",
+    "C:/WordNet/3.0/dict",
+    "C:/Program Files/WordNet/2.1/dict",
+    "C:/Program Files/WordNet/3.0/dict",
+    "C:/Program Files (x86)/WordNet/2.1/dict",
+    "C:/Program Files (x86)/WordNet/3.0/dict",
+    "/usr/share/wordnet",
+    "/usr/local/share/wordnet",
+    "/opt/local/share/wordnet",
+    "/opt/homebrew/share/wordnet",
+    "/usr/local/WordNet-3.0/dict"
+  )
+
+  candidates <- candidates[!is.na(candidates) & nzchar(candidates)]
+  candidates <- unique(candidates)
+  for (candidate in candidates) {
+    normalized <- .normalize_wordnet_candidate(candidate)
+    if (!is.null(normalized) && .has_wordnet_dict(normalized)) {
+      return(normalized)
+    }
+  }
+
+  stop(
+    "WordNet dictionary not found for spell-checking. ",
+    "Set `wordnet_dict`, `SADCAT_WORDNET_DICT`, `WNSEARCHDIR`, or `WNHOME` ",
+    "to the WordNet `dict` directory."
+  )
+}
+
 #' Build a quanteda sentiment dictionary from tidytext
 #'
 #' @param name One of "nrc", "bing", "afinn", "loughran"

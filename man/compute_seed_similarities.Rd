@@ -9,7 +9,7 @@ compute_seed_similarities(
   embedding_prefix = "SBERT",
   seed_vectors = Seed_Vectors_Avg,
   method = "correlation",
-  response_col = "response",
+  response_col = NULL,
   verbose = TRUE
 )
 }
@@ -22,7 +22,9 @@ compute_seed_similarities(
 
 \item{method}{"correlation" (default, uses cor()) or "cosine" (uses lsa::cosine())}
 
-\item{response_col}{Column used to set seed columns to NA where response is missing (default "response")}
+\item{response_col}{Column used for NA-gating (default: same as text_col, where
+text_col is inferred as the embedding source column). Only needed if your
+NA-indicator column differs from the embedding source.}
 
 \item{verbose}{Print progress? (default TRUE)}
 }

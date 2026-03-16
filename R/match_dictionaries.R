@@ -6,7 +6,8 @@
 #' direction scores, and per-dimension valence/direction columns.
 #' @param data A data.frame with preprocessed text and valence scores
 #' @param text_col Column with singularized text to match (default "tv3")
-#' @param response_col Column with original lowercased text for NA checks (default "tv")
+#' @param response_col Column used for NA-gating (default: same as text_col).
+#'   Only needed if your NA-indicator column differs from text_col.
 #' @param valence_col Name of combined valence column with NA-gating (default "Valy")
 #' @param valence_nona_col Name of combined valence column without NA-gating (default "ValyNoNA")
 #' @param sadcat_dict Pre-computed SADCAT quanteda dictionary. If NULL and
@@ -21,12 +22,13 @@
 
 match_dictionaries <- function(data,
                                text_col = "tv3",
-                               response_col = "tv",
+                               response_col = NULL,
                                valence_col = "Valy",
                                valence_nona_col = "ValyNoNA",
                                sadcat_dict = NULL,
                                socats_dict = NULL,
                                socats = FALSE) {
+  if (is.null(response_col)) response_col <- text_col
   message("--- Stage 4: Matching dictionaries ---")
   .require_data_columns(data, text_col, "match_dictionaries()")
   .require_data_columns(data, response_col, "match_dictionaries()")

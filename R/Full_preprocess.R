@@ -5,11 +5,12 @@
 #' @param parallelize use parallel processors?
 #' @param print Whether to print progress. Defaults to TRUE
 #' @param debug Whether to pass debug flag to treetag. Defaults to FALSE
+#' @param treetagger_path Optional TreeTagger installation directory. If NULL, auto-discovery is used.
 #' @return fully preprocessed words
 #' @export Full_preprocess
 
 
-Full_preprocess = function(words, parallelize = T, print =T, debug=F){
+Full_preprocess = function(words, parallelize = T, print =T, debug=F, treetagger_path = NULL){
   res = sapply(words,clean_naresponses)
   res = sapply(res,trimws) #removes whitespace
   res = sapply(res,tolower)
@@ -20,11 +21,15 @@ Full_preprocess = function(words, parallelize = T, print =T, debug=F){
     parallel::clusterEvalQ(cl, {
       library(dplyr)
       library(koRpus.lang.en)})
-    parallel::clusterExport(cl=cl, varlist=c("Lemmatize", "res"), envir = environment())
-    res = parallel::parSapply(cl,res, Lemmatize)
+    parallel::clusterExport(cl=cl, varlist=c("Lemmatize", "res", "print", "debug", "treetagger_path"), envir = environment())
+    res = parallel::parSapply(cl, res, function(x) {
+      Lemmatize(x, print = print, debug = debug, treetagger_path = treetagger_path)
+    })
     parallel::stopCluster(cl)}
   else{
-    res = sapply(res,Lemmatize)
+    res = sapply(res, function(x) {
+      Lemmatize(x, print = print, debug = debug, treetagger_path = treetagger_path)
+    })
   }
   res = sapply(res,delete_ending_Ss)
   res = mapply(Spellcheck,raw = words, cleaned = res, MoreArgs = list(rawlist = words, dict_cleaned= SADCAT::Dictionaries$word))

@@ -4,7 +4,13 @@
 \alias{Full_preprocess}
 \title{Full preprocess}
 \usage{
-Full_preprocess(words, parallelize = T, print = T, debug = F)
+Full_preprocess(
+  words,
+  parallelize = T,
+  print = T,
+  debug = F,
+  treetagger_path = NULL
+)
 }
 \arguments{
 \item{words}{text to preprocess}
@@ -14,6 +20,8 @@ Full_preprocess(words, parallelize = T, print = T, debug = F)
 \item{print}{Whether to print progress. Defaults to TRUE}
 
 \item{debug}{Whether to pass debug flag to treetag. Defaults to FALSE}
+
+\item{treetagger_path}{Optional TreeTagger installation directory. If NULL, auto-discovery is used.}
 }
 \value{
 fully preprocessed words

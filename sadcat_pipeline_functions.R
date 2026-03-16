@@ -595,52 +595,201 @@ replace_nan_with_na <- function(df) {
 #' @param rawlist Character vector of all raw values (for matching suggestions)
 #' @return Spell-checked version of the input
 #' @export
-Spellcheck2 <- function(raw, dict_tv = SADCAT::All.steps_Dictionaries$tv, rawlist) {
-  toreturn <- raw
-  changed <- 0
+Spellcheck2 <- function(raw, dict_tv = SADCAT::All.steps_Dictionaries$tv, rawlist,
+                         bigram_freqs = NULL) {
   tryCatch({
+    if (raw == "NA" | is.na(raw)) {
+      return("na")
+    }
     if (raw %in% dict_tv) {
       return(raw)
     }
     if (hunspell::hunspell_check(raw)) {
       return(raw)
     }
+    # Multi-word: split, spell-check each word with left/right context, rejoin
     if (grepl(" ", raw) | grepl("-", raw)) {
-      return(raw)
-    }
-    if (raw == "NA" | is.na(raw)) {
-      return("na")
-    }
-    filter <- wordnet::getTermFilter("ExactMatchFilter", raw, TRUE)
-    if (is.null(wordnet::getIndexTerms("NOUN", 5, filter)) &
-        is.null(wordnet::getIndexTerms("ADJECTIVE", 5, filter)) &
-        is.null(wordnet::getIndexTerms("VERB", 5, filter))) {
-      suggestions <- hunspell::hunspell_suggest(raw)
-      for (s in suggestions[[1]][1:5]) {
-        if (is.na(s)) {
-          break
-        } else if (s == raw) {
-          toreturn <- s
-          changed <- 1
-          break
-        } else if (s %in% rawlist) {
-          toreturn <- s
-          changed <- 1
-          break
-        }
+      sep <- if (grepl(" ", raw)) " " else "-"
+      words <- strsplit(raw, sep, fixed = TRUE)[[1]]
+      n <- length(words)
+      corrected <- character(n)
+      for (i in seq_len(n)) {
+        left <- if (i > 1) corrected[i - 1] else NULL
+        right <- if (i < n) words[i + 1] else NULL
+        corrected[i] <- .spellcheck_single_word(
+          words[i], dict_tv = dict_tv, rawlist = rawlist,
+          left_word = left, right_word = right,
+          bigram_freqs = bigram_freqs
+        )
       }
-      if (changed == 0) {
-        toreturn <- suggestions[[1]][1]
-      }
-    } else {
-      return(raw)
+      result <- paste(corrected, collapse = sep)
+      result <- SADCAT::clean_naresponses(result)
+      return(tolower(result))
     }
-    toreturn <- SADCAT::clean_naresponses(toreturn)
-    toreturn <- tolower(toreturn)
-    return(toreturn)
+    # Single word
+    result <- .spellcheck_single_word(raw, dict_tv = dict_tv, rawlist = rawlist,
+                                       bigram_freqs = bigram_freqs)
+    result <- SADCAT::clean_naresponses(result)
+    return(tolower(result))
   }, error = function(s) {
     return("*******ERROR")
   })
+}
+
+.spellcheck_single_word <- function(word, dict_tv, rawlist,
+                                     left_word = NULL, right_word = NULL,
+                                     bigram_freqs = NULL) {
+  if (is.na(word) || word == "") return(word)
+  if (word %in% dict_tv) return(word)
+  if (hunspell::hunspell_check(word)) return(word)
+
+  filter <- wordnet::getTermFilter("ExactMatchFilter", word, TRUE)
+  if (!is.null(wordnet::getIndexTerms("NOUN", 5, filter)) ||
+      !is.null(wordnet::getIndexTerms("ADJECTIVE", 5, filter)) ||
+      !is.null(wordnet::getIndexTerms("VERB", 5, filter))) {
+    return(word)
+  }
+
+  # Not in any dictionary, try hunspell suggestions ranked by edit distance
+  suggestions <- hunspell::hunspell_suggest(word)[[1]]
+  suggestions <- suggestions[!is.na(suggestions)]
+  if (length(suggestions) == 0) return(word)
+
+  suggestions <- utils::head(suggestions, 10)
+  dists <- as.integer(utils::adist(word, suggestions))
+
+  bg_scores <- rep(0L, length(suggestions))
+  if (!is.null(bigram_freqs)) {
+    bg_scores <- .score_bigram_context(suggestions, left_word, right_word,
+                                        bigram_freqs)
+  }
+
+  in_rawlist <- suggestions %in% rawlist
+
+  rank_df <- data.frame(
+    idx = seq_along(suggestions),
+    dist = dists,
+    bg = bg_scores,
+    inraw = in_rawlist,
+    stringsAsFactors = FALSE
+  )
+  rank_df <- rank_df[order(rank_df$dist, -rank_df$bg, -rank_df$inraw), ]
+
+  suggestions[rank_df$idx[1]]
+}
+
+.build_bigram_freqs <- function(corpus) {
+  freqs <- new.env(hash = TRUE, parent = emptyenv())
+  for (text in corpus) {
+    if (is.na(text) || text == "") next
+    words <- strsplit(text, "\\s+")[[1]]
+    if (length(words) < 2) next
+    for (i in seq_len(length(words) - 1)) {
+      key <- paste0(words[i], "\t", words[i + 1])
+      val <- get0(key, envir = freqs, ifnotfound = 0L)
+      assign(key, val + 1L, envir = freqs)
+    }
+  }
+  freqs
+}
+
+.score_bigram_context <- function(candidates, left_word, right_word,
+                                   bigram_freqs) {
+  scores <- integer(length(candidates))
+  for (i in seq_along(candidates)) {
+    s <- 0L
+    if (!is.null(left_word)) {
+      key <- paste0(left_word, "\t", candidates[i])
+      s <- s + get0(key, envir = bigram_freqs, ifnotfound = 0L)
+    }
+    if (!is.null(right_word)) {
+      key <- paste0(candidates[i], "\t", right_word)
+      s <- s + get0(key, envir = bigram_freqs, ifnotfound = 0L)
+    }
+    scores[i] <- s
+  }
+  scores
+}
+
+.spellcheck_gemini <- function(texts,
+                                api_key,
+                                model = "gemini-2.0-flash",
+                                batch_size = 50L,
+                                sleep = 5,
+                                context_prompt = NULL,
+                                verbose = TRUE) {
+  if (!requireNamespace("reticulate", quietly = TRUE)) {
+    stop("Package 'reticulate' is required for Gemini spellchecking. ",
+         "Install with: install.packages('reticulate')")
+  }
+
+  if (is.null(context_prompt)) {
+    context_prompt <- paste(
+      "You are a spelling correction tool.",
+      "The following texts are short responses describing a social target",
+      "(e.g., a person, social group, or face).",
+      "Correct any spelling errors while preserving the original meaning",
+      "and wording. Do not add or remove words. Do not change capitalization",
+      "beyond what is needed for correction.",
+      "Return ONLY the corrected texts, one per line, in the same order.",
+      "If a line has no errors, return it unchanged."
+    )
+  }
+
+  genai <- reticulate::import("google.genai")
+  types <- reticulate::import("google.genai.types")
+  client <- genai$Client(api_key = api_key)
+
+  corrected <- character(length(texts))
+  n_batches <- ceiling(length(texts) / batch_size)
+
+  for (b in seq_len(n_batches)) {
+    start_idx <- (b - 1) * batch_size + 1
+    end_idx <- min(b * batch_size, length(texts))
+    batch <- texts[start_idx:end_idx]
+
+    if (verbose) message("    Gemini spellcheck batch ", b, " / ", n_batches,
+                         " (items ", start_idx, "-", end_idx, ")")
+
+    numbered_input <- paste(seq_along(batch), batch, sep = ". ")
+    prompt <- paste0(context_prompt, "\n\n",
+                     paste(numbered_input, collapse = "\n"))
+
+    result <- tryCatch({
+      client$models$generate_content(
+        model = model,
+        contents = prompt
+      )
+    }, error = function(e) {
+      warning("  Gemini batch ", b, " failed: ", conditionMessage(e))
+      NULL
+    })
+
+    if (!is.null(result)) {
+      response_text <- result$text
+      lines <- strsplit(response_text, "\n")[[1]]
+      lines <- trimws(lines)
+      lines <- lines[nchar(lines) > 0]
+      lines <- sub("^\\d+\\.\\s*", "", lines)
+
+      if (length(lines) == length(batch)) {
+        corrected[start_idx:end_idx] <- tolower(lines)
+      } else {
+        warning("  Gemini batch ", b, ": expected ", length(batch),
+                " lines but got ", length(lines), ". Using originals.")
+        corrected[start_idx:end_idx] <- batch
+      }
+    } else {
+      corrected[start_idx:end_idx] <- batch
+    }
+
+    if (b < n_batches) {
+      if (verbose) message("    Sleeping ", sleep, " seconds (rate limit)...")
+      Sys.sleep(sleep)
+    }
+  }
+
+  corrected
 }
 
 #' Singularize a word, respecting SADCAT dictionary
@@ -772,9 +921,13 @@ singularize2 <- function(word, dictionary = TRUE) {
 preprocess_text <- function(data,
                             text_col = "responsex",
                             spellcheck = TRUE,
+                            spellcheck_method = "hunspell",
                             singularize = TRUE,
                             java_home = "C:\\Program Files\\Java\\jre-1.8",
                             wordnet_dict = "C:\\dict",
+                            gemini_spellcheck_key = NULL,
+                            gemini_spellcheck_model = "gemini-2.0-flash",
+                            gemini_spellcheck_context = NULL,
                             verbose = TRUE) {
   if (verbose) message("--- Stage 1: Preprocessing text ---")
 
@@ -784,16 +937,57 @@ preprocess_text <- function(data,
 
   # Step 2: Spell-check on unique values
   if (spellcheck) {
-    if (verbose) message("  Spell-checking (requires Java + WordNet)...")
-    Sys.setenv(JAVA_HOME = java_home)
-    wordnet::setDict(wordnet_dict)
-
     unique_vals <- unique(data$tv)
-    result_sc <- vector("character", length(unique_vals))
-    for (i in seq_along(unique_vals)) {
-      if (verbose && i %% 500 == 0) message("    Spell-checked ", i, " / ", length(unique_vals))
-      result_sc[i] <- Spellcheck2(raw = unique_vals[i], rawlist = unique_vals)
+
+    if (spellcheck_method == "gemini") {
+      # ---- Gemini LLM spell-checking ----
+      if (verbose) message("  Spell-checking via Gemini LLM...")
+      api_key <- gemini_spellcheck_key
+      if (is.null(api_key) || api_key == "") {
+        api_key <- Sys.getenv("GEMINI_API_KEY")
+      }
+      if (is.null(api_key) || api_key == "") {
+        stop("Gemini API key not found. Provide via gemini_spellcheck_key ",
+             "parameter or set GEMINI_API_KEY environment variable.")
+      }
+      non_na_idx <- !is.na(unique_vals)
+      non_na_vals <- unique_vals[non_na_idx]
+
+      if (length(non_na_vals) > 0) {
+        corrected_vals <- .spellcheck_gemini(
+          texts = non_na_vals,
+          api_key = api_key,
+          model = gemini_spellcheck_model,
+          context_prompt = gemini_spellcheck_context,
+          verbose = verbose
+        )
+        result_sc <- unique_vals
+        result_sc[non_na_idx] <- corrected_vals
+      } else {
+        result_sc <- unique_vals
+      }
+    } else {
+      # ---- Hunspell spell-checking with edit distance + bigram context ----
+      if (verbose) message("  Spell-checking (requires Java + WordNet)...")
+      Sys.setenv(JAVA_HOME = java_home)
+      wordnet::setDict(wordnet_dict)
+
+      bigram_freqs <- NULL
+      non_na_vals <- unique_vals[!is.na(unique_vals)]
+      if (length(non_na_vals) >= 50) {
+        if (verbose) message("    Building bigram frequencies from ",
+                             length(non_na_vals), " unique values...")
+        bigram_freqs <- .build_bigram_freqs(non_na_vals)
+      }
+
+      result_sc <- vector("character", length(unique_vals))
+      for (i in seq_along(unique_vals)) {
+        if (verbose && i %% 500 == 0) message("    Spell-checked ", i, " / ", length(unique_vals))
+        result_sc[i] <- Spellcheck2(raw = unique_vals[i], rawlist = unique_vals,
+                                     bigram_freqs = bigram_freqs)
+      }
     }
+
     lookup_sc <- data.frame(tv = unique_vals, tv2 = result_sc, stringsAsFactors = FALSE)
     data <- dplyr::left_join(data, lookup_sc, by = "tv")
   } else {
@@ -927,7 +1121,8 @@ apply_single_valence_dict <- function(toksval, dict_obj, name, is_lexicoder = FA
 #' @export
 score_valence <- function(data,
                           text_col = "tv",
-                          response_col = "response") {
+                          response_col = NULL) {
+  if (is.null(response_col)) response_col <- text_col
   message("--- Stage 2: Scoring valence (5 dictionaries) ---")
 
   valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
@@ -1142,10 +1337,11 @@ prepare_sadcat_dictionaries <- function(pre_dictionaries = SADCAT::All.steps_Dic
 #' @export
 match_dictionaries <- function(data,
                                text_col = "tv3",
-                               response_col = response_col,
+                               response_col = NULL,
                                valence_col = "Valy",
                                valence_nona_col = "ValyNoNA",
                                sadcat_dict = NULL) {
+  if (is.null(response_col)) response_col <- text_col
   message("--- Stage 4: Matching dictionaries ---")
 
   # Get or prepare dictionaries
@@ -1357,8 +1553,9 @@ compute_embeddings <- function(data,
                                gemini_batch_size = 10L,
                                gemini_sleep = 63,
                                gemini_task_type = "SEMANTIC_SIMILARITY",
-                               response_col = "response",
+                               response_col = NULL,
                                verbose = TRUE) {
+  if (is.null(response_col)) response_col <- text_col
 
   if (!requireNamespace("reticulate", quietly = TRUE)) {
     stop("Package 'reticulate' is required for compute_embeddings(). Install with: install.packages('reticulate')")
@@ -1515,7 +1712,7 @@ compute_seed_similarities <- function(data,
                                       embedding_prefix = "SBERT",
                                       seed_vectors = SADCAT::Seed_Vectors_Avg,
                                       method = "correlation",
-                                      response_col = "response",
+                                      response_col = NULL,
                                       verbose = TRUE) {
   message("--- Stage 6: Computing seed similarities (", embedding_prefix, ") ---")
 
@@ -1778,15 +1975,19 @@ aggregate_responses <- function(data,
 #' @export
 process_responses <- function(data,
                               text_col = "responsex",
-                              response_col = "response",
+                              response_col = NULL,
                               group_cols = c("Synonym.GroupX", "Group", "Level"),
                               stages = c("preprocess", "valence", "dictionaries",
                                          "embeddings", "seeds", "aggregate"),
                               # Preprocessing params
                               spellcheck = TRUE,
+                              spellcheck_method = "hunspell",
                               singularize_text = TRUE,
                               java_home = "C:\\Program Files\\Java\\jre-1.8",
                               wordnet_dict = "C:\\dict",
+                              gemini_spellcheck_key = NULL,
+                              gemini_spellcheck_model = "gemini-2.0-flash",
+                              gemini_spellcheck_context = NULL,
                               # Valence params
                               valence_text_col = "tv",
                               # Embedding params
@@ -1806,6 +2007,7 @@ process_responses <- function(data,
                               save_intermediates = FALSE,
                               save_prefix = "pipeline",
                               verbose = TRUE) {
+  if (is.null(response_col)) response_col <- text_col
 
   message("========================================")
   message("SADCAT Pipeline: process_responses()")
@@ -1819,9 +2021,13 @@ process_responses <- function(data,
     data <- preprocess_text(data,
                             text_col = text_col,
                             spellcheck = spellcheck,
+                            spellcheck_method = spellcheck_method,
                             singularize = singularize_text,
                             java_home = java_home,
                             wordnet_dict = wordnet_dict,
+                            gemini_spellcheck_key = gemini_spellcheck_key,
+                            gemini_spellcheck_model = gemini_spellcheck_model,
+                            gemini_spellcheck_context = gemini_spellcheck_context,
                             verbose = verbose)
     if (save_intermediates) {
       write.csv(data, paste0(save_prefix, "_1_preprocessed.csv"), row.names = FALSE)
@@ -1974,7 +2180,8 @@ process_responses <- function(data,
 
 score_valence <- function(data,
                           text_col = "tv",
-                          response_col = "response") {
+                          response_col = NULL) {
+  if (is.null(response_col)) response_col <- text_col
   message("--- Stage 2: Scoring valence (5 dictionaries) ---")
 
   valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
@@ -2012,10 +2219,11 @@ score_valence <- function(data,
 
 match_dictionaries <- function(data,
                                text_col = "tv3",
-                               response_col = "tv",
+                               response_col = NULL,
                                valence_col = "Valy",
                                valence_nona_col = "ValyNoNA",
                                sadcat_dict = NULL) {
+  if (is.null(response_col)) response_col <- text_col
   message("--- Stage 4: Matching dictionaries ---")
 
   if (is.null(sadcat_dict)) {
@@ -2183,8 +2391,9 @@ compute_embeddings <- function(data,
                                gemini_batch_size = 10L,
                                gemini_sleep = 63,
                                gemini_task_type = "SEMANTIC_SIMILARITY",
-                               response_col = "response",
+                               response_col = NULL,
                                verbose = TRUE) {
+  if (is.null(response_col)) response_col <- text_col
 
   if (!requireNamespace("reticulate", quietly = TRUE)) {
     stop("Package 'reticulate' is required for compute_embeddings(). Install with: install.packages('reticulate')")
@@ -2311,7 +2520,7 @@ compute_seed_similarities <- function(data,
                                       embedding_prefix = "SBERT",
                                       seed_vectors = SADCAT::Seed_Vectors_Avg,
                                       method = "correlation",
-                                      response_col = "response",
+                                      response_col = NULL,
                                       verbose = TRUE) {
   message("--- Stage 6: Computing seed similarities (", embedding_prefix, ") ---")
 
@@ -2490,14 +2699,18 @@ aggregate_responses <- function(data,
 
 process_responses <- function(data,
                               text_col = "responsex",
-                              response_col = "response",
+                              response_col = NULL,
                               group_cols = c("Synonym.GroupX", "Group", "Level"),
                               stages = c("preprocess", "valence", "dictionaries",
                                          "embeddings", "seeds", "aggregate"),
                               spellcheck = TRUE,
+                              spellcheck_method = "hunspell",
                               singularize_text = TRUE,
                               java_home = "C:\\Program Files\\Java\\jre-1.8",
                               wordnet_dict = "C:\\dict",
+                              gemini_spellcheck_key = NULL,
+                              gemini_spellcheck_model = "gemini-2.0-flash",
+                              gemini_spellcheck_context = NULL,
                               valence_text_col = "tv",
                               embedding_methods = c("sbert"),
                               sbert_model = "paraphrase-mpnet-base-v2",
@@ -2512,6 +2725,7 @@ process_responses <- function(data,
                               save_intermediates = FALSE,
                               save_prefix = "pipeline",
                               verbose = TRUE) {
+  if (is.null(response_col)) response_col <- text_col
 
   message("========================================")
   message("SADCAT Pipeline: process_responses()")
@@ -2524,9 +2738,13 @@ process_responses <- function(data,
     data <- preprocess_text(data,
                             text_col = text_col,
                             spellcheck = spellcheck,
+                            spellcheck_method = spellcheck_method,
                             singularize = singularize_text,
                             java_home = java_home,
                             wordnet_dict = wordnet_dict,
+                            gemini_spellcheck_key = gemini_spellcheck_key,
+                            gemini_spellcheck_model = gemini_spellcheck_model,
+                            gemini_spellcheck_context = gemini_spellcheck_context,
                             verbose = verbose)
     if (save_intermediates) write.csv(data, paste0(save_prefix, "_1_preprocessed.csv"), row.names = FALSE)
   }

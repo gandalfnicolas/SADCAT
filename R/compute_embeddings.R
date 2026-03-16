@@ -15,7 +15,8 @@
 #' @param gemini_batch_size Batch size for Gemini API calls (default 10)
 #' @param gemini_sleep Seconds to sleep between Gemini batches (default 63)
 #' @param gemini_task_type Gemini task type (default "SEMANTIC_SIMILARITY")
-#' @param response_col Column used to set embeddings to NA where response is missing (default "response")
+#' @param response_col Column used for NA-gating (default: same as text_col).
+#'   Only needed if your NA-indicator column differs from text_col.
 #' @param verbose Print progress? (default TRUE)
 #' @return The input data with embedding columns appended (SBERT_1:SBERT_N and/or Gemini_1:Gemini_N)
 #' @export compute_embeddings
@@ -31,12 +32,11 @@ compute_embeddings <- function(data,
                                gemini_batch_size = 10L,
                                gemini_sleep = 63,
                                gemini_task_type = "SEMANTIC_SIMILARITY",
-                               response_col = "response",
+                               response_col = NULL,
                                verbose = TRUE) {
+  if (is.null(response_col)) response_col <- text_col
   .require_data_columns(data, text_col, "compute_embeddings()")
-  if (!is.null(response_col)) {
-    .require_data_columns(data, response_col, "compute_embeddings()")
-  }
+  .require_data_columns(data, response_col, "compute_embeddings()")
 
   message("--- Stage 5: Computing embeddings ---")
 

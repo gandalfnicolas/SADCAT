@@ -7,7 +7,7 @@
 match_dictionaries(
   data,
   text_col = "tv3",
-  response_col = "tv",
+  response_col = NULL,
   valence_col = "Valy",
   valence_nona_col = "ValyNoNA",
   sadcat_dict = NULL,
@@ -20,7 +20,8 @@ match_dictionaries(
 
 \item{text_col}{Column with singularized text to match (default "tv3")}
 
-\item{response_col}{Column with original lowercased text for NA checks (default "tv")}
+\item{response_col}{Column used for NA-gating (default: same as text_col).
+Only needed if your NA-indicator column differs from text_col.}
 
 \item{valence_col}{Name of combined valence column with NA-gating (default "Valy")}
 

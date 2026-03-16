@@ -7,7 +7,8 @@
 #' @param text_col Column containing cleaned text for valence scoring (default "tv").
 #'   Uses tv (not tv2/tv3) to preserve original response for LLMs with low spelling errors.
 #'   Change to "tv2" for human participants.
-#' @param response_col Column with original response for negation detection (default "response")
+#' @param response_col Column used for NA-gating (default: same as text_col).
+#'   Only needed if your NA-indicator column differs from text_col.
 #' @return The input data with 12 new columns: Val_lexicoder, Val_NRC, Val_bing,
 #'   Val_affin, Val_loughran, their NA variants, Valy (NA when no dictionary
 #'   matched, negation-aware), and ValyNoNA (0 instead of NA)
@@ -15,12 +16,11 @@
 
 score_valence <- function(data,
                           text_col = "tv",
-                          response_col = "response") {
+                          response_col = NULL) {
+  if (is.null(response_col)) response_col <- text_col
   message("--- Stage 2: Scoring valence (5 dictionaries) ---")
   .require_data_columns(data, text_col, "score_valence()")
-  if (!is.null(response_col)) {
-    .require_data_columns(data, response_col, "score_valence()")
-  }
+  .require_data_columns(data, response_col, "score_valence()")
 
   valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
 

@@ -25,8 +25,8 @@ allowing inspection between stages.
 library(SADCAT)
 
 dat <- preprocess_text(dat, text_col = "responsex", spellcheck = FALSE)
-dat <- score_valence(dat, text_col = "tv", response_col = "response")
-dat <- match_dictionaries(dat, text_col = "tv3", response_col = "response",
+dat <- score_valence(dat, text_col = "tv")
+dat <- match_dictionaries(dat, text_col = "tv3",
                           valence_col = "Valy", valence_nona_col = "ValyNoNA")
 # Optional:
 dat <- compute_embeddings(dat, text_col = "tv", methods = "sbert")

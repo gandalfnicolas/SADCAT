@@ -7,14 +7,18 @@
 process_responses(
   data,
   text_col = "responsex",
-  response_col = "response",
+  response_col = NULL,
   group_cols = c("Synonym.GroupX", "Group", "Level"),
   stages = c("preprocess", "valence", "dictionaries", "socats", "embeddings", "seeds",
     "aggregate"),
   spellcheck = TRUE,
+  spellcheck_method = "hunspell",
   singularize_text = TRUE,
-  java_home = "C:\\\\Program Files\\\\Java\\\\jre-1.8",
-  wordnet_dict = "C:\\\\dict",
+  java_home = NULL,
+  wordnet_dict = NULL,
+  gemini_spellcheck_key = NULL,
+  gemini_spellcheck_model = "gemini-2.0-flash",
+  gemini_spellcheck_context = NULL,
   valence_text_col = "tv",
   embedding_methods = c("sbert"),
   sbert_model = "paraphrase-mpnet-base-v2",
@@ -36,7 +40,8 @@ process_responses(
 
 \item{text_col}{Column with raw text responses (default "responsex")}
 
-\item{response_col}{Column with original response for negation/NA checks (default "response")}
+\item{response_col}{Column with original response for NA-gating (default: same as text_col).
+Only needed if your NA-indicator column differs from text_col.}
 
 \item{group_cols}{Grouping columns for aggregation (default c("Synonym.GroupX", "Group", "Level"))}
 
@@ -45,11 +50,22 @@ Options: "preprocess", "valence", "dictionaries", "socats", "embeddings", "seeds
 
 \item{spellcheck}{Run spell-checking in preprocessing? (default TRUE)}
 
+\item{spellcheck_method}{Method for spell-checking: "hunspell" (default) or
+"gemini" (LLM-based, requires API key). See \code{\link{preprocess_text}}.}
+
 \item{singularize_text}{Run singularization in preprocessing? (default TRUE)}
 
-\item{java_home}{Path to Java JRE for spell-checking}
+\item{java_home}{Optional Java home path for spell-checking. If NULL or not found,
+auto-detects from environment, PATH, and common install locations.}
 
-\item{wordnet_dict}{Path to WordNet dictionary files}
+\item{wordnet_dict}{Optional WordNet dictionary path. If NULL or not found,
+auto-detects from environment and common install locations.}
+
+\item{gemini_spellcheck_key}{Gemini API key for LLM spell-checking (default NULL).}
+
+\item{gemini_spellcheck_model}{Gemini model for spell-checking (default "gemini-2.0-flash").}
+
+\item{gemini_spellcheck_context}{Custom system prompt for Gemini spell-checking (default NULL).}
 
 \item{valence_text_col}{Column to use for valence scoring (default "tv").
 Use "tv" for LLMs (preserve original), "tv2" for human participants.}
@@ -102,14 +118,14 @@ produced by earlier stages:
 dat <- preprocess_text(dat, text_col = "responsex", spellcheck = FALSE)
 
 # Stage 2: Valence -> produces Val_*, Valy, ValyNoNA
-dat <- score_valence(dat, text_col = "tv", response_col = "response")
+dat <- score_valence(dat, text_col = "tv")
 
 # Stage 3: SADCAT dictionaries -> produces *_dic_binary, *_dirx, *_Valy, etc.
-dat <- match_dictionaries(dat, text_col = "tv3", response_col = "response",
+dat <- match_dictionaries(dat, text_col = "tv3",
                           valence_col = "Valy", valence_nona_col = "ValyNoNA")
 
 # Stage 3b (optional): SOCATS social category dictionaries
-dat <- match_dictionaries(dat, text_col = "tv3", response_col = "response",
+dat <- match_dictionaries(dat, text_col = "tv3",
                           valence_col = "Valy", valence_nona_col = "ValyNoNA",
                           sadcat_dict = FALSE, socats = TRUE)
 

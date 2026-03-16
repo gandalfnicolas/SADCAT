@@ -16,7 +16,7 @@ compute_embeddings(
   gemini_batch_size = 10L,
   gemini_sleep = 63,
   gemini_task_type = "SEMANTIC_SIMILARITY",
-  response_col = "response",
+  response_col = NULL,
   verbose = TRUE
 )
 }
@@ -43,7 +43,8 @@ compute_embeddings(
 
 \item{gemini_task_type}{Gemini task type (default "SEMANTIC_SIMILARITY")}
 
-\item{response_col}{Column used to set embeddings to NA where response is missing (default "response")}
+\item{response_col}{Column used for NA-gating (default: same as text_col).
+Only needed if your NA-indicator column differs from text_col.}
 
 \item{verbose}{Print progress? (default TRUE)}
 }

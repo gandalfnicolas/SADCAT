@@ -6,14 +6,22 @@
 #' and aggregation. Each stage can be skipped via the \code{stages} parameter.
 #' @param data A data.frame with raw LLM responses
 #' @param text_col Column with raw text responses (default "responsex")
-#' @param response_col Column with original response for negation/NA checks (default "response")
+#' @param response_col Column with original response for NA-gating (default: same as text_col).
+#'   Only needed if your NA-indicator column differs from text_col.
 #' @param group_cols Grouping columns for aggregation (default c("Synonym.GroupX", "Group", "Level"))
 #' @param stages Character vector of stages to run. Default: all stages.
 #'   Options: "preprocess", "valence", "dictionaries", "socats", "embeddings", "seeds", "aggregate"
 #' @param spellcheck Run spell-checking in preprocessing? (default TRUE)
+#' @param spellcheck_method Method for spell-checking: "hunspell" (default) or
+#'   "gemini" (LLM-based, requires API key). See \code{\link{preprocess_text}}.
 #' @param singularize_text Run singularization in preprocessing? (default TRUE)
-#' @param java_home Path to Java JRE for spell-checking
-#' @param wordnet_dict Path to WordNet dictionary files
+#' @param java_home Optional Java home path for spell-checking. If NULL or not found,
+#' auto-detects from environment, PATH, and common install locations.
+#' @param wordnet_dict Optional WordNet dictionary path. If NULL or not found,
+#' auto-detects from environment and common install locations.
+#' @param gemini_spellcheck_key Gemini API key for LLM spell-checking (default NULL).
+#' @param gemini_spellcheck_model Gemini model for spell-checking (default "gemini-2.0-flash").
+#' @param gemini_spellcheck_context Custom system prompt for Gemini spell-checking (default NULL).
 #' @param valence_text_col Column to use for valence scoring (default "tv").
 #'   Use "tv" for LLMs (preserve original), "tv2" for human participants.
 #' @param embedding_methods Embedding methods: "sbert", "gemini", or both (default "sbert")
@@ -44,14 +52,14 @@
 #' dat <- preprocess_text(dat, text_col = "responsex", spellcheck = FALSE)
 #'
 #' # Stage 2: Valence -> produces Val_*, Valy, ValyNoNA
-#' dat <- score_valence(dat, text_col = "tv", response_col = "response")
+#' dat <- score_valence(dat, text_col = "tv")
 #'
 #' # Stage 3: SADCAT dictionaries -> produces *_dic_binary, *_dirx, *_Valy, etc.
-#' dat <- match_dictionaries(dat, text_col = "tv3", response_col = "response",
+#' dat <- match_dictionaries(dat, text_col = "tv3",
 #'                           valence_col = "Valy", valence_nona_col = "ValyNoNA")
 #'
 #' # Stage 3b (optional): SOCATS social category dictionaries
-#' dat <- match_dictionaries(dat, text_col = "tv3", response_col = "response",
+#' dat <- match_dictionaries(dat, text_col = "tv3",
 #'                           valence_col = "Valy", valence_nona_col = "ValyNoNA",
 #'                           sadcat_dict = FALSE, socats = TRUE)
 #'
@@ -87,15 +95,19 @@
 
 process_responses <- function(data,
                               text_col = "responsex",
-                              response_col = "response",
+                              response_col = NULL,
                               group_cols = c("Synonym.GroupX", "Group", "Level"),
                               stages = c("preprocess", "valence", "dictionaries",
                                          "socats", "embeddings", "seeds", "aggregate"),
                               # Preprocessing params
                               spellcheck = TRUE,
+                              spellcheck_method = "hunspell",
                               singularize_text = TRUE,
-                              java_home = "C:\\Program Files\\Java\\jre-1.8",
-                              wordnet_dict = "C:\\dict",
+                              java_home = NULL,
+                              wordnet_dict = NULL,
+                              gemini_spellcheck_key = NULL,
+                              gemini_spellcheck_model = "gemini-2.0-flash",
+                              gemini_spellcheck_context = NULL,
                               # Valence params
                               valence_text_col = "tv",
                               # Embedding params
@@ -116,6 +128,8 @@ process_responses <- function(data,
                               save_prefix = "pipeline",
                               verbose = TRUE) {
 
+  if (is.null(response_col)) response_col <- text_col
+
   message("========================================")
   message("SADCAT Pipeline: process_responses()")
   message("Stages: ", paste(stages, collapse = " -> "))
@@ -128,9 +142,13 @@ process_responses <- function(data,
     data <- preprocess_text(data,
                             text_col = text_col,
                             spellcheck = spellcheck,
+                            spellcheck_method = spellcheck_method,
                             singularize = singularize_text,
                             java_home = java_home,
                             wordnet_dict = wordnet_dict,
+                            gemini_spellcheck_key = gemini_spellcheck_key,
+                            gemini_spellcheck_model = gemini_spellcheck_model,
+                            gemini_spellcheck_context = gemini_spellcheck_context,
                             verbose = verbose)
     if (save_intermediates) {
       utils::write.csv(data, paste0(save_prefix, "_1_preprocessed.csv"), row.names = FALSE)

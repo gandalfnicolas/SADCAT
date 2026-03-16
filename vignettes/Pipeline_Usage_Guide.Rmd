@@ -27,17 +27,13 @@ library(SADCAT)
 
 ## Input data format
 
-Your data should be a data.frame with at least two columns:
-
-- **`responsex`** (or any name you choose): the raw text response to code.
-- **`response`**: the original response, used for NA-gating and negation detection.
-
-Additional columns (e.g., grouping variables) are preserved through the pipeline.
+Your data should be a data.frame with at least one text column containing the
+raw responses. Additional columns (e.g., grouping variables) are preserved
+through the pipeline.
 
 ```{r}
 dat <- data.frame(
-  responsex = c("warm and friendly", "cold and rude", "smart worker"),
-  response  = c("warm and friendly", "cold and rude", "smart worker"),
+  responsex = c("warm and friendly", "cold and rde", "smart worker"),
   Synonym.GroupX = c("A", "A", "B"),
   Group = c("G1", "G1", "G1"),
   Level = c("L1", "L1", "L1"),
@@ -50,14 +46,26 @@ dat <- data.frame(
 The simplest way to run the full pipeline. Returns a list with `$long`
 (response-level) and `$agg` (group-level aggregated) data.
 
+Two spell-checking methods are available via the `spellcheck_method` parameter:
+
+- **`"hunspell"`** (default): Uses Java + WordNet + hunspell. Suggestions are
+  ranked by edit distance, with bigram context as a tiebreaker when the corpus
+  has 50+ unique values. Auto-detects Java and WordNet paths across
+  macOS/Linux/Windows. If auto-detection fails, set explicit `java_home` /
+  `wordnet_dict` arguments or environment variables (`JAVA_HOME`,
+  `SADCAT_WORDNET_DICT`).
+- **`"gemini"`**: Uses the Gemini LLM for context-aware correction. Sends full
+  responses (not individual words) so the model can use surrounding context.
+  Requires a Gemini API key via `gemini_spellcheck_key` or the
+  `GEMINI_API_KEY` environment variable.
+
 ```{r}
 result <- process_responses(
   dat,
   text_col = "responsex",
-  response_col = "response",
   group_cols = c("Synonym.GroupX", "Group", "Level"),
   stages = c("preprocess", "valence", "dictionaries", "aggregate"),
-  spellcheck = FALSE,          # set TRUE for human-generated text
+  spellcheck = FALSE,          # set TRUE for spell-checking
   singularize_text = TRUE,
   verbose = TRUE
 )
@@ -87,7 +95,7 @@ Cleans and normalizes text responses. Produces three text columns:
 dat <- preprocess_text(
   dat,
   text_col = "responsex",
-  spellcheck = FALSE,          # TRUE requires Java + WordNet
+  spellcheck = FALSE,          # TRUE enables spell-checking (see below)
   singularize = TRUE,
   verbose = TRUE
 )
@@ -95,6 +103,48 @@ dat <- preprocess_text(
 # Inspect: what did preprocessing change?
 dat[, c("responsex", "tv", "tv2", "tv3")]
 ```
+
+#### Hunspell spell-checking (default)
+
+Uses Java + WordNet + hunspell. Suggestions are ranked by edit distance, with
+bigram context from the corpus used as a tiebreaker (auto-triggered when 50+
+unique values are present). If auto-detection of Java/WordNet fails, override
+explicitly:
+
+```{r}
+dat <- preprocess_text(
+  dat,
+  text_col = "responsex",
+  spellcheck = TRUE,
+  spellcheck_method = "hunspell",    # default
+  java_home = "/path/to/java/home",
+  wordnet_dict = "/path/to/wordnet/dict",
+  verbose = TRUE
+)
+```
+
+#### Gemini LLM spell-checking (optional)
+
+Sends the full response texts to Gemini for context-aware correction. This
+avoids the need for Java/WordNet and can produce better results by using
+surrounding words as context. Requires a Gemini API key.
+
+```{r}
+dat <- preprocess_text(
+  dat,
+  text_col = "responsex",
+  spellcheck = TRUE,
+  spellcheck_method = "gemini",
+  gemini_spellcheck_key = "your-api-key",    # or set GEMINI_API_KEY env var
+  gemini_spellcheck_model = "gemini-2.0-flash",
+  verbose = TRUE
+)
+```
+
+You can also provide a custom context prompt via `gemini_spellcheck_context`
+to give the model more information about the domain of your text data.
+The default prompt describes the text as short responses describing a social
+target.
 
 ### Stage 2: Score valence
 
@@ -118,12 +168,11 @@ scores with negation handling.
 ```{r}
 dat <- score_valence(
   dat,
-  text_col = "tv",             # use "tv2" for human participants
-  response_col = "response"
+  text_col = "tv"              # use "tv2" for human participants
 )
 
 # Inspect valence
-dat[, c("response", "Val_lexicoder", "Val_NRC", "Val_bing", "Valy", "ValyNoNA")]
+dat[, c("responsex", "Val_lexicoder", "Val_NRC", "Val_bing", "Valy", "ValyNoNA")]
 ```
 
 ### Stage 3: Match SADCAT dictionaries
@@ -147,13 +196,12 @@ binary indicators, percentages, direction scores, and per-dimension valence.
 dat <- match_dictionaries(
   dat,
   text_col = "tv3",
-  response_col = "response",
   valence_col = "Valy",
   valence_nona_col = "ValyNoNA"
 )
 
 # Inspect dimension-level results
-dat[, c("response", "warmth_dic_binary", "Warmth_dirx", "Warmth_Valy", "Warmth_ValyNoNA")]
+dat[, c("responsex", "warmth_dic_binary", "Warmth_dirx", "Warmth_Valy", "Warmth_ValyNoNA")]
 ```
 
 ### Stage 3b (optional): Match SOCATS dictionaries
@@ -164,7 +212,6 @@ Matches against social category dictionaries (age, gender, race, etc.).
 dat <- match_dictionaries(
   dat,
   text_col = "tv3",
-  response_col = "response",
   valence_col = "Valy",
   valence_nona_col = "ValyNoNA",
   sadcat_dict = FALSE,          # skip SADCAT (already done)
@@ -182,8 +229,7 @@ dat <- compute_embeddings(
   dat,
   text_col = "tv",
   methods = "sbert",           # or c("sbert", "gemini")
-  sbert_model = "paraphrase-mpnet-base-v2",
-  response_col = "response"
+  sbert_model = "paraphrase-mpnet-base-v2"
 )
 ```
 
@@ -196,8 +242,7 @@ SADCAT seed vectors. Requires embeddings from Stage 4.
 dat <- compute_seed_similarities(
   dat,
   embedding_prefix = "SBERT",  # or "Gemini"
-  method = "correlation",
-  response_col = "response"
+  method = "correlation"
 )
 ```
 

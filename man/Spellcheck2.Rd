@@ -4,7 +4,12 @@
 \alias{Spellcheck2}
 \title{Spell-check Text with SADCAT Dictionary}
 \usage{
-Spellcheck2(raw, dict_tv = All.steps_Dictionaries$tv, rawlist)
+Spellcheck2(
+  raw,
+  dict_tv = All.steps_Dictionaries$tv,
+  rawlist,
+  bigram_freqs = NULL
+)
 }
 \arguments{
 \item{raw}{A single character string to spell-check}
@@ -12,6 +17,8 @@ Spellcheck2(raw, dict_tv = All.steps_Dictionaries$tv, rawlist)
 \item{dict_tv}{Character vector of known dictionary words}
 
 \item{rawlist}{Character vector of all raw values (for matching suggestions)}
+
+\item{bigram_freqs}{Bigram frequency environment from .build_bigram_freqs() (optional)}
 }
 \value{
 Spell-checked version of the input
@@ -19,5 +26,7 @@ Spell-checked version of the input
 \description{
 Spell-check text using SADCAT dictionary, WordNet, and hunspell.
 Checks if word is in dictionary, correctly spelled, or in WordNet.
-If not, uses hunspell suggestions. Requires rJava, wordnet, hunspell.
+If not, uses hunspell suggestions ranked by edit distance and bigram context.
+Handles multi-word inputs by spell-checking each word individually.
+Requires rJava, wordnet, hunspell.
 }

@@ -4,7 +4,7 @@
 \alias{score_valence}
 \title{Score Text Valence}
 \usage{
-score_valence(data, text_col = "tv", response_col = "response")
+score_valence(data, text_col = "tv", response_col = NULL)
 }
 \arguments{
 \item{data}{A data.frame with text to score}
@@ -13,7 +13,8 @@ score_valence(data, text_col = "tv", response_col = "response")
 Uses tv (not tv2/tv3) to preserve original response for LLMs with low spelling errors.
 Change to "tv2" for human participants.}
 
-\item{response_col}{Column with original response for negation detection (default "response")}
+\item{response_col}{Column used for NA-gating (default: same as text_col).
+Only needed if your NA-indicator column differs from text_col.}
 }
 \value{
 The input data with 12 new columns: Val_lexicoder, Val_NRC, Val_bing,

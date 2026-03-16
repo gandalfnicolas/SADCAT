@@ -10,7 +10,8 @@ Code_words(
   more2na = T,
   parallelize = T,
   print = T,
-  debug = F
+  debug = F,
+  treetagger_path = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ Code_words(
 \item{print}{Whether to print progress. Defaults to TRUE}
 
 \item{debug}{Whether to pass debug flag to treetag. Defaults to FALSE}
+
+\item{treetagger_path}{Optional TreeTagger installation directory. If NULL, auto-discovery is used.}
 }
 \value{
 Original dataframe with additional columns for codings

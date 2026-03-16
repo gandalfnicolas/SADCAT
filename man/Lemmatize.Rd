@@ -4,7 +4,7 @@
 \alias{Lemmatize}
 \title{Lemmatizer}
 \usage{
-Lemmatize(word, print = T, debug = F)
+Lemmatize(word, print = T, debug = F, treetagger_path = NULL)
 }
 \arguments{
 \item{word}{word to lemmatize, if multiple use loop/apply/dplyr}
@@ -12,6 +12,9 @@ Lemmatize(word, print = T, debug = F)
 \item{print}{Whether to print word being lemmatized. Useful for long lists of words. Defaults to TRUE}
 
 \item{debug}{Whether to pass debug flag to treetag. Defaults to FALSE}
+
+\item{treetagger_path}{Optional TreeTagger installation directory. If NULL, tries
+environment variables, PATH, and common install locations across Windows/macOS/Linux.}
 }
 \value{
 lemmatized words
