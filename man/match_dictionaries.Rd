@@ -8,8 +8,8 @@ match_dictionaries(
   data,
   text_col = "tv3",
   response_col = "tv",
-  valence_col = "ValyNA",
-  valence_raw_col = "Valy",
+  valence_col = "Valy",
+  valence_nona_col = "ValyNoNA",
   sadcat_dict = NULL,
   socats_dict = NULL,
   socats = FALSE
@@ -22,9 +22,9 @@ match_dictionaries(
 
 \item{response_col}{Column with original lowercased text for NA checks (default "tv")}
 
-\item{valence_col}{Name of combined valence-NA column (default "ValyNA")}
+\item{valence_col}{Name of combined valence column with NA-gating (default "Valy")}
 
-\item{valence_raw_col}{Name of combined valence column without NA-gating (default "Valy")}
+\item{valence_nona_col}{Name of combined valence column without NA-gating (default "ValyNoNA")}
 
 \item{sadcat_dict}{Pre-computed SADCAT quanteda dictionary. If NULL and
 \code{sadcat = TRUE} (default), calls \code{prepare_sadcat_dictionaries()}.

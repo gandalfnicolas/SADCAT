@@ -509,21 +509,36 @@ replace_nan_with_na <- function(df) {
   )
 
   build_output <- function(pos_key, neg_key, name, neg_pos_key = NULL, neg_neg_key = NULL) {
-    pos_binary <- presence$nonneg[, pos_key] | presence$neg[, neg_key]
-    neg_binary <- presence$nonneg[, neg_key] | presence$neg[, pos_key]
+    # Raw presence (no negation flipping) for individual dictionary columns
+    any_pos <- presence$nonneg[, pos_key] | presence$neg[, pos_key]
+    any_neg <- presence$nonneg[, neg_key] | presence$neg[, neg_key]
+
+    # Negation-aware (for computing combined average only)
+    neg_pos_binary <- presence$nonneg[, pos_key] | presence$neg[, neg_key]
+    neg_neg_binary <- presence$nonneg[, neg_key] | presence$neg[, pos_key]
 
     if (!is.null(neg_pos_key)) {
-      neg_binary <- neg_binary | lex_neg_presence[[neg_pos_key]]
+      # Lexicoder neg_positive = negated positive phrases -> negative sentiment
+      any_neg <- any_neg | lex_neg_presence[[neg_pos_key]]
+      neg_neg_binary <- neg_neg_binary | lex_neg_presence[[neg_pos_key]]
     }
     if (!is.null(neg_neg_key)) {
-      pos_binary <- pos_binary | lex_neg_presence[[neg_neg_key]]
+      # Lexicoder neg_negative = negated negative phrases -> positive sentiment
+      any_pos <- any_pos | lex_neg_presence[[neg_neg_key]]
+      neg_pos_binary <- neg_pos_binary | lex_neg_presence[[neg_neg_key]]
     }
 
-    val <- pos_binary - neg_binary
-    valna <- ifelse(pos_binary + neg_binary == 0, NA, val)
+    # Raw individual scores (no negation)
+    raw_val <- any_pos - any_neg
+    raw_valna <- ifelse(any_pos + any_neg == 0, NA, raw_val)
 
-    out <- data.frame(val = val, valna = valna)
-    colnames(out) <- c(paste0("Val_", name), paste0("Val_", name, "NA"))
+    # Negation-aware scores (internal, for combined average)
+    neg_val <- neg_pos_binary - neg_neg_binary
+    neg_valna <- ifelse(neg_pos_binary + neg_neg_binary == 0, NA, neg_val)
+
+    out <- data.frame(raw_val = raw_val, raw_valna = raw_valna, neg_valna = neg_valna)
+    colnames(out) <- c(paste0("Val_", name), paste0("Val_", name, "NA"),
+                        paste0(".neg_valna_", name))
     out
   }
 
@@ -908,7 +923,7 @@ apply_single_valence_dict <- function(toksval, dict_obj, name, is_lexicoder = FA
 #'   Change to "tv2" for human participants.
 #' @param response_col Column with original response for negation detection (default "response")
 #' @return The input data with 12 new columns: Val_lexicoder, Val_NRC, Val_bing,
-#'   Val_affin, Val_loughran, their NA variants, Valy, and ValyNA
+#'   Val_affin, Val_loughran, their NA variants, Valy, and ValyNoNA
 #' @export
 score_valence <- function(data,
                           text_col = "tv",
@@ -916,27 +931,35 @@ score_valence <- function(data,
   message("--- Stage 2: Scoring valence (5 dictionaries) ---")
 
   valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
-  data <- cbind(data, valence_scores)
 
-  # Combined valence
+  # Separate internal negation-aware columns from output columns
+  neg_valna_cols <- grep("^\\.neg_valna_", names(valence_scores), value = TRUE)
+  neg_valna_avg <- rowMeans(valence_scores[, neg_valna_cols, drop = FALSE], na.rm = TRUE)
+
+  # Add only the raw (non-negation) individual dictionary columns to output
+  data <- cbind(data, valence_scores[, !names(valence_scores) %in% neg_valna_cols, drop = FALSE])
+
+  # Combined valence (negation-aware, applied once to the average)
+  # Valy: NA when no dictionary matched any sentiment words
+  # ValyNoNA: 0 instead of NA
+  data$Valy <- neg_valna_avg
+  data$ValyNoNA <- ifelse(is.nan(neg_valna_avg), 0, neg_valna_avg)
+
   val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
   valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
-
-  data$Valy <- rowMeans(data[, val_cols, drop = FALSE], na.rm = TRUE)
-  data$ValyNA <- rowMeans(data[, valna_cols, drop = FALSE], na.rm = TRUE)
 
   # Ensure valence family columns are NA when the original response is missing
   data <- .mask_missing_response_cols(
     data,
     response_col,
-    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNA$")
+    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNoNA$")
   )
 
   # Replace NaN with NA
   data <- replace_nan_with_na(data)
 
   message("  Valence scoring complete. Columns added: ",
-          paste(c(val_cols, valna_cols, "Valy", "ValyNA"), collapse = ", "))
+          paste(c(val_cols, valna_cols, "Valy", "ValyNoNA"), collapse = ", "))
   return(data)
 }
 
@@ -1112,7 +1135,7 @@ prepare_sadcat_dictionaries <- function(pre_dictionaries = SADCAT::All.steps_Dic
 #' @param data A data.frame with preprocessed text and valence scores
 #' @param text_col Column with singularized text to match (default "tv3")
 #' @param response_col Column with original lowercased text for NA checks (default "tv")
-#' @param valence_col Name of combined valence-NA column (default "ValyNA")
+#' @param valence_col Name of combined valence column (default "Valy")
 #' @param sadcat_dict Pre-computed quanteda dictionary. If NULL, calls prepare_sadcat_dictionaries()
 #' @return The input data with many new columns: dictionary counts, percentages,
 #'   binary indicators, direction scores, per-dimension valence, etc.
@@ -1120,8 +1143,8 @@ prepare_sadcat_dictionaries <- function(pre_dictionaries = SADCAT::All.steps_Dic
 match_dictionaries <- function(data,
                                text_col = "tv3",
                                response_col = response_col,
-                               valence_col = "ValyNA",
-                               valence_raw_col = "Valy",
+                               valence_col = "Valy",
+                               valence_nona_col = "ValyNoNA",
                                sadcat_dict = NULL) {
   message("--- Stage 4: Matching dictionaries ---")
 
@@ -1201,25 +1224,25 @@ match_dictionaries <- function(data,
     toks_dict <- ifelse(is.na(row_sums), NA, ifelse(row_sums > 0, 0, 1))
   }
 
-  # ---- Per-dimension Valy / ValyNA (NA if not in that dimension) ----
+  # ---- Per-dimension Valy / ValyNoNA ----
   for (dim in all_base_dims) {
     binary_col <- paste0(tolower(dim), "_dic_binary")
     valy_dim <- paste0(dim, "_Valy")
-    valyna_dim <- paste0(dim, "_ValyNA")
+    valyno_dim <- paste0(dim, "_ValyNoNA")
 
-    if (binary_col %in% names(toks_dict) && valence_raw_col %in% names(toks_dict)) {
-      toks_dict[[valy_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
-                                      NA, toks_dict[[valence_raw_col]])
-    }
     if (binary_col %in% names(toks_dict) && valence_col %in% names(toks_dict)) {
-      toks_dict[[valyna_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
-                                        NA, toks_dict[[valence_col]])
+      toks_dict[[valy_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
+                                      NA, toks_dict[[valence_col]])
+    }
+    if (binary_col %in% names(toks_dict) && valence_nona_col %in% names(toks_dict)) {
+      toks_dict[[valyno_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
+                                        0, toks_dict[[valence_nona_col]])
     }
   }
 
-  # NONE ValyNA
+  # NONE Valy
   if ("None2y" %in% names(toks_dict) && valence_col %in% names(toks_dict)) {
-    toks_dict <- ifelse(toks_dict == 0, NA, toks_dict[[valence_col]])
+    toks_dict$NONE_Valy <- ifelse(toks_dict$None2y == 0, NA, toks_dict[[valence_col]])
   }
 
   adjusted_dir <- .compute_adjusted_direction_scores(data[[text_col]], sadcat_dict)
@@ -1227,15 +1250,15 @@ match_dictionaries <- function(data,
     toks_dict[[col]] <- adjusted_dir[[col]]
   }
 
-  # ---- Fix valy3/valyNA3 and dirx3: NA if binary==0 OR binary2 is NA ----
-  # Directional dimensions: valy3, valyNA3, and dirx3
+  # ---- Fix valy3/valyNoNA3 and dirx3: NA if binary==0 OR binary2 is NA ----
+  # Directional dimensions: valy3, valyNoNA3, and dirx3
   for (dim in .SADCAT_DIR_DIMS) {
     binary_col <- paste0(tolower(dim), "_dic_binary")
     binary2_col <- paste0(tolower(dim), "_dic_binary2")
     valy_dim <- paste0(dim, "_Valy")
-    valyna_dim <- paste0(dim, "_ValyNA")
+    valyno_dim <- paste0(dim, "_ValyNoNA")
     valy3_col <- paste0(dim, "_valy3")
-    valyna3_col <- paste0(dim, "_valyNA3")
+    valyno3_col <- paste0(dim, "_valyNoNA3")
     dirx_col <- paste0(dim, "_dirx")
     dirx2_col <- paste0(dim, "_dirx2")
     dirx3_col <- paste0(dim, "_dirx3")
@@ -1245,10 +1268,10 @@ match_dictionaries <- function(data,
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
         NA, toks_dict[[valy_dim]])
     }
-    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
-      toks_dict[[valyna3_col]] <- ifelse(
+    if (all(c(binary_col, binary2_col, valyno_dim) %in% names(toks_dict))) {
+      toks_dict[[valyno3_col]] <- ifelse(
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
-        NA, toks_dict[[valyna_dim]])
+        NA, toks_dict[[valyno_dim]])
     }
     if (all(c(binary_col, binary2_col, dirx_col) %in% names(toks_dict))) {
       toks_dict[[dirx3_col]] <- ifelse(
@@ -1257,26 +1280,26 @@ match_dictionaries <- function(data,
     }
   }
 
-  # Non-directional dimensions: valy3 and valyNA3
+  # Non-directional dimensions: valy3 and valyNoNA3
   ndir_for_valy3 <- c("Occupation", "Emotion", "Deviance", "Socialgroups",
                        "Geography", "Appearance", "Other", "OtherwFam")
   for (dim in ndir_for_valy3) {
     binary_col <- paste0(tolower(dim), "_dic_binary")
     binary2_col <- paste0(tolower(dim), "_dic_binary2")
     valy_dim <- paste0(dim, "_Valy")
-    valyna_dim <- paste0(dim, "_ValyNA")
+    valyno_dim <- paste0(dim, "_ValyNoNA")
     valy3_col <- paste0(dim, "_valy3")
-    valyna3_col <- paste0(dim, "_valyNA3")
+    valyno3_col <- paste0(dim, "_valyNoNA3")
 
     if (all(c(binary_col, binary2_col, valy_dim) %in% names(toks_dict))) {
       toks_dict[[valy3_col]] <- ifelse(
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
         NA, toks_dict[[valy_dim]])
     }
-    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
-      toks_dict[[valyna3_col]] <- ifelse(
+    if (all(c(binary_col, binary2_col, valyno_dim) %in% names(toks_dict))) {
+      toks_dict[[valyno3_col]] <- ifelse(
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
-        NA, toks_dict[[valyna_dim]])
+        NA, toks_dict[[valyno_dim]])
     }
   }
 
@@ -1285,7 +1308,7 @@ match_dictionaries <- function(data,
     toks_dict,
     response_col,
     cols_or_patterns = c(
-      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
       "_dirx$", "_dirx2$", "_dirx3$"
     )
   )
@@ -1609,10 +1632,10 @@ aggregate_responses <- function(data,
 
   if (is.null(mean_cols)) {
     mean_cols <- grep(
-      paste0("^Valy$|^ValyNA$|",
+      paste0("^Valy$|^ValyNoNA$|",
              "_dic_binary2$|^None2y$|",
-             "_ValyNA$|^NONE_ValyNA$|",
-             "_valy3$|_valyNA3$|_dirx3$|",
+             "_ValyNoNA$|^NONE_Valy$|",
+             "_valy3$|_valyNoNA3$|_dirx3$|",
              "^SBERT_|^Gemini_|",
              "\\.seed$|",
              "^traditional$"),
@@ -1698,8 +1721,8 @@ aggregate_responses <- function(data,
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }
 
-    # Valence noNA: _valy3 and _valyNA3 columns
-    valy_cols <- grep("_valy3$|_valyNA3$", names(result), value = TRUE)
+    # Valence noNA: _valy3 and _valyNoNA3 columns
+    valy_cols <- grep("_valy3$|_valyNoNA3$", names(result), value = TRUE)
     for (col in valy_cols) {
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }
@@ -1821,8 +1844,8 @@ process_responses <- function(data,
     data <- match_dictionaries(data,
                                text_col = "tv3",
                                response_col = response_col,
-                               valence_col = "ValyNA",
-                               valence_raw_col = "Valy",
+                               valence_col = "Valy",
+                               valence_nona_col = "ValyNoNA",
                                sadcat_dict = sadcat_dict)
     if (save_intermediates) {
       write.csv(data, paste0(save_prefix, "_3_dictionaries.csv"), row.names = FALSE)
@@ -1871,8 +1894,8 @@ process_responses <- function(data,
     data,
     response_col,
     cols_or_patterns = c(
-      "^Val_", "^Valy$", "^ValyNA$",
-      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "^Val_", "^Valy$", "^ValyNoNA$",
+      "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
       "_dirx$", "_dirx2$", "_dirx3$",
       "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"
     )
@@ -1955,32 +1978,43 @@ score_valence <- function(data,
   message("--- Stage 2: Scoring valence (5 dictionaries) ---")
 
   valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
-  data <- cbind(data, valence_scores)
+
+  # Separate internal negation-aware columns from output columns
+  neg_valna_cols <- grep("^\\.neg_valna_", names(valence_scores), value = TRUE)
+  neg_valna_avg <- rowMeans(valence_scores[, neg_valna_cols, drop = FALSE], na.rm = TRUE)
+
+  # Add only the raw (non-negation) individual dictionary columns to output
+  data <- cbind(data, valence_scores[, !names(valence_scores) %in% neg_valna_cols, drop = FALSE])
+
+  # Combined valence (negation-aware, applied once to the average)
+  # Valy: NA when no dictionary matched any sentiment words
+  # ValyNoNA: 0 instead of NA
+  data$Valy <- neg_valna_avg
+  data$ValyNoNA <- ifelse(is.nan(neg_valna_avg), 0, neg_valna_avg)
 
   val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
   valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
 
-  data$Valy <- rowMeans(data[, val_cols, drop = FALSE], na.rm = TRUE)
-  data$ValyNA <- rowMeans(data[, valna_cols, drop = FALSE], na.rm = TRUE)
-
+  # Ensure valence family columns are NA when the original response is missing
   data <- .mask_missing_response_cols(
     data,
     response_col,
-    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNA$")
+    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNoNA$")
   )
 
+  # Replace NaN with NA
   data <- replace_nan_with_na(data)
 
   message("  Valence scoring complete. Columns added: ",
-          paste(c(val_cols, valna_cols, "Valy", "ValyNA"), collapse = ", "))
+          paste(c(val_cols, valna_cols, "Valy", "ValyNoNA"), collapse = ", "))
   return(data)
 }
 
 match_dictionaries <- function(data,
                                text_col = "tv3",
                                response_col = "tv",
-                               valence_col = "ValyNA",
-                               valence_raw_col = "Valy",
+                               valence_col = "Valy",
+                               valence_nona_col = "ValyNoNA",
                                sadcat_dict = NULL) {
   message("--- Stage 4: Matching dictionaries ---")
 
@@ -2052,20 +2086,20 @@ match_dictionaries <- function(data,
   for (dim in all_base_dims) {
     binary_col <- paste0(tolower(dim), "_dic_binary")
     valy_dim <- paste0(dim, "_Valy")
-    valyna_dim <- paste0(dim, "_ValyNA")
+    valyno_dim <- paste0(dim, "_ValyNoNA")
 
-    if (binary_col %in% names(toks_dict) && valence_raw_col %in% names(toks_dict)) {
-      toks_dict[[valy_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
-                                      NA, toks_dict[[valence_raw_col]])
-    }
     if (binary_col %in% names(toks_dict) && valence_col %in% names(toks_dict)) {
-      toks_dict[[valyna_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
-                                        NA, toks_dict[[valence_col]])
+      toks_dict[[valy_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
+                                      NA, toks_dict[[valence_col]])
+    }
+    if (binary_col %in% names(toks_dict) && valence_nona_col %in% names(toks_dict)) {
+      toks_dict[[valyno_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
+                                        0, toks_dict[[valence_nona_col]])
     }
   }
 
   if ("None2y" %in% names(toks_dict) && valence_col %in% names(toks_dict)) {
-    toks_dict$NONE_ValyNA <- ifelse(toks_dict$None2y == 0, NA, toks_dict[[valence_col]])
+    toks_dict$NONE_Valy <- ifelse(toks_dict$None2y == 0, NA, toks_dict[[valence_col]])
   }
 
   adjusted_dir <- .compute_adjusted_direction_scores(data[[text_col]], sadcat_dict)
@@ -2077,9 +2111,9 @@ match_dictionaries <- function(data,
     binary_col <- paste0(tolower(dim), "_dic_binary")
     binary2_col <- paste0(tolower(dim), "_dic_binary2")
     valy_dim <- paste0(dim, "_Valy")
-    valyna_dim <- paste0(dim, "_ValyNA")
+    valyno_dim <- paste0(dim, "_ValyNoNA")
     valy3_col <- paste0(dim, "_valy3")
-    valyna3_col <- paste0(dim, "_valyNA3")
+    valyno3_col <- paste0(dim, "_valyNoNA3")
     dirx_col <- paste0(dim, "_dirx")
     dirx2_col <- paste0(dim, "_dirx2")
     dirx3_col <- paste0(dim, "_dirx3")
@@ -2089,10 +2123,10 @@ match_dictionaries <- function(data,
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
         NA, toks_dict[[valy_dim]])
     }
-    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
-      toks_dict[[valyna3_col]] <- ifelse(
+    if (all(c(binary_col, binary2_col, valyno_dim) %in% names(toks_dict))) {
+      toks_dict[[valyno3_col]] <- ifelse(
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
-        NA, toks_dict[[valyna_dim]])
+        NA, toks_dict[[valyno_dim]])
     }
     if (all(c(binary_col, binary2_col, dirx_col) %in% names(toks_dict))) {
       toks_dict[[dirx3_col]] <- ifelse(
@@ -2107,19 +2141,19 @@ match_dictionaries <- function(data,
     binary_col <- paste0(tolower(dim), "_dic_binary")
     binary2_col <- paste0(tolower(dim), "_dic_binary2")
     valy_dim <- paste0(dim, "_Valy")
-    valyna_dim <- paste0(dim, "_ValyNA")
+    valyno_dim <- paste0(dim, "_ValyNoNA")
     valy3_col <- paste0(dim, "_valy3")
-    valyna3_col <- paste0(dim, "_valyNA3")
+    valyno3_col <- paste0(dim, "_valyNoNA3")
 
     if (all(c(binary_col, binary2_col, valy_dim) %in% names(toks_dict))) {
       toks_dict[[valy3_col]] <- ifelse(
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
         NA, toks_dict[[valy_dim]])
     }
-    if (all(c(binary_col, binary2_col, valyna_dim) %in% names(toks_dict))) {
-      toks_dict[[valyna3_col]] <- ifelse(
+    if (all(c(binary_col, binary2_col, valyno_dim) %in% names(toks_dict))) {
+      toks_dict[[valyno3_col]] <- ifelse(
         toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
-        NA, toks_dict[[valyna_dim]])
+        NA, toks_dict[[valyno_dim]])
     }
   }
 
@@ -2127,7 +2161,7 @@ match_dictionaries <- function(data,
     toks_dict,
     response_col,
     cols_or_patterns = c(
-      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
       "_dirx$", "_dirx2$", "_dirx3$"
     )
   )
@@ -2360,10 +2394,10 @@ aggregate_responses <- function(data,
 
   if (is.null(mean_cols)) {
     mean_cols <- grep(
-      paste0("^Valy$|^ValyNA$|",
+      paste0("^Valy$|^ValyNoNA$|",
              "_dic_binary2$|^None2y$|",
-             "_ValyNA$|^NONE_ValyNA$|",
-             "_valy3$|_valyNA3$|_dirx3$|",
+             "_ValyNoNA$|^NONE_Valy$|",
+             "_valy3$|_valyNoNA3$|_dirx3$|",
              "^SBERT_|^Gemini_|",
              "\\.seed$|",
              "^traditional$"),
@@ -2439,7 +2473,7 @@ aggregate_responses <- function(data,
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }
 
-    valy_cols <- grep("_valy3$|_valyNA3$", names(result), value = TRUE)
+    valy_cols <- grep("_valy3$|_valyNoNA3$", names(result), value = TRUE)
     for (col in valy_cols) {
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }
@@ -2507,8 +2541,8 @@ process_responses <- function(data,
     data <- match_dictionaries(data,
                                text_col = "tv3",
                                response_col = response_col,
-                               valence_col = "ValyNA",
-                               valence_raw_col = "Valy",
+                               valence_col = "Valy",
+                               valence_nona_col = "ValyNoNA",
                                sadcat_dict = sadcat_dict)
     if (save_intermediates) write.csv(data, paste0(save_prefix, "_3_dictionaries.csv"), row.names = FALSE)
   }
@@ -2547,8 +2581,8 @@ process_responses <- function(data,
     data,
     response_col,
     cols_or_patterns = c(
-      "^Val_", "^Valy$", "^ValyNA$",
-      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "^Val_", "^Valy$", "^ValyNoNA$",
+      "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
       "_dirx$", "_dirx2$", "_dirx3$",
       "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"
     )

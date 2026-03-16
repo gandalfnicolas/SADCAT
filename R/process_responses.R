@@ -31,6 +31,58 @@
 #' @param verbose Print progress? (default TRUE)
 #' @return A named list with \code{$long} (full long-format data) and
 #'   \code{$agg} (aggregated data, if "aggregate" stage was run)
+#'
+#' @details
+#' \strong{Stage-by-stage usage.} Each stage can be called as a standalone
+#' exported function. This is useful for inspecting intermediate results,
+#' customizing parameters per stage, or integrating with external processing.
+#' The functions must be called in order because each stage depends on columns
+#' produced by earlier stages:
+#'
+#' \preformatted{
+#' # Stage 1: Preprocess -> produces tv, tv2, tv3
+#' dat <- preprocess_text(dat, text_col = "responsex", spellcheck = FALSE)
+#'
+#' # Stage 2: Valence -> produces Val_*, Valy, ValyNoNA
+#' dat <- score_valence(dat, text_col = "tv", response_col = "response")
+#'
+#' # Stage 3: SADCAT dictionaries -> produces *_dic_binary, *_dirx, *_Valy, etc.
+#' dat <- match_dictionaries(dat, text_col = "tv3", response_col = "response",
+#'                           valence_col = "Valy", valence_nona_col = "ValyNoNA")
+#'
+#' # Stage 3b (optional): SOCATS social category dictionaries
+#' dat <- match_dictionaries(dat, text_col = "tv3", response_col = "response",
+#'                           valence_col = "Valy", valence_nona_col = "ValyNoNA",
+#'                           sadcat_dict = FALSE, socats = TRUE)
+#'
+#' # Stage 4 (optional): Sentence embeddings (requires Python via reticulate)
+#' dat <- compute_embeddings(dat, text_col = "tv", methods = "sbert")
+#'
+#' # Stage 5 (optional): Seed similarities (requires Stage 4)
+#' dat <- compute_seed_similarities(dat, embedding_prefix = "SBERT")
+#'
+#' # Stage 6: Aggregate to group level
+#' agg <- aggregate_responses(dat,
+#'           group_cols = c("Synonym.GroupX", "Group", "Level"))
+#' }
+#'
+#' \strong{Valence columns.}
+#' \itemize{
+#'   \item \code{Valy}: Mean of negation-aware scores across 5 sentiment
+#'     dictionaries. NA when no dictionary matched. Negation is applied once
+#'     to this combined score, not to individual dictionary scores.
+#'   \item \code{ValyNoNA}: Same as \code{Valy}, but 0 instead of NA.
+#'   \item \code{Val_lexicoder}, \code{Val_NRC}, etc.: Per-dictionary raw
+#'     presence scores (-1, 0, or 1) without negation flipping.
+#'   \item \code{{Dim}_Valy}: Global \code{Valy} gated by dimension prevalence
+#'     (NA if dimension not present in the response).
+#'   \item \code{{Dim}_ValyNoNA}: Global \code{ValyNoNA} gated by dimension
+#'     prevalence (0 if dimension not present).
+#' }
+#'
+#' @seealso \code{\link{preprocess_text}}, \code{\link{score_valence}},
+#'   \code{\link{match_dictionaries}}, \code{\link{compute_embeddings}},
+#'   \code{\link{compute_seed_similarities}}, \code{\link{aggregate_responses}}
 #' @export process_responses
 
 process_responses <- function(data,
@@ -106,8 +158,8 @@ process_responses <- function(data,
     data <- match_dictionaries(data,
                                text_col = "tv3",
                                response_col = response_col,
-                               valence_col = "ValyNA",
-                               valence_raw_col = "Valy",
+                               valence_col = "Valy",
+                               valence_nona_col = "ValyNoNA",
                                sadcat_dict = sadcat_dict_obj,
                                socats_dict = socats_dict_obj,
                                socats = do_socats)
@@ -158,8 +210,8 @@ process_responses <- function(data,
     data,
     response_col,
     cols_or_patterns = c(
-      "^Val_", "^Valy$", "^ValyNA$",
-      "_Valy$", "_ValyNA$", "_valy3$", "_valyNA3$",
+      "^Val_", "^Valy$", "^ValyNoNA$",
+      "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
       "_dirx$", "_dirx2$", "_dirx3$",
       "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"
     )

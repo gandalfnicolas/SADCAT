@@ -113,10 +113,11 @@ test_that("every exported function has a clean-session smoke case", {
             Level = c("l", "l"),
             warmth_dic_binary2 = c(1, 0),
             Valy = c(1, -1),
-            ValyNA = c(1, -1),
-            Warmth_ValyNA = c(1, NA),
+            ValyNoNA = c(1, -1),
+            Warmth_Valy = c(1, NA),
+            Warmth_ValyNoNA = c(1, 0),
             Warmth_valy3 = c(1, NA),
-            Warmth_valyNA3 = c(1, NA),
+            Warmth_valyNoNA3 = c(1, NA),
             Warmth_dirx3 = c(1, NA),
             stringsAsFactors = FALSE
           )
@@ -231,7 +232,7 @@ test_that("every exported function has a clean-session smoke case", {
         match_dictionaries = function() {
           dat <- data.frame(response = "warm", tv = "warm", tv3 = "warm", stringsAsFactors = FALSE)
           scored <- score_valence(dat, text_col = "tv", response_col = "response")
-          out <- match_dictionaries(scored, text_col = "tv3", response_col = "response", valence_col = "ValyNA", valence_raw_col = "Valy")
+          out <- match_dictionaries(scored, text_col = "tv3", response_col = "response", valence_col = "Valy", valence_nona_col = "ValyNoNA")
           stopifnot(is.data.frame(out))
         },
         prepare_sadcat_dictionaries = function() {

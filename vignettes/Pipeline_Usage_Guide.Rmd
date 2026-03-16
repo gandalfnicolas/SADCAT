@@ -1,0 +1,243 @@
+---
+title: "Pipeline Usage Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Pipeline Usage Guide}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options:
+  chunk_output_type: console
+---
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+This guide shows how to process text responses through the SADCAT pipeline,
+either as a single call or stage-by-stage for full control over each step.
+
+## Setup
+
+```{r}
+library(SADCAT)
+```
+
+## Input data format
+
+Your data should be a data.frame with at least two columns:
+
+- **`responsex`** (or any name you choose): the raw text response to code.
+- **`response`**: the original response, used for NA-gating and negation detection.
+
+Additional columns (e.g., grouping variables) are preserved through the pipeline.
+
+```{r}
+dat <- data.frame(
+  responsex = c("warm and friendly", "cold and rude", "smart worker"),
+  response  = c("warm and friendly", "cold and rude", "smart worker"),
+  Synonym.GroupX = c("A", "A", "B"),
+  Group = c("G1", "G1", "G1"),
+  Level = c("L1", "L1", "L1"),
+  stringsAsFactors = FALSE
+)
+```
+
+## Option A: All-in-one with `process_responses()`
+
+The simplest way to run the full pipeline. Returns a list with `$long`
+(response-level) and `$agg` (group-level aggregated) data.
+
+```{r}
+result <- process_responses(
+  dat,
+  text_col = "responsex",
+  response_col = "response",
+  group_cols = c("Synonym.GroupX", "Group", "Level"),
+  stages = c("preprocess", "valence", "dictionaries", "aggregate"),
+  spellcheck = FALSE,          # set TRUE for human-generated text
+  singularize_text = TRUE,
+  verbose = TRUE
+)
+
+head(result$long)
+head(result$agg)
+```
+
+Use the `stages` parameter to selectively run only the stages you need.
+Available stages: `"preprocess"`, `"valence"`, `"dictionaries"`, `"socats"`,
+`"embeddings"`, `"seeds"`, `"aggregate"`.
+
+## Option B: Stage-by-stage
+
+Running each stage separately lets you inspect intermediate results, customize
+parameters per stage, or integrate with your own processing steps.
+
+### Stage 1: Preprocess text
+
+Cleans and normalizes text responses. Produces three text columns:
+
+- **`tv`**: lowercased text (used for valence scoring)
+- **`tv2`**: spell-checked text
+- **`tv3`**: singularized text (used for dictionary matching)
+
+```{r}
+dat <- preprocess_text(
+  dat,
+  text_col = "responsex",
+  spellcheck = FALSE,          # TRUE requires Java + WordNet
+  singularize = TRUE,
+  verbose = TRUE
+)
+
+# Inspect: what did preprocessing change?
+dat[, c("responsex", "tv", "tv2", "tv3")]
+```
+
+### Stage 2: Score valence
+
+Scores each response against 5 sentiment dictionaries (Lexicoder/LSD2015,
+NRC, Bing, AFINN, Loughran). Produces per-dictionary scores and combined
+scores with negation handling.
+
+**Key output columns:**
+
+- `Val_lexicoder`, `Val_NRC`, `Val_bing`, `Val_affin`, `Val_loughran`:
+  Per-dictionary raw scores (-1, 0, or 1). These are raw presence indicators
+  with no negation flipping.
+- `Val_lexicoderNA`, `Val_NRCNA`, etc.: Same, but NA when that dictionary
+  found no sentiment words.
+- **`Valy`**: Combined valence. Mean of negation-aware scores across the
+  5 dictionaries. NA when no dictionary matched any sentiment words.
+  Negation is applied once to this combined score (not to individual
+  dictionary scores).
+- **`ValyNoNA`**: Same as `Valy`, but 0 instead of NA.
+
+```{r}
+dat <- score_valence(
+  dat,
+  text_col = "tv",             # use "tv2" for human participants
+  response_col = "response"
+)
+
+# Inspect valence
+dat[, c("response", "Val_lexicoder", "Val_NRC", "Val_bing", "Valy", "ValyNoNA")]
+```
+
+### Stage 3: Match SADCAT dictionaries
+
+Matches text against the SADCAT stereotype content dictionaries and computes
+binary indicators, percentages, direction scores, and per-dimension valence.
+
+**Key output columns (per dimension, e.g., Warmth, Competence, Morality, ...):**
+
+- `warmth_dic`: raw word count matching the dimension
+- `warmth_dic_binary`: 1 if any match, 0 otherwise
+- `warmth_dic_binary2`: same, but NA if the response is missing
+- `Warmth_dirx`: direction score (hi - lo binary), negation-aware
+- `Warmth_Valy`: global `Valy` gated by dimension (NA if dimension not present)
+- `Warmth_ValyNoNA`: global `ValyNoNA` gated by dimension (0 if dimension not present)
+- `Warmth_valy3`: `Warmth_Valy` further gated by response presence
+- `Warmth_valyNoNA3`: `Warmth_ValyNoNA` further gated by response presence
+- `None2y`: 1 if no dimension matched at all
+
+```{r}
+dat <- match_dictionaries(
+  dat,
+  text_col = "tv3",
+  response_col = "response",
+  valence_col = "Valy",
+  valence_nona_col = "ValyNoNA"
+)
+
+# Inspect dimension-level results
+dat[, c("response", "warmth_dic_binary", "Warmth_dirx", "Warmth_Valy", "Warmth_ValyNoNA")]
+```
+
+### Stage 3b (optional): Match SOCATS dictionaries
+
+Matches against social category dictionaries (age, gender, race, etc.).
+
+```{r}
+dat <- match_dictionaries(
+  dat,
+  text_col = "tv3",
+  response_col = "response",
+  valence_col = "Valy",
+  valence_nona_col = "ValyNoNA",
+  sadcat_dict = FALSE,          # skip SADCAT (already done)
+  socats = TRUE
+)
+```
+
+### Stage 4 (optional): Compute embeddings
+
+Generates sentence embeddings via SBERT and/or Gemini. Requires Python
+via reticulate.
+
+```{r}
+dat <- compute_embeddings(
+  dat,
+  text_col = "tv",
+  methods = "sbert",           # or c("sbert", "gemini")
+  sbert_model = "paraphrase-mpnet-base-v2",
+  response_col = "response"
+)
+```
+
+### Stage 5 (optional): Compute seed similarities
+
+Computes correlation (or cosine similarity) between response embeddings and
+SADCAT seed vectors. Requires embeddings from Stage 4.
+
+```{r}
+dat <- compute_seed_similarities(
+  dat,
+  embedding_prefix = "SBERT",  # or "Gemini"
+  method = "correlation",
+  response_col = "response"
+)
+```
+
+### Stage 6: Aggregate responses
+
+Aggregates response-level data to group-level, using sum, mean, and distinct
+operations. Auto-detects standard columns by naming patterns.
+
+```{r}
+agg <- aggregate_responses(
+  dat,
+  group_cols = c("Synonym.GroupX", "Group", "Level"),
+  create_noNA = TRUE,
+  verbose = TRUE
+)
+
+head(agg)
+```
+
+## Valence column summary
+
+| Column | Level | NA behavior | Negation |
+|--------|-------|-------------|----------|
+| `Val_lexicoder`, `Val_NRC`, ... | Per-dictionary | 0 when no match | Raw (no flip) |
+| `Val_lexicoderNA`, `Val_NRCNA`, ... | Per-dictionary | NA when no match | Raw (no flip) |
+| `Valy` | Combined (5-dict mean) | NA when no dict matched | Applied once |
+| `ValyNoNA` | Combined (5-dict mean) | 0 when no dict matched | Applied once |
+| `{Dim}_Valy` | Per-dimension | NA when dimension not present | Inherited |
+| `{Dim}_ValyNoNA` | Per-dimension | 0 when dimension not present | Inherited |
+| `{Dim}_valy3` | Per-dimension, gated | NA when dim or response missing | Inherited |
+| `{Dim}_valyNoNA3` | Per-dimension, gated | NA when dim or response missing | Inherited |
+
+## Variables reference
+
+- **`_dic`**: raw word count for the dimension
+- **`_dic_hi` / `_dic_lo`**: word counts for high- and low-directional words
+- **`_dic_percent`**: proportion of tokens matching the dimension
+- **`_dic_binary`**: 1 if any words match, 0 otherwise
+- **`_dic_binary2`**: same as `_binary`, but NA if original response is missing
+- **`_dirx`**: direction score: `hi_binary - lo_binary` (negation-aware)
+- **`_dirx2`**: same as `_dirx` (negation-aware version)
+- **`_dirx3`**: `_dirx` gated by binary and binary2 (NA when not applicable)
+- **`None2y`**: 1 if no dimension matched at all, NA if response missing

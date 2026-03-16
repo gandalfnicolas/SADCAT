@@ -9,7 +9,8 @@
 #'   Change to "tv2" for human participants.
 #' @param response_col Column with original response for negation detection (default "response")
 #' @return The input data with 12 new columns: Val_lexicoder, Val_NRC, Val_bing,
-#'   Val_affin, Val_loughran, their NA variants, Valy, and ValyNA
+#'   Val_affin, Val_loughran, their NA variants, Valy (NA when no dictionary
+#'   matched, negation-aware), and ValyNoNA (0 instead of NA)
 #' @export score_valence
 
 score_valence <- function(data,
@@ -22,26 +23,34 @@ score_valence <- function(data,
   }
 
   valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
-  data <- cbind(data, valence_scores)
 
-  # Combined valence
+  # Separate internal negation-aware columns from output columns
+  neg_valna_cols <- grep("^\\.neg_valna_", names(valence_scores), value = TRUE)
+  neg_valna_avg <- rowMeans(valence_scores[, neg_valna_cols, drop = FALSE], na.rm = TRUE)
+
+  # Add only the raw (non-negation) individual dictionary columns to output
+  data <- cbind(data, valence_scores[, !names(valence_scores) %in% neg_valna_cols, drop = FALSE])
+
+  # Combined valence (negation-aware, applied once to the average)
+  # Valy: NA when no dictionary matched any sentiment words
+  # ValyNoNA: 0 instead of NA
+  data$Valy <- neg_valna_avg
+  data$ValyNoNA <- ifelse(is.nan(neg_valna_avg), 0, neg_valna_avg)
+
   val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
   valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
-
-  data$Valy <- rowMeans(data[, val_cols, drop = FALSE], na.rm = TRUE)
-  data$ValyNA <- rowMeans(data[, valna_cols, drop = FALSE], na.rm = TRUE)
 
   # Ensure valence family columns are NA when the original response is missing
   data <- .mask_missing_response_cols(
     data,
     response_col,
-    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNA$")
+    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNoNA$")
   )
 
   # Replace NaN with NA
   data <- replace_nan_with_na(data)
 
   message("  Valence scoring complete. Columns added: ",
-          paste(c(val_cols, valna_cols, "Valy", "ValyNA"), collapse = ", "))
+          paste(c(val_cols, valna_cols, "Valy", "ValyNoNA"), collapse = ", "))
   return(data)
 }

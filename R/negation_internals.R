@@ -370,21 +370,36 @@
   )
 
   build_output <- function(pos_key, neg_key, name, neg_pos_key = NULL, neg_neg_key = NULL) {
-    pos_binary <- presence$nonneg[, pos_key] | presence$neg[, neg_key]
-    neg_binary <- presence$nonneg[, neg_key] | presence$neg[, pos_key]
+    # Raw presence (no negation flipping) for individual dictionary columns
+    any_pos <- presence$nonneg[, pos_key] | presence$neg[, pos_key]
+    any_neg <- presence$nonneg[, neg_key] | presence$neg[, neg_key]
+
+    # Negation-aware (for computing combined average only)
+    neg_pos_binary <- presence$nonneg[, pos_key] | presence$neg[, neg_key]
+    neg_neg_binary <- presence$nonneg[, neg_key] | presence$neg[, pos_key]
 
     if (!is.null(neg_pos_key)) {
-      neg_binary <- neg_binary | lex_neg_presence[[neg_pos_key]]
+      # Lexicoder neg_positive = negated positive phrases → negative sentiment
+      any_neg <- any_neg | lex_neg_presence[[neg_pos_key]]
+      neg_neg_binary <- neg_neg_binary | lex_neg_presence[[neg_pos_key]]
     }
     if (!is.null(neg_neg_key)) {
-      pos_binary <- pos_binary | lex_neg_presence[[neg_neg_key]]
+      # Lexicoder neg_negative = negated negative phrases → positive sentiment
+      any_pos <- any_pos | lex_neg_presence[[neg_neg_key]]
+      neg_pos_binary <- neg_pos_binary | lex_neg_presence[[neg_neg_key]]
     }
 
-    val <- pos_binary - neg_binary
-    valna <- ifelse(pos_binary + neg_binary == 0, NA, val)
+    # Raw individual scores (no negation)
+    raw_val <- any_pos - any_neg
+    raw_valna <- ifelse(any_pos + any_neg == 0, NA, raw_val)
 
-    out <- data.frame(val = val, valna = valna)
-    colnames(out) <- c(paste0("Val_", name), paste0("Val_", name, "NA"))
+    # Negation-aware scores (internal, for combined average)
+    neg_val <- neg_pos_binary - neg_neg_binary
+    neg_valna <- ifelse(neg_pos_binary + neg_neg_binary == 0, NA, neg_val)
+
+    out <- data.frame(raw_val = raw_val, raw_valna = raw_valna, neg_valna = neg_valna)
+    colnames(out) <- c(paste0("Val_", name), paste0("Val_", name, "NA"),
+                        paste0(".neg_valna_", name))
     out
   }
 

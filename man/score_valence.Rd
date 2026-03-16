@@ -17,7 +17,8 @@ Change to "tv2" for human participants.}
 }
 \value{
 The input data with 12 new columns: Val_lexicoder, Val_NRC, Val_bing,
-  Val_affin, Val_loughran, their NA variants, Valy, and ValyNA
+  Val_affin, Val_loughran, their NA variants, Valy (NA when no dictionary
+  matched, negation-aware), and ValyNoNA (0 instead of NA)
 }
 \description{
 Score text responses using 5 sentiment dictionaries.

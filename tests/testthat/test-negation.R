@@ -38,7 +38,7 @@ test_that("scoped negation marks only the intended local tokens", {
   expect_false(toks$negated[toks$token == "warm"])
 })
 
-test_that("score_valence flips negated sentiment locally across dictionaries", {
+test_that("individual dictionary scores are raw (no negation); Valy reflects negation", {
   dat <- data.frame(
     response = c(
       "friendly", "not friendly",
@@ -60,21 +60,40 @@ test_that("score_valence flips negated sentiment locally across dictionaries", {
   scored <- SADCAT::score_valence(dat, text_col = "tv", response_col = "response")
   rownames(scored) <- scored$response
 
+  # Non-negated phrases: individual scores unchanged
   expect_equal(unname(as.numeric(scored["friendly", c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")])), rep(1, 5))
-  expect_equal(unname(as.numeric(scored["not friendly", c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")])), rep(-1, 5))
-
   expect_equal(unname(as.numeric(scored["immoral", c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")])), c(-1, -1, -1, 0, -1))
-  expect_equal(unname(as.numeric(scored["not immoral", c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")])), c(1, 1, 1, 0, 1))
-
   expect_equal(unname(as.numeric(scored["incompetent", c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")])), rep(-1, 5))
-  expect_equal(unname(as.numeric(scored["not incompetent", c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")])), rep(1, 5))
-
   expect_equal(unname(as.numeric(scored["warm", c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")])), c(1, 0, 1, 1, 0))
-  expect_equal(unname(as.numeric(scored["not warm", c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")])), c(-1, 0, -1, -1, 0))
 
-  expect_equal(scored["warm but not competent", "Val_NRC"], -1)
-  expect_equal(scored["warm but not competent", "Val_bing"], 1)
+  # Negated phrases: individual scores should NOT be flipped (raw presence)
+  # "not friendly" → "friendly" still detected as positive in non-lexicoder dicts
+  expect_equal(scored["not friendly", "Val_NRC"], 1)
+  expect_equal(scored["not friendly", "Val_bing"], 1)
+  expect_equal(scored["not friendly", "Val_affin"], 1)
+  expect_equal(scored["not friendly", "Val_loughran"], 1)
+
+  # "not immoral" → "immoral" still detected as negative in non-lexicoder dicts
+  expect_equal(scored["not immoral", "Val_NRC"], -1)
+  expect_equal(scored["not immoral", "Val_bing"], -1)
+  expect_equal(scored["not immoral", "Val_loughran"], -1)
+
+  # Valy/ValyNoNA reflect negation (applied once to the average)
+  expect_gt(scored["friendly", "Valy"], 0)
+  expect_lt(scored["not friendly", "Valy"], 0)
+  expect_lt(scored["immoral", "Valy"], 0)
+  expect_gt(scored["not immoral", "Valy"], 0)
+  expect_lt(scored["incompetent", "Valy"], 0)
+  expect_gt(scored["not incompetent", "Valy"], 0)
+  expect_gt(scored["warm", "Valy"], 0)
+  expect_lt(scored["not warm", "Valy"], 0)
+
+  # Mixed negation: "warm but not competent" → Valy lower than "warm"
   expect_lt(scored["warm but not competent", "Valy"], scored["warm", "Valy"])
+
+  # ValyNoNA is 0 instead of NA, otherwise same as Valy
+  expect_true("ValyNoNA" %in% names(scored))
+  expect_equal(scored["friendly", "ValyNoNA"], scored["friendly", "Valy"])
 })
 
 test_that("match_dictionaries keeps negation local in directional outputs", {
@@ -108,8 +127,8 @@ test_that("match_dictionaries keeps negation local in directional outputs", {
     scored,
     text_col = "tv3",
     response_col = "response",
-    valence_col = "ValyNA",
-    valence_raw_col = "Valy"
+    valence_col = "Valy",
+    valence_nona_col = "ValyNoNA"
   )
   rownames(matched) <- matched$response
 
@@ -155,8 +174,8 @@ test_that("match_dictionaries handles identical and normalized-duplicate respons
       scored,
       text_col = "tv3",
       response_col = "response",
-      valence_col = "ValyNA",
-      valence_raw_col = "Valy"
+      valence_col = "Valy",
+      valence_nona_col = "ValyNoNA"
     )
   })
 

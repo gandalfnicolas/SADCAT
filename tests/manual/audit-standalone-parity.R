@@ -41,7 +41,7 @@ if (inherits(script_long, "error")) {
 }
 
 compare_cols <- c(
-  "tv", "tv2", "tv3", "Valy", "ValyNA",
+  "tv", "tv2", "tv3", "Valy", "ValyNoNA",
   "Warmth_dirx", "Warmth_dirx2", "Warmth_dirx3",
   "Competence_dirx", "Morality_dirx"
 )

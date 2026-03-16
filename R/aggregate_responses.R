@@ -43,10 +43,10 @@ aggregate_responses <- function(data,
 
   if (is.null(mean_cols)) {
     mean_cols <- grep(
-      paste0("^Valy$|^ValyNA$|",
+      paste0("^Valy$|^ValyNoNA$|",
              "_dic_binary2$|^None2y$|",
-             "_ValyNA$|^NONE_ValyNA$|",
-             "_valy3$|_valyNA3$|_dirx3$|",
+             "_Valy$|_ValyNoNA$|^NONE_Valy$|",
+             "_valy3$|_valyNoNA3$|_dirx3$|",
              "^SBERT_|^Gemini_|",
              "\\.seed$|",
              "^traditional$|",
@@ -139,8 +139,8 @@ aggregate_responses <- function(data,
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }
 
-    # Valence noNA: _valy3 and _valyNA3 columns
-    valy_cols <- grep("_valy3$|_valyNA3$", names(result), value = TRUE)
+    # Valence noNA: _valy3 and _valyNoNA3 columns
+    valy_cols <- grep("_valy3$|_valyNoNA3$", names(result), value = TRUE)
     for (col in valy_cols) {
       result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
     }

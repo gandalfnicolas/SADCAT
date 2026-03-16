@@ -26,8 +26,8 @@ test_that("aggregate_responses computes sums, means, and noNA columns", {
   rownames(out) <- out$Synonym.GroupX
 
   expect_equal(out["A", "warmth_dic_binary2_Sum"], 1)
-  expect_equal(out["A", "Valy"], 0)
-  expect_equal(out["A", "Warmth_ValyNA"], 1)
+  expect_equal(out["A", "ValyNoNA"], 0)
+  expect_equal(out["A", "Warmth_Valy"], 1)
   expect_equal(out["A", "Warmth_dirx3"], 1)
   expect_equal(out["A", "Warmth_dirx3noNA"], 1)
   expect_true(is.na(out["B", "Warmth_valy3"]))
