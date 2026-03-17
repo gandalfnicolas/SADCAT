@@ -130,6 +130,7 @@ binary indicators, percentages, direction scores, and per-dimension valence.
 - `{Dim}_direction` (directional dimensions only): hi-lo direction, NA when not applicable
 - `{Dim}_directionNoNA` (directional dimensions only): same as `{Dim}_direction`, but 0 if dimension absent (still NA if response missing)
 - `NoMatch`: 1 if no SADCAT dimension matched at all (NA if response missing)
+-  Note: Warmth = Sociability + Morality; Competence = Ability + Assertiveness. Beauty is a subdimension of Appearance. Words may fall into multiple dictionaries.
 
 ```{r}
 dat <- match_dictionaries(
@@ -208,25 +209,7 @@ agg <- aggregate_responses(
   verbose = TRUE
 )
 
-head(agg)
+View(agg)
 ```
 
-## Valence column summary
 
-| Column | Level | NA behavior | Negation |
-|--------|-------|-------------|----------|
-| `Val_lexicoder`, `Val_NRC`, ... | Per-dictionary | 0 when no match | Raw (no flip) |
-| `Val_lexicoderNA`, `Val_NRCNA`, ... | Per-dictionary | NA when no match | Raw (no flip) |
-| `Valy` | Combined (5-dict mean) | NA when no dict matched | Applied once |
-| `ValyNoNA` | Combined (5-dict mean) | 0 when no dict matched | Applied once |
-| `{Dim}_valence` | Per-dimension, gated | NA when dim or response missing | Inherited |
-| `{Dim}_valenceNoNA` | Per-dimension, gated | NA when response missing; 0 when dim missing | Inherited |
-
-## Variables reference
-
-- **`{Dim}_prevalence`**: 1 if the dimension is present, 0 if absent, NA if response missing
-- **`{Dim}_valence`**: dimension-gated valence, NA if dimension absent or response missing
-- **`{Dim}_valenceNoNA`**: same as `{Dim}_valence`, but 0 when dimension absent
-- **`{Dim}_direction`**: directional score for directional dimensions (NA when not applicable)
-- **`{Dim}_directionNoNA`**: same as `{Dim}_direction`, but 0 when dimension absent
-- **`NoMatch`**: 1 if no SADCAT dimension matched at all, NA if response missing
