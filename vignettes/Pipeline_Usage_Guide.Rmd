@@ -95,8 +95,14 @@ Cleans and normalizes text responses. Produces three text columns:
 dat <- preprocess_text(
   dat,
   text_col = "responsex",
-  spellcheck = FALSE,          # TRUE enables spell-checking (see below)
+  spellcheck = TRUE,                     # TRUE enables spell-checking
+  spellcheck_method = "hunspell",         # "hunspell" (default) or "gemini"
   singularize = TRUE,
+  java_home = NULL,                       # optional; used for hunspell only
+  wordnet_dict = NULL,                    # optional; used for hunspell only
+  gemini_spellcheck_key = NULL,           # optional; used for gemini only
+  gemini_spellcheck_model = "gemini-2.0-flash",
+  gemini_spellcheck_context = NULL,       # optional custom Gemini prompt
   verbose = TRUE
 )
 

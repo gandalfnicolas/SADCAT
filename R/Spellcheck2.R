@@ -99,17 +99,64 @@ Spellcheck2 <- function(raw, dict_tv = All.steps_Dictionaries$tv, rawlist,
   # Rawlist membership bonus
   in_rawlist <- suggestions %in% rawlist
 
-  # Rank: min edit distance, then max bigram score, then rawlist membership
+  ranked_idx <- .rank_spellcheck_candidates(
+    word = word,
+    suggestions = suggestions,
+    dists = dists,
+    bg_scores = bg_scores,
+    in_rawlist = in_rawlist
+  )
+
+  suggestions[ranked_idx[1]]
+}
+
+
+#' Rank spell-check suggestions using SADCAT heuristics
+#' @param word Original misspelled word
+#' @param suggestions Candidate corrections
+#' @param dists Edit distances from `word` to each candidate
+#' @param bg_scores Bigram context scores
+#' @param in_rawlist Logical vector indicating candidate presence in rawlist
+#' @return Integer indices of suggestions in best-to-worst order
+#' @keywords internal
+.rank_spellcheck_candidates <- function(word, suggestions, dists, bg_scores,
+                                         in_rawlist) {
+  word_len <- nchar(word, type = "chars")
+  sug_len <- nchar(suggestions, type = "chars")
+  len_delta <- abs(sug_len - word_len)
+
+  # Avoid over-truncation: when there is a non-short tie at min edit distance,
+  # demote 1-2 character candidates (e.g., "rde" -> "rd" instead of "rude").
+  short_penalty <- integer(length(suggestions))
+  if (!is.na(word_len) && word_len >= 3L) {
+    min_dist <- min(dists)
+    min_dist_mask <- dists == min_dist
+    short_at_min <- min_dist_mask & (sug_len <= 2L)
+    if (any(min_dist_mask & !short_at_min)) {
+      short_penalty[short_at_min] <- 1L
+    }
+  }
+
   rank_df <- data.frame(
     idx = seq_along(suggestions),
     dist = dists,
+    short_penalty = short_penalty,
     bg = bg_scores,
     inraw = in_rawlist,
+    len_delta = len_delta,
     stringsAsFactors = FALSE
   )
-  rank_df <- rank_df[order(rank_df$dist, -rank_df$bg, -rank_df$inraw), ]
 
-  suggestions[rank_df$idx[1]]
+  rank_df <- rank_df[order(
+    rank_df$dist,
+    rank_df$short_penalty,
+    -rank_df$bg,
+    -rank_df$inraw,
+    rank_df$len_delta,
+    rank_df$idx
+  ), ]
+
+  rank_df$idx
 }
 
 
