@@ -13,7 +13,7 @@ aggregate_responses(
   extra_sum_cols = NULL,
   extra_mean_cols = NULL,
   extra_distinct_cols = NULL,
-  create_noNA = TRUE,
+  create_noNA = FALSE,
   verbose = TRUE
 )
 }
@@ -22,7 +22,8 @@ aggregate_responses(
 
 \item{group_cols}{Character vector of grouping columns (default c("Synonym.GroupX", "Group", "Level"))}
 
-\item{sum_cols}{Columns to sum-aggregate. If NULL, auto-detects _binary2, None2y, traditional}
+\item{sum_cols}{Columns to sum-aggregate. If NULL, auto-detects prevalence
+and NoMatch columns (plus traditional)}
 
 \item{mean_cols}{Columns to mean-aggregate. If NULL, auto-detects standard patterns}
 
@@ -34,7 +35,7 @@ aggregate_responses(
 
 \item{extra_distinct_cols}{Additional columns to include in distinct aggregation}
 
-\item{create_noNA}{Logical. Create *noNA versions of direction/valence? (default TRUE)}
+\item{create_noNA}{Deprecated. Ignored; no extra noNA columns are created.}
 
 \item{verbose}{Print progress? (default TRUE)}
 }
@@ -45,6 +46,5 @@ A data.frame with one row per unique combination of group_cols
 Aggregate response-level data to group-level.
 Performs three types of aggregation (sum, mean, distinct) and joins them.
 Auto-detects standard pipeline columns by pattern; user can add extra
-columns via parameters. Optionally creates noNA versions of direction
-and valence columns (replacing NA with 0).
+columns via parameters.
 }

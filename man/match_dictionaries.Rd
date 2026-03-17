@@ -12,7 +12,8 @@ match_dictionaries(
   valence_nona_col = "ValyNoNA",
   sadcat_dict = NULL,
   socats_dict = NULL,
-  socats = FALSE
+  socats = FALSE,
+  keep_intermediate = FALSE
 )
 }
 \arguments{
@@ -35,10 +36,16 @@ Set to FALSE to skip SADCAT matching entirely.}
 \code{socats = TRUE}, calls \code{prepare_socats_dictionaries()}.}
 
 \item{socats}{Logical. Match against SOCATS dictionaries? (default FALSE)}
+
+\item{keep_intermediate}{Logical. If \code{FALSE} (default), return compact
+SADCAT outputs with informative names: \code{{Dim}_prevalence},
+\code{{Dim}_valence}, \code{{Dim}_direction}, \code{{Dim}_valenceNoNA},
+\code{{Dim}_directionNoNA}, and \code{NoMatch}. If \code{TRUE}, keep
+legacy SADCAT intermediate columns as well.}
 }
 \value{
-The input data with many new columns: dictionary counts, percentages,
-  binary indicators, direction scores, per-dimension valence, etc.
+The input data with dictionary-derived columns appended. By default,
+  SADCAT outputs are compact and renamed to informative suffixes.
 }
 \description{
 Match text responses against SADCAT stereotype dictionaries

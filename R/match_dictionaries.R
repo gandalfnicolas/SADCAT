@@ -16,8 +16,13 @@
 #' @param socats_dict Pre-computed SOCATS quanteda dictionary. If NULL and
 #'   \code{socats = TRUE}, calls \code{prepare_socats_dictionaries()}.
 #' @param socats Logical. Match against SOCATS dictionaries? (default FALSE)
-#' @return The input data with many new columns: dictionary counts, percentages,
-#'   binary indicators, direction scores, per-dimension valence, etc.
+#' @param keep_intermediate Logical. If \code{FALSE} (default), return compact
+#'   SADCAT outputs with informative names: \code{{Dim}_prevalence},
+#'   \code{{Dim}_valence}, \code{{Dim}_direction}, \code{{Dim}_valenceNoNA},
+#'   \code{{Dim}_directionNoNA}, and \code{NoMatch}. If \code{TRUE}, keep
+#'   legacy SADCAT intermediate columns as well.
+#' @return The input data with dictionary-derived columns appended. By default,
+#'   SADCAT outputs are compact and renamed to informative suffixes.
 #' @export match_dictionaries
 
 match_dictionaries <- function(data,
@@ -27,7 +32,8 @@ match_dictionaries <- function(data,
                                valence_nona_col = "ValyNoNA",
                                sadcat_dict = NULL,
                                socats_dict = NULL,
-                               socats = FALSE) {
+                               socats = FALSE,
+                               keep_intermediate = FALSE) {
   if (is.null(response_col)) response_col <- text_col
   message("--- Stage 4: Matching dictionaries ---")
   .require_data_columns(data, text_col, "match_dictionaries()")
@@ -69,6 +75,7 @@ match_dictionaries <- function(data,
                                   remove_symbols = TRUE)
 
   toks_dict <- data
+  sadcat_dict_cols <- character(0)
 
   # ============================================================
   # SADCAT MATCHING
@@ -80,6 +87,7 @@ match_dictionaries <- function(data,
                                              nested_scope = "dictionary",
                                              exclusive = TRUE, levels = 1)
     toks_dict_df <- quanteda::convert(quanteda::dfm(toks_dict_pre), to = "data.frame")
+    toks_dict_df$doc_id <- NULL
 
     # Add token count and combine
     toks_dict_df$ntoken <- quanteda::ntoken(toks)
@@ -87,6 +95,7 @@ match_dictionaries <- function(data,
 
     # Identify SADCAT dictionary column names (quanteda lowercases them)
     dict_cols_all <- tolower(names(sadcat_dict))
+    sadcat_dict_cols <- dict_cols_all
 
     # ---- Percentages ----
     for (col in dict_cols_all) {
@@ -269,21 +278,104 @@ match_dictionaries <- function(data,
     message("  SOCATS matching complete.")
   }
 
+  if (do_sadcat) {
+    toks_dict <- .add_compact_sadcat_columns(toks_dict)
+  }
+
   # Ensure dictionary-derived valence/direction families are NA when response is missing
   toks_dict <- .mask_missing_response_cols(
     toks_dict,
     response_col,
     cols_or_patterns = c(
       "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
-      "_dirx$", "_dirx2$", "_dirx3$", "_dirx3NoNA$"
+      "_dirx$", "_dirx2$", "_dirx3$", "_dirx3NoNA$",
+      "_prevalence$", "_valence$", "_valenceNoNA$",
+      "_direction$", "_directionNoNA$", "^NoMatch$"
     )
   )
+
+  if (do_sadcat) {
+    if (!isTRUE(keep_intermediate)) {
+      toks_dict <- .drop_sadcat_intermediate_columns(toks_dict, sadcat_dict_cols)
+    }
+  }
 
   # Replace NaN with NA
   toks_dict <- replace_nan_with_na(toks_dict)
 
   message("  Dictionary matching complete.")
   return(toks_dict)
+}
+
+.add_compact_sadcat_columns <- function(data) {
+  all_base_dims <- c(.SADCAT_DIR_DIMS, .SADCAT_NDIR_DIMS)
+
+  for (dim in all_base_dims) {
+    prevalence_old <- paste0(tolower(dim), "_dic_binary2")
+    if (prevalence_old %in% names(data)) {
+      data[[paste0(dim, "_prevalence")]] <- data[[prevalence_old]]
+    }
+
+    valence_old <- paste0(dim, "_valy3")
+    if (valence_old %in% names(data)) {
+      data[[paste0(dim, "_valence")]] <- data[[valence_old]]
+    }
+
+    valence_nona_old <- paste0(dim, "_valyNoNA3")
+    if (valence_nona_old %in% names(data)) {
+      data[[paste0(dim, "_valenceNoNA")]] <- data[[valence_nona_old]]
+    }
+  }
+
+  for (dim in .SADCAT_DIR_DIMS) {
+    direction_old <- paste0(dim, "_dirx3")
+    if (direction_old %in% names(data)) {
+      data[[paste0(dim, "_direction")]] <- data[[direction_old]]
+    }
+
+    direction_nona_old <- paste0(dim, "_dirx3NoNA")
+    if (direction_nona_old %in% names(data)) {
+      data[[paste0(dim, "_directionNoNA")]] <- data[[direction_nona_old]]
+    }
+  }
+
+  if ("None2y" %in% names(data)) {
+    data$NoMatch <- data$None2y
+  }
+
+  data
+}
+
+.drop_sadcat_intermediate_columns <- function(data, dict_cols_all) {
+  all_base_dims <- c(.SADCAT_DIR_DIMS, .SADCAT_NDIR_DIMS)
+
+  dictionary_family_cols <- unique(c(
+    dict_cols_all,
+    paste0(dict_cols_all, "_percent"),
+    paste0(dict_cols_all, "_binary")
+  ))
+
+  dimension_family_cols <- unique(c(
+    paste0(tolower(all_base_dims), "_dic_binary2"),
+    paste0(all_base_dims, "_Valy"),
+    paste0(all_base_dims, "_ValyNoNA"),
+    paste0(all_base_dims, "_valy3"),
+    paste0(all_base_dims, "_valyNoNA3"),
+    paste0(.SADCAT_DIR_DIMS, "_dirx"),
+    paste0(.SADCAT_DIR_DIMS, "_dirx2"),
+    paste0(.SADCAT_DIR_DIMS, "_dirx3"),
+    paste0(.SADCAT_DIR_DIMS, "_dirx3NoNA")
+  ))
+
+  helper_cols <- c("None2y", "NONE_Valy", "ntoken", "tv4")
+  drop_cols <- unique(c(dictionary_family_cols, dimension_family_cols, helper_cols))
+  drop_cols <- intersect(drop_cols, names(data))
+
+  if (length(drop_cols) > 0) {
+    data <- data[, setdiff(names(data), drop_cols), drop = FALSE]
+  }
+
+  data
 }
 
 

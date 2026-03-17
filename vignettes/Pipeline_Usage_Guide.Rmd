@@ -124,18 +124,12 @@ binary indicators, percentages, direction scores, and per-dimension valence.
 
 **Key output columns (per dimension, e.g., Warmth, Competence, Morality, ...):**
 
-- `_dic`: raw word count matching the dimension
-- `_dic_binary`: 1 if any match, 0 otherwise
-- `_dic_binary2`: same, but NA if the response is missing **use this for prevalence**
-- `_dirx`: direction score (hi - lo binary), negation-aware
-- `_Valy`: global `Valy` gated by dimension (NA if dimension not present)
-- `_ValyNoNA`: global `ValyNoNA` gated by dimension (0 if dimension not present)
-- `_valy3`: `_Valy` further gated by response presence **use this for valence**
-- `_dirx3`: `_dirx` gated by binary and binary2 (NA when not applicable) **use this for direction**
-- `_dirx3NoNA`: `_dirx3` with 0 when dimension absent (NA only if response missing) **use this for direction if many dimension NAs and willing to accept assumption of neutral direction**
-- `_valyNoNA3`: `_ValyNoNA` gated by response presence only 
-  (0 if dimension absent; NA if response missing) **use this for valence if many dimension NAs and willing to accept assumption of neutral valence**
-- `None2y`: 1 if no dimension matched at all
+- `{Dim}_prevalence`: 1 if any match, 0 if none, NA if response missing
+- `{Dim}_valence`: dimension-gated valence (NA if dimension absent or response missing)
+- `{Dim}_valenceNoNA`: same as `{Dim}_valence`, but 0 if dimension absent (still NA if response missing)
+- `{Dim}_direction` (directional dimensions only): hi-lo direction, NA when not applicable
+- `{Dim}_directionNoNA` (directional dimensions only): same as `{Dim}_direction`, but 0 if dimension absent (still NA if response missing)
+- `NoMatch`: 1 if no SADCAT dimension matched at all (NA if response missing)
 
 ```{r}
 dat <- match_dictionaries(
@@ -151,6 +145,9 @@ dat <- match_dictionaries(
 
 # Inspect dimension-level results
 View(dat)
+
+#Inspect top 20 words matching each dimension (for sanity check and to understand what the dictionaries are capturing)
+get_top_dictionary_matches(dat, text_col = "tv3", top_n = 20)
 ```
 
 
@@ -201,14 +198,13 @@ operations. Auto-detects standard columns by naming patterns.
 ```{r}
 agg <- aggregate_responses(
   dat,
-  group_cols = c("Synonym.GroupX", "Group", "Level"),
+  group_cols = c("Participant", "Target"),
   sum_cols = NULL,             # NULL = auto-detect
   mean_cols = NULL,            # NULL = auto-detect
   distinct_cols = NULL,        # NULL = auto-detect
   extra_sum_cols = NULL,
   extra_mean_cols = NULL,
   extra_distinct_cols = NULL,
-  create_noNA = TRUE,
   verbose = TRUE
 )
 
@@ -223,20 +219,14 @@ head(agg)
 | `Val_lexicoderNA`, `Val_NRCNA`, ... | Per-dictionary | NA when no match | Raw (no flip) |
 | `Valy` | Combined (5-dict mean) | NA when no dict matched | Applied once |
 | `ValyNoNA` | Combined (5-dict mean) | 0 when no dict matched | Applied once |
-| `{Dim}_Valy` | Per-dimension | NA when dimension not present | Inherited |
-| `{Dim}_ValyNoNA` | Per-dimension | 0 when dimension not present | Inherited |
-| `{Dim}_valy3` | Per-dimension, gated | NA when dim or response missing | Inherited |
-| `{Dim}_valyNoNA3` | Per-dimension, gated | NA when response missing; 0 when dim missing | Inherited |
+| `{Dim}_valence` | Per-dimension, gated | NA when dim or response missing | Inherited |
+| `{Dim}_valenceNoNA` | Per-dimension, gated | NA when response missing; 0 when dim missing | Inherited |
 
 ## Variables reference
 
-- **`_dic`**: raw word count for the dimension
-- **`_dic_hi` / `_dic_lo`**: word counts for high- and low-directional words
-- **`_dic_percent`**: proportion of tokens matching the dimension
-- **`_dic_binary`**: 1 if any words match, 0 otherwise
-- **`_dic_binary2`**: same as `_binary`, but NA if original response is missing
-- **`_dirx`**: direction score: `hi_binary - lo_binary` (negation-aware)
-- **`_dirx2`**: same as `_dirx` (negation-aware version)
-- **`_dirx3`**: `_dirx` gated by binary and binary2 (NA when not applicable)
-- **`_dirx3NoNA`**: `_dirx3` with 0 when dimension is absent (NA only if response is missing)
-- **`None2y`**: 1 if no dimension matched at all, NA if response missing
+- **`{Dim}_prevalence`**: 1 if the dimension is present, 0 if absent, NA if response missing
+- **`{Dim}_valence`**: dimension-gated valence, NA if dimension absent or response missing
+- **`{Dim}_valenceNoNA`**: same as `{Dim}_valence`, but 0 when dimension absent
+- **`{Dim}_direction`**: directional score for directional dimensions (NA when not applicable)
+- **`{Dim}_directionNoNA`**: same as `{Dim}_direction`, but 0 when dimension absent
+- **`NoMatch`**: 1 if no SADCAT dimension matched at all, NA if response missing

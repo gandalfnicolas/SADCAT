@@ -3,17 +3,17 @@
 #' @description Aggregate response-level data to group-level.
 #' Performs three types of aggregation (sum, mean, distinct) and joins them.
 #' Auto-detects standard pipeline columns by pattern; user can add extra
-#' columns via parameters. Optionally creates noNA versions of direction
-#' and valence columns (replacing NA with 0).
+#' columns via parameters.
 #' @param data The full long-format data.frame from the pipeline
 #' @param group_cols Character vector of grouping columns (default c("Synonym.GroupX", "Group", "Level"))
-#' @param sum_cols Columns to sum-aggregate. If NULL, auto-detects _binary2, None2y, traditional
+#' @param sum_cols Columns to sum-aggregate. If NULL, auto-detects prevalence
+#'   and NoMatch columns (plus traditional)
 #' @param mean_cols Columns to mean-aggregate. If NULL, auto-detects standard patterns
 #' @param distinct_cols Columns to preserve by distinct. If NULL, auto-detects Warning columns
 #' @param extra_sum_cols Additional columns to include in sum aggregation
 #' @param extra_mean_cols Additional columns to include in mean aggregation
 #' @param extra_distinct_cols Additional columns to include in distinct aggregation
-#' @param create_noNA Logical. Create *noNA versions of direction/valence? (default TRUE)
+#' @param create_noNA Deprecated. Ignored; no extra noNA columns are created.
 #' @param verbose Print progress? (default TRUE)
 #' @return A data.frame with one row per unique combination of group_cols
 #' @export aggregate_responses
@@ -26,7 +26,7 @@ aggregate_responses <- function(data,
                                 extra_sum_cols = NULL,
                                 extra_mean_cols = NULL,
                                 extra_distinct_cols = NULL,
-                                create_noNA = TRUE,
+                                create_noNA = FALSE,
                                 verbose = TRUE) {
   message("--- Stage 7: Aggregating responses ---")
 
@@ -34,7 +34,7 @@ aggregate_responses <- function(data,
 
   # ---- Auto-detect columns ----
   if (is.null(sum_cols)) {
-    sum_cols <- grep("_dic_binary2$|^None2y$|^traditional$", all_names, value = TRUE)
+    sum_cols <- grep("_prevalence$|_dic_binary2$|^NoMatch$|^None2y$|^traditional$", all_names, value = TRUE)
   }
   if (!is.null(extra_sum_cols)) {
     extra_sum_cols <- extra_sum_cols[extra_sum_cols %in% all_names]
@@ -44,7 +44,8 @@ aggregate_responses <- function(data,
   if (is.null(mean_cols)) {
     mean_cols <- grep(
       paste0("^Valy$|^ValyNoNA$|",
-             "_dic_binary2$|^None2y$|",
+             "_prevalence$|_dic_binary2$|^NoMatch$|^None2y$|",
+             "_valence$|_valenceNoNA$|_direction$|_directionNoNA$|",
              "_Valy$|_ValyNoNA$|^NONE_Valy$|",
              "_valy3$|_valyNoNA3$|_dirx3$|_dirx3NoNA$|",
              "^SBERT_|^Gemini_|",
@@ -131,23 +132,8 @@ aggregate_responses <- function(data,
   # Replace NaN with NA
   result <- replace_nan_with_na(result)
 
-  # ---- Create noNA versions ----
-  if (create_noNA) {
-    # Direction noNA: _dirx3 columns
-    dirx3_cols <- grep("_dirx3$", names(result), value = TRUE)
-    for (col in dirx3_cols) {
-      result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
-    }
-
-    # Valence noNA: _valy3 and _valyNoNA3 columns
-    valy_cols <- grep("_valy3$|_valyNoNA3$", names(result), value = TRUE)
-    for (col in valy_cols) {
-      result[[paste0(col, "noNA")]] <- ifelse(is.na(result[[col]]), 0, result[[col]])
-    }
-
-    if (verbose) {
-      message("  Created ", length(dirx3_cols) + length(valy_cols), " noNA columns.")
-    }
+  if (isTRUE(create_noNA) && verbose) {
+    message("  `create_noNA` is deprecated and ignored; no extra noNA columns were created.")
   }
 
   if (verbose) message("  Aggregation complete. Result: ",

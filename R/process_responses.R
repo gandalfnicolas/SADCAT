@@ -54,7 +54,8 @@
 #' # Stage 2: Valence -> produces Val_*, Valy, ValyNoNA
 #' dat <- score_valence(dat, text_col = "tv")
 #'
-#' # Stage 3: SADCAT dictionaries -> produces *_dic_binary, *_dirx, *_Valy, etc.
+#' # Stage 3: SADCAT dictionaries -> produces compact outputs such as
+#' # {Dim}_prevalence, {Dim}_valence, {Dim}_direction, and NoMatch
 #' dat <- match_dictionaries(dat, text_col = "tv3",
 #'                           valence_col = "Valy", valence_nona_col = "ValyNoNA")
 #'
@@ -82,10 +83,18 @@
 #'   \item \code{ValyNoNA}: Same as \code{Valy}, but 0 instead of NA.
 #'   \item \code{Val_lexicoder}, \code{Val_NRC}, etc.: Per-dictionary raw
 #'     presence scores (-1, 0, or 1) without negation flipping.
-#'   \item \code{{Dim}_Valy}: Global \code{Valy} gated by dimension prevalence
-#'     (NA if dimension not present in the response).
-#'   \item \code{{Dim}_ValyNoNA}: Global \code{ValyNoNA} gated by dimension
-#'     prevalence (0 if dimension not present).
+#'   \item \code{{Dim}_prevalence}: 1/0 dimension prevalence, NA when response
+#'     is missing.
+#'   \item \code{{Dim}_valence}: Dimension-gated valence (NA when dimension is
+#'     absent or response missing).
+#'   \item \code{{Dim}_valenceNoNA}: Same as \code{{Dim}_valence}, but 0 when
+#'     dimension is absent (NA when response missing).
+#'   \item \code{{Dim}_direction}: Direction score for directional dimensions
+#'     (NA when not applicable).
+#'   \item \code{{Dim}_directionNoNA}: Same as \code{{Dim}_direction}, but 0
+#'     when dimension is absent (NA when response missing).
+#'   \item \code{NoMatch}: 1 when no SADCAT dimension matched, 0 otherwise
+#'     (NA when response missing).
 #' }
 #'
 #' @seealso \code{\link{preprocess_text}}, \code{\link{score_valence}},
@@ -229,6 +238,8 @@ process_responses <- function(data,
     response_col,
     cols_or_patterns = c(
       "^Val_", "^Valy$", "^ValyNoNA$",
+      "_prevalence$", "_valence$", "_valenceNoNA$",
+      "_direction$", "_directionNoNA$", "^NoMatch$",
       "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
       "_dirx$", "_dirx2$", "_dirx3$", "_dirx3NoNA$",
       "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"
