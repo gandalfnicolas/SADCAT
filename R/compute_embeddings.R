@@ -12,6 +12,8 @@
 #' @param gemini_api_key Gemini API key. If NULL, reads from Sys.getenv("GEMINI_API_KEY")
 #' @param gemini_model Gemini model name (default "gemini-embedding-exp-03-07")
 #' @param gemini_dims Embedding dimensionality for Gemini (default 2000)
+#'   Gemini docs indicate 3072-d outputs are already normalized; when the
+#'   returned dimensionality is not 3072, SADCAT applies L2 normalization.
 #' @param gemini_batch_size Batch size for Gemini API calls (default 10)
 #' @param gemini_sleep Seconds to sleep between Gemini batches (default 63)
 #' @param gemini_task_type Gemini task type (default "SEMANTIC_SIMILARITY")
@@ -155,7 +157,24 @@ compute_embeddings <- function(data,
     }
 
     # Build data frame
-    gemini_matrix <- do.call(rbind, flat_embeddings)
+    gemini_matrix <- do.call(rbind, lapply(flat_embeddings, as.numeric))
+
+    # Gemini docs indicate 3072-d vectors are already normalized; normalize
+    # other output dimensionalities for consistent similarity behavior.
+    returned_dims <- ncol(gemini_matrix)
+    if (!is.na(returned_dims) && returned_dims != 3072L) {
+      row_norms <- sqrt(rowSums(gemini_matrix^2))
+      good_rows <- which(is.finite(row_norms) & row_norms > 0)
+      if (length(good_rows) > 0) {
+        gemini_matrix[good_rows, ] <- gemini_matrix[good_rows, , drop = FALSE] / row_norms[good_rows]
+      }
+      bad_rows <- length(row_norms) - length(good_rows)
+      if (bad_rows > 0) {
+        warning("  Skipped Gemini normalization for ", bad_rows,
+                " row(s) with zero/non-finite norm.")
+      }
+    }
+
     gemini_df <- as.data.frame(gemini_matrix)
     colnames(gemini_df) <- paste0("Gemini_", seq_len(ncol(gemini_df)))
 

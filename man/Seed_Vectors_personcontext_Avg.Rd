@@ -5,12 +5,13 @@
 \alias{Seed_Vectors_personcontext_Avg}
 \title{Average word embeddings for seed dictionaries (person context)}
 \format{
-A data frame with seed vectors computed from person context words
+A data frame with columns \code{Dictionary}, \code{SBERT_1}...\code{SBERT_768},
+  and \code{Gemini_1}...\code{Gemini_768}.
 }
 \usage{
 Seed_Vectors_personcontext_Avg
 }
 \description{
-Average word embeddings for seed dictionaries using person context words
+Average seed embeddings for SADCAT dictionaries using person-context seed text.
 }
 \keyword{datasets}

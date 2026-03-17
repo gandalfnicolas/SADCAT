@@ -225,6 +225,7 @@ match_dictionaries <- function(data,
   # ============================================================
   if (do_socats) {
     message("  Matching SOCATS dictionaries...")
+    socats_existing_cols <- names(toks_dict)
 
     toks_socats_pre <- quanteda::tokens_lookup(toks, dictionary = socats_dict,
                                                nested_scope = "dictionary",
@@ -256,6 +257,14 @@ match_dictionaries <- function(data,
 
     # ---- SOCATS direction indicators (custom logic) ----
     toks_dict <- compute_socats_directions(toks_dict)
+
+    # Ensure SOCATS-derived columns are NA when response is missing
+    socats_added_cols <- setdiff(names(toks_dict), socats_existing_cols)
+    toks_dict <- .mask_missing_response_cols(
+      toks_dict,
+      response_col,
+      cols_or_patterns = socats_added_cols
+    )
 
     message("  SOCATS matching complete.")
   }

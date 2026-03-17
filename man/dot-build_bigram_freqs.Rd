@@ -10,7 +10,7 @@
 \item{corpus}{Character vector of text values (e.g., all unique responses)}
 }
 \value{
-An environment mapping "word1\tword2" keys to integer counts
+An environment mapping "word1 word2" (tab-separated) keys to integer counts
 }
 \description{
 Build bigram frequency table from a corpus of text values

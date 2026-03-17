@@ -33,10 +33,9 @@ through the pipeline.
 
 ```{r}
 dat <- data.frame(
-  responsex = c("warm and friendly", "cold and rde", "smart worker"),
-  Synonym.GroupX = c("A", "A", "B"),
-  Group = c("G1", "G1", "G1"),
-  Level = c("L1", "L1", "L1"),
+  responsex = c("warm and friendly", "cold and rde", "smart worker", NA),
+  Target = c("A", "A", "B", "B"),
+  Participant = c("1", "2", "3", "4"),
   stringsAsFactors = FALSE
 )
 ```
@@ -133,7 +132,7 @@ binary indicators, percentages, direction scores, and per-dimension valence.
 - `_ValyNoNA`: global `ValyNoNA` gated by dimension (0 if dimension not present)
 - `_valy3`: `_Valy` further gated by response presence **use this for valence**
 - `_dirx3`: `_dirx` gated by binary and binary2 (NA when not applicable) **use this for direction**
-- `_dirx3NoNA`: `_dirx3` with 0 when dimension absent (NA only if response missing) **use this for direction with neutral coding of non-present dimensions**
+- `_dirx3NoNA`: `_dirx3` with 0 when dimension absent (NA only if response missing) **use this for direction if many dimension NAs and willing to accept assumption of neutral direction**
 - `_valyNoNA3`: `_ValyNoNA` gated by response presence only 
   (0 if dimension absent; NA if response missing) **use this for valence if many dimension NAs and willing to accept assumption of neutral valence**
 - `None2y`: 1 if no dimension matched at all
@@ -147,29 +146,13 @@ dat <- match_dictionaries(
   valence_nona_col = "ValyNoNA",
   sadcat_dict = NULL,           # NULL auto-loads SADCAT dictionaries
   socats_dict = NULL,           # NULL auto-loads SOCATS only if socats = TRUE
-  socats = FALSE
+  socats = TRUE                 # include Social categories dictionaries as well (optional; default FALSE)
 )
 
 # Inspect dimension-level results
-dat[, c("responsex", "warmth_dic_binary", "Warmth_dirx", "Warmth_Valy", "Warmth_ValyNoNA")]
+View(dat)
 ```
 
-### Stage 3b (optional): Match SOCATS dictionaries
-
-Matches against social category dictionaries (age, gender, race, etc.).
-
-```{r}
-dat <- match_dictionaries(
-  dat,
-  text_col = "tv3",
-  response_col = "responsex",   # NA-gating column; NULL defaults to text_col
-  valence_col = "Valy",
-  valence_nona_col = "ValyNoNA",
-  sadcat_dict = FALSE,          # skip SADCAT (already done)
-  socats_dict = NULL,           # NULL auto-loads SOCATS dictionaries
-  socats = TRUE
-)
-```
 
 ### Stage 4 (optional): Compute embeddings
 
@@ -181,12 +164,12 @@ dat <- compute_embeddings(
   dat,
   text_col = "tv",
   response_col = "responsex",   # NA-gating column; NULL defaults to text_col
-  methods = "sbert",           # or c("sbert", "gemini")
+  methods = c("sbert", "gemini"),           # or "sbert" if gemini not set up
   sbert_model = "paraphrase-mpnet-base-v2",
   sbert_dims = 768L,
-  gemini_api_key = NULL,       # required only when methods includes "gemini"
-  gemini_model = "gemini-embedding-exp-03-07",
-  gemini_dims = 2000L,
+  gemini_api_key = NULL,       # required only when methods includes "gemini" and key not set via env var
+  gemini_model = "gemini-embedding-001",
+  gemini_dims = 768L,
   gemini_batch_size = 10L,
   gemini_sleep = 63,
   gemini_task_type = "SEMANTIC_SIMILARITY",
@@ -202,7 +185,7 @@ SADCAT seed vectors. Requires embeddings from Stage 4.
 ```{r}
 dat <- compute_seed_similarities(
   dat,
-  embedding_prefix = "SBERT",  # or "Gemini"
+  embedding_prefix = c("SBERT", "Gemini"),  # or only one model, based on stage 4 decisions
   seed_vectors = Seed_Vectors_Avg,
   method = "correlation",      # or "cosine"
   response_col = "responsex",  # NA-gating column

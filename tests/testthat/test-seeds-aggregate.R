@@ -21,6 +21,31 @@ test_that("seed similarities skip cleanly when embedding columns are missing", {
   expect_identical(names(out), names(dat))
 })
 
+test_that("seed similarities support multiple embedding prefixes in one call", {
+  emb <- simple_embedding_fixture()
+  emb$Gemini_1 <- emb$SBERT_1
+  emb$Gemini_2 <- emb$SBERT_2
+
+  seeds <- simple_seed_vectors()
+  seeds$Gemini_1 <- seeds$SBERT_1
+  seeds$Gemini_2 <- seeds$SBERT_2
+
+  out <- suppressWarnings(compute_seed_similarities(
+    emb,
+    embedding_prefix = c("SBERT", "Gemini"),
+    seed_vectors = seeds,
+    method = "correlation",
+    verbose = FALSE
+  ))
+
+  expect_true(all(c(
+    "SBERT_Warmth.seed", "SBERT_Competence.seed",
+    "Gemini_Warmth.seed", "Gemini_Competence.seed"
+  ) %in% names(out)))
+  expect_equal(out$SBERT_Warmth.seed[1], out$Gemini_Warmth.seed[1])
+  expect_equal(out$SBERT_Competence.seed[2], out$Gemini_Competence.seed[2])
+})
+
 test_that("aggregate_responses computes sums, means, and noNA columns", {
   out <- aggregate_responses(pipeline_aggregate_fixture(), verbose = FALSE)
   rownames(out) <- out$Synonym.GroupX

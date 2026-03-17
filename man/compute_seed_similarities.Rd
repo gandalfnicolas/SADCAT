@@ -16,7 +16,8 @@ compute_seed_similarities(
 \arguments{
 \item{data}{A data.frame with embedding columns (e.g., SBERT_1:SBERT_768)}
 
-\item{embedding_prefix}{Prefix identifying embedding columns (default "SBERT")}
+\item{embedding_prefix}{Prefix (or vector of prefixes) identifying embedding
+columns (default "SBERT"), e.g., \code{c("SBERT", "Gemini")}.}
 
 \item{seed_vectors}{Seed vector data. Default: Seed_Vectors_Avg}
 

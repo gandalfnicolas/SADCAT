@@ -7,18 +7,15 @@
 \format{
 A data frame with seed vectors. Key column groups:
 \itemize{
-  \item \code{Dictionary}: Name of the dictionary the embeddings represent
-  \item \code{ft.*}: Fasttext word embedding dimensions
-  \item \code{Glove.*}: GloVe word embedding dimensions
-  \item \code{w2v.*}: Word2vec embedding dimensions
-  \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
-  \item \code{SBERT.*}: SBERT embedding dimensions (if available)
+  \item \code{Dictionary}: Dictionary row label (base, \code{_hi}, \code{_lo}, or \code{_dir})
+  \item \code{SBERT_1}...\code{SBERT_768}: SBERT embedding dimensions
+  \item \code{Gemini_1}...\code{Gemini_768}: Gemini embedding dimensions
 }
 }
 \usage{
 Seed_Vectors_Avg
 }
 \description{
-Average Word embeddings for seed dictionaries
+Average seed embeddings for SADCAT dictionaries rebuilt from curated seed words.
 }
 \keyword{datasets}

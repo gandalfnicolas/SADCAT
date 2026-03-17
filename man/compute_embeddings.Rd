@@ -35,7 +35,9 @@ compute_embeddings(
 
 \item{gemini_model}{Gemini model name (default "gemini-embedding-exp-03-07")}
 
-\item{gemini_dims}{Embedding dimensionality for Gemini (default 2000)}
+\item{gemini_dims}{Embedding dimensionality for Gemini (default 2000)
+Gemini docs indicate 3072-d outputs are already normalized; when the
+returned dimensionality is not 3072, SADCAT applies L2 normalization.}
 
 \item{gemini_batch_size}{Batch size for Gemini API calls (default 10)}
 

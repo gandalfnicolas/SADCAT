@@ -25,5 +25,5 @@ Suggests: knitr,
 VignetteBuilder: knitr
 License: NA
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5)
 Config/testthat/edition: 3
