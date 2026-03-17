@@ -96,3 +96,26 @@ test_that("process_responses handles the offline core stages and validates prere
     "match_dictionaries\\(\\) requires missing column\\(s\\): tv3"
   )
 })
+
+test_that("valyNoNA3 keeps 0 for dimension-absent responses and NA for missing responses", {
+  dat <- data.frame(
+    responsex = c("zzzzword", "warm", NA_character_),
+    response = c("zzzzword", "warm", NA_character_),
+    stringsAsFactors = FALSE
+  )
+
+  prepped <- suppressWarnings(preprocess_text(dat, spellcheck = FALSE, singularize = FALSE, verbose = FALSE))
+  scored <- suppressWarnings(score_valence(prepped, text_col = "tv", response_col = "response"))
+  matched <- suppressWarnings(match_dictionaries(
+    scored,
+    text_col = "tv3",
+    response_col = "response",
+    valence_col = "Valy",
+    valence_nona_col = "ValyNoNA"
+  ))
+
+  expect_equal(matched$Warmth_ValyNoNA[1], 0)
+  expect_equal(matched$Warmth_valyNoNA3[1], 0)
+  expect_equal(matched$Warmth_valyNoNA3[2], matched$Warmth_ValyNoNA[2])
+  expect_true(is.na(matched$Warmth_valyNoNA3[3]))
+})

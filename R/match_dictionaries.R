@@ -154,8 +154,10 @@ match_dictionaries <- function(data,
       toks_dict[[col]] <- adjusted_dir[[col]]
     }
 
-    # ---- Fix valy3/valyNoNA3 and dirx3: NA if binary==0 OR binary2 is NA ----
-    # Directional dimensions: valy3, valyNoNA3 and dirx3
+    # ---- valy3/valyNoNA3 and dirx3 ----
+    # valy3/dirx3: NA if binary==0 OR binary2 is NA
+    # valyNoNA3/dirx3NoNA: NA only if binary2 is NA (keeps 0 when dim is absent)
+    # Directional dimensions: valy3, valyNoNA3, dirx3, dirx3NoNA
     for (dim in .SADCAT_DIR_DIMS) {
       binary_col <- paste0(tolower(dim), "_dic_binary")
       binary2_col <- paste0(tolower(dim), "_dic_binary2")
@@ -166,6 +168,7 @@ match_dictionaries <- function(data,
       dirx_col <- paste0(dim, "_dirx")
       dirx2_col <- paste0(dim, "_dirx2")
       dirx3_col <- paste0(dim, "_dirx3")
+      dirx3nona_col <- paste0(dim, "_dirx3NoNA")
 
       if (all(c(binary_col, binary2_col, valy_dim) %in% names(toks_dict))) {
         toks_dict[[valy3_col]] <- ifelse(
@@ -174,13 +177,19 @@ match_dictionaries <- function(data,
       }
       if (all(c(binary_col, binary2_col, valynona_dim) %in% names(toks_dict))) {
         toks_dict[[valynona3_col]] <- ifelse(
-          toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
-          NA, toks_dict[[valynona_dim]])
+          is.na(toks_dict[[binary2_col]]),
+          NA, toks_dict[[valynona_dim]]
+        )
       }
       if (all(c(binary_col, binary2_col, dirx_col) %in% names(toks_dict))) {
         toks_dict[[dirx3_col]] <- ifelse(
           toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
           NA, toks_dict[[dirx_col]])
+        toks_dict[[dirx3nona_col]] <- ifelse(
+          is.na(toks_dict[[binary2_col]]),
+          NA,
+          ifelse(toks_dict[[binary_col]] == 0, 0, toks_dict[[dirx_col]])
+        )
       }
     }
 
@@ -202,8 +211,9 @@ match_dictionaries <- function(data,
       }
       if (all(c(binary_col, binary2_col, valynona_dim) %in% names(toks_dict))) {
         toks_dict[[valynona3_col]] <- ifelse(
-          toks_dict[[binary_col]] == 0 | is.na(toks_dict[[binary2_col]]),
-          NA, toks_dict[[valynona_dim]])
+          is.na(toks_dict[[binary2_col]]),
+          NA, toks_dict[[valynona_dim]]
+        )
       }
     }
 
@@ -256,7 +266,7 @@ match_dictionaries <- function(data,
     response_col,
     cols_or_patterns = c(
       "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
-      "_dirx$", "_dirx2$", "_dirx3$"
+      "_dirx$", "_dirx2$", "_dirx3$", "_dirx3NoNA$"
     )
   )
 

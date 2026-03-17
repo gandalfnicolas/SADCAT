@@ -41,47 +41,10 @@ dat <- data.frame(
 )
 ```
 
-## Option A: All-in-one with `process_responses()`
 
-The simplest way to run the full pipeline. Returns a list with `$long`
-(response-level) and `$agg` (group-level aggregated) data.
-
-Two spell-checking methods are available via the `spellcheck_method` parameter:
-
-- **`"hunspell"`** (default): Uses Java + WordNet + hunspell. Suggestions are
-  ranked by edit distance, with bigram context as a tiebreaker when the corpus
-  has 50+ unique values. Auto-detects Java and WordNet paths across
-  macOS/Linux/Windows. If auto-detection fails, set explicit `java_home` /
-  `wordnet_dict` arguments or environment variables (`JAVA_HOME`,
-  `SADCAT_WORDNET_DICT`).
-- **`"gemini"`**: Uses the Gemini LLM for context-aware correction. Sends full
-  responses (not individual words) so the model can use surrounding context.
-  Requires a Gemini API key via `gemini_spellcheck_key` or the
-  `GEMINI_API_KEY` environment variable.
-
-```{r}
-result <- process_responses(
-  dat,
-  text_col = "responsex",
-  group_cols = c("Synonym.GroupX", "Group", "Level"),
-  stages = c("preprocess", "valence", "dictionaries", "aggregate"),
-  spellcheck = FALSE,          # set TRUE for spell-checking
-  singularize_text = TRUE,
-  verbose = TRUE
-)
-
-head(result$long)
-head(result$agg)
-```
-
-Use the `stages` parameter to selectively run only the stages you need.
-Available stages: `"preprocess"`, `"valence"`, `"dictionaries"`, `"socats"`,
+Coding stages: `"preprocess"`, `"valence"`, `"dictionaries"`, `"socats"`,
 `"embeddings"`, `"seeds"`, `"aggregate"`.
 
-## Option B: Stage-by-stage
-
-Running each stage separately lets you inspect intermediate results, customize
-parameters per stage, or integrate with your own processing steps.
 
 ### Stage 1: Preprocess text
 
@@ -91,17 +54,35 @@ Cleans and normalizes text responses. Produces three text columns:
 - **`tv2`**: spell-checked text
 - **`tv3`**: singularized text (used for dictionary matching)
 
+Two spell-checking methods are available via the `spellcheck_method` parameter:
+
+- **`"hunspell"`** (default): Uses Java + WordNet + hunspell. Suggestions are
+  ranked by edit distance, with bigram context as a tiebreaker when the corpus
+  has 50+ unique values. Auto-detects Java and WordNet paths across
+  macOS/Linux/Windows. If auto-detection fails, set explicit `java_home` /
+  `wordnet_dict` arguments or environment variables (`JAVA_HOME`,
+  `SADCAT_WORDNET_DICT`).
+- **`"gemini"`**: **RECOMMENDED SPELL-CHECKING METHOD**.
+  Uses the Gemini LLM for context-aware correction. Sends full
+  responses (not individual words) so the model can use surrounding context.
+  Requires a Gemini API key via `gemini_spellcheck_key` or the
+  `GEMINI_API_KEY` environment variable. May require updating the model, check:
+  https://ai.google.dev/gemini-api/docs/models. You can also provide a custom 
+  context prompt via `gemini_spellcheck_context` to give the model more 
+  information about the domain of your text data. The default prompt describes 
+  the text as short responses describing a social target. 
+
 ```{r}
 dat <- preprocess_text(
   dat,
   text_col = "responsex",
   spellcheck = TRUE,                     # TRUE enables spell-checking
-  spellcheck_method = "hunspell",         # "hunspell" (default) or "gemini"
+  spellcheck_method = "gemini",         # "hunspell" (default) or "gemini"
   singularize = TRUE,
   java_home = NULL,                       # optional; used for hunspell only
   wordnet_dict = NULL,                    # optional; used for hunspell only
   gemini_spellcheck_key = NULL,           # optional; used for gemini only
-  gemini_spellcheck_model = "gemini-2.0-flash",
+  gemini_spellcheck_model = "gemini-3.1-flash-lite-preview",
   gemini_spellcheck_context = NULL,       # optional custom Gemini prompt
   verbose = TRUE
 )
@@ -110,47 +91,7 @@ dat <- preprocess_text(
 dat[, c("responsex", "tv", "tv2", "tv3")]
 ```
 
-#### Hunspell spell-checking (default)
 
-Uses Java + WordNet + hunspell. Suggestions are ranked by edit distance, with
-bigram context from the corpus used as a tiebreaker (auto-triggered when 50+
-unique values are present). If auto-detection of Java/WordNet fails, override
-explicitly:
-
-```{r}
-dat <- preprocess_text(
-  dat,
-  text_col = "responsex",
-  spellcheck = TRUE,
-  spellcheck_method = "hunspell",    # default
-  java_home = "/path/to/java/home",
-  wordnet_dict = "/path/to/wordnet/dict",
-  verbose = TRUE
-)
-```
-
-#### Gemini LLM spell-checking (optional)
-
-Sends the full response texts to Gemini for context-aware correction. This
-avoids the need for Java/WordNet and can produce better results by using
-surrounding words as context. Requires a Gemini API key.
-
-```{r}
-dat <- preprocess_text(
-  dat,
-  text_col = "responsex",
-  spellcheck = TRUE,
-  spellcheck_method = "gemini",
-  gemini_spellcheck_key = "your-api-key",    # or set GEMINI_API_KEY env var
-  gemini_spellcheck_model = "gemini-2.0-flash",
-  verbose = TRUE
-)
-```
-
-You can also provide a custom context prompt via `gemini_spellcheck_context`
-to give the model more information about the domain of your text data.
-The default prompt describes the text as short responses describing a social
-target.
 
 ### Stage 2: Score valence
 
@@ -160,25 +101,21 @@ scores with negation handling.
 
 **Key output columns:**
 
-- `Val_lexicoder`, `Val_NRC`, `Val_bing`, `Val_affin`, `Val_loughran`:
-  Per-dictionary raw scores (-1, 0, or 1). These are raw presence indicators
-  with no negation flipping.
-- `Val_lexicoderNA`, `Val_NRCNA`, etc.: Same, but NA when that dictionary
-  found no sentiment words.
+
 - **`Valy`**: Combined valence. Mean of negation-aware scores across the
   5 dictionaries. NA when no dictionary matched any sentiment words.
-  Negation is applied once to this combined score (not to individual
-  dictionary scores).
+  Negation is applied once to this combined score.
 - **`ValyNoNA`**: Same as `Valy`, but 0 instead of NA.
 
 ```{r}
 dat <- score_valence(
   dat,
-  text_col = "tv"              # use "tv2" for human participants
+  text_col = "tv2",             # recommend using "tv2" for human participants
+  response_col = "responsex"    # NA-gating column; NULL defaults to text_col
 )
 
 # Inspect valence
-dat[, c("responsex", "Val_lexicoder", "Val_NRC", "Val_bing", "Valy", "ValyNoNA")]
+dat[, c("responsex", "Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran", "Valy", "ValyNoNA")]
 ```
 
 ### Stage 3: Match SADCAT dictionaries
@@ -188,22 +125,29 @@ binary indicators, percentages, direction scores, and per-dimension valence.
 
 **Key output columns (per dimension, e.g., Warmth, Competence, Morality, ...):**
 
-- `warmth_dic`: raw word count matching the dimension
-- `warmth_dic_binary`: 1 if any match, 0 otherwise
-- `warmth_dic_binary2`: same, but NA if the response is missing
-- `Warmth_dirx`: direction score (hi - lo binary), negation-aware
-- `Warmth_Valy`: global `Valy` gated by dimension (NA if dimension not present)
-- `Warmth_ValyNoNA`: global `ValyNoNA` gated by dimension (0 if dimension not present)
-- `Warmth_valy3`: `Warmth_Valy` further gated by response presence
-- `Warmth_valyNoNA3`: `Warmth_ValyNoNA` further gated by response presence
+- `_dic`: raw word count matching the dimension
+- `_dic_binary`: 1 if any match, 0 otherwise
+- `_dic_binary2`: same, but NA if the response is missing **use this for prevalence**
+- `_dirx`: direction score (hi - lo binary), negation-aware
+- `_Valy`: global `Valy` gated by dimension (NA if dimension not present)
+- `_ValyNoNA`: global `ValyNoNA` gated by dimension (0 if dimension not present)
+- `_valy3`: `_Valy` further gated by response presence **use this for valence**
+- `_dirx3`: `_dirx` gated by binary and binary2 (NA when not applicable) **use this for direction**
+- `_dirx3NoNA`: `_dirx3` with 0 when dimension absent (NA only if response missing) **use this for direction with neutral coding of non-present dimensions**
+- `_valyNoNA3`: `_ValyNoNA` gated by response presence only 
+  (0 if dimension absent; NA if response missing) **use this for valence if many dimension NAs and willing to accept assumption of neutral valence**
 - `None2y`: 1 if no dimension matched at all
 
 ```{r}
 dat <- match_dictionaries(
   dat,
   text_col = "tv3",
+  response_col = "responsex",   # NA-gating column; NULL defaults to text_col
   valence_col = "Valy",
-  valence_nona_col = "ValyNoNA"
+  valence_nona_col = "ValyNoNA",
+  sadcat_dict = NULL,           # NULL auto-loads SADCAT dictionaries
+  socats_dict = NULL,           # NULL auto-loads SOCATS only if socats = TRUE
+  socats = FALSE
 )
 
 # Inspect dimension-level results
@@ -218,9 +162,11 @@ Matches against social category dictionaries (age, gender, race, etc.).
 dat <- match_dictionaries(
   dat,
   text_col = "tv3",
+  response_col = "responsex",   # NA-gating column; NULL defaults to text_col
   valence_col = "Valy",
   valence_nona_col = "ValyNoNA",
   sadcat_dict = FALSE,          # skip SADCAT (already done)
+  socats_dict = NULL,           # NULL auto-loads SOCATS dictionaries
   socats = TRUE
 )
 ```
@@ -234,8 +180,17 @@ via reticulate.
 dat <- compute_embeddings(
   dat,
   text_col = "tv",
+  response_col = "responsex",   # NA-gating column; NULL defaults to text_col
   methods = "sbert",           # or c("sbert", "gemini")
-  sbert_model = "paraphrase-mpnet-base-v2"
+  sbert_model = "paraphrase-mpnet-base-v2",
+  sbert_dims = 768L,
+  gemini_api_key = NULL,       # required only when methods includes "gemini"
+  gemini_model = "gemini-embedding-exp-03-07",
+  gemini_dims = 2000L,
+  gemini_batch_size = 10L,
+  gemini_sleep = 63,
+  gemini_task_type = "SEMANTIC_SIMILARITY",
+  verbose = TRUE
 )
 ```
 
@@ -248,7 +203,10 @@ SADCAT seed vectors. Requires embeddings from Stage 4.
 dat <- compute_seed_similarities(
   dat,
   embedding_prefix = "SBERT",  # or "Gemini"
-  method = "correlation"
+  seed_vectors = Seed_Vectors_Avg,
+  method = "correlation",      # or "cosine"
+  response_col = "responsex",  # NA-gating column
+  verbose = TRUE
 )
 ```
 
@@ -261,6 +219,12 @@ operations. Auto-detects standard columns by naming patterns.
 agg <- aggregate_responses(
   dat,
   group_cols = c("Synonym.GroupX", "Group", "Level"),
+  sum_cols = NULL,             # NULL = auto-detect
+  mean_cols = NULL,            # NULL = auto-detect
+  distinct_cols = NULL,        # NULL = auto-detect
+  extra_sum_cols = NULL,
+  extra_mean_cols = NULL,
+  extra_distinct_cols = NULL,
   create_noNA = TRUE,
   verbose = TRUE
 )
@@ -279,7 +243,7 @@ head(agg)
 | `{Dim}_Valy` | Per-dimension | NA when dimension not present | Inherited |
 | `{Dim}_ValyNoNA` | Per-dimension | 0 when dimension not present | Inherited |
 | `{Dim}_valy3` | Per-dimension, gated | NA when dim or response missing | Inherited |
-| `{Dim}_valyNoNA3` | Per-dimension, gated | NA when dim or response missing | Inherited |
+| `{Dim}_valyNoNA3` | Per-dimension, gated | NA when response missing; 0 when dim missing | Inherited |
 
 ## Variables reference
 
@@ -291,4 +255,5 @@ head(agg)
 - **`_dirx`**: direction score: `hi_binary - lo_binary` (negation-aware)
 - **`_dirx2`**: same as `_dirx` (negation-aware version)
 - **`_dirx3`**: `_dirx` gated by binary and binary2 (NA when not applicable)
+- **`_dirx3NoNA`**: `_dirx3` with 0 when dimension is absent (NA only if response is missing)
 - **`None2y`**: 1 if no dimension matched at all, NA if response missing

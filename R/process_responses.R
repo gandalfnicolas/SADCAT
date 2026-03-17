@@ -230,7 +230,7 @@ process_responses <- function(data,
     cols_or_patterns = c(
       "^Val_", "^Valy$", "^ValyNoNA$",
       "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
-      "_dirx$", "_dirx2$", "_dirx3$",
+      "_dirx$", "_dirx2$", "_dirx3$", "_dirx3NoNA$",
       "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"
     )
   )
