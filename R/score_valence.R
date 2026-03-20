@@ -22,7 +22,22 @@ score_valence <- function(data,
   .require_data_columns(data, text_col, "score_valence()")
   .require_data_columns(data, response_col, "score_valence()")
 
-  valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
+  # Deduplicate: score unique texts only, then map back
+  texts <- data[[text_col]]
+  uniq_mask <- !duplicated(texts)
+  uniq_texts <- texts[uniq_mask]
+  n_uniq <- length(uniq_texts)
+  n_total <- length(texts)
+
+  if (n_uniq < n_total) {
+    message("  Deduplicating: ", n_total, " rows -> ", n_uniq, " unique texts")
+    uniq_scores <- .score_valence_from_scoped_tokens(uniq_texts)
+    map_idx <- match(texts, uniq_texts)
+    valence_scores <- uniq_scores[map_idx, , drop = FALSE]
+    rownames(valence_scores) <- NULL
+  } else {
+    valence_scores <- .score_valence_from_scoped_tokens(texts)
+  }
 
   # Separate internal negation-aware columns from output columns
   neg_valna_cols <- grep("^\\.neg_valna_", names(valence_scores), value = TRUE)

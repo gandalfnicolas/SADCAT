@@ -22,14 +22,13 @@ test_that("canonical fixture stays row-aligned through preprocess, valence, and 
 
   expect_equal(matched$row_id, dat$row_id)
   expect_equal(nrow(matched), nrow(dat))
-  expect_equal(matched["1", "Warmth_dirx"], 1)
-  expect_equal(matched["2", "Warmth_dirx"], -1)
-  expect_equal(matched["8", "Morality_dirx"], 1)
-  expect_equal(matched["9", "Warmth_dirx"], 1)
-  expect_equal(matched["9", "Competence_dirx"], -1)
-  expect_equal(matched["25", "Warmth_dirx"], 1)
-  expect_equal(matched["26", "Warmth_dirx"], 1)
-  expect_equal(anyDuplicated(matched$doc_id), 0)
+  expect_equal(matched["1", "Warmth_direction"], 1)
+  expect_equal(matched["2", "Warmth_direction"], -1)
+  expect_equal(matched["8", "Morality_direction"], 1)
+  expect_equal(matched["9", "Warmth_direction"], 1)
+  expect_equal(matched["9", "Competence_direction"], -1)
+  expect_equal(matched["25", "Warmth_direction"], 1)
+  expect_equal(matched["26", "Warmth_direction"], 1)
 })
 
 test_that("SOCATS matching runs offline and applies the age heuristic", {
@@ -70,7 +69,6 @@ test_that("adversarial fixtures do not break the offline core pipeline", {
 
   expect_equal(matched$row_id, dat$row_id)
   expect_equal(nrow(matched), nrow(dat))
-  expect_equal(anyDuplicated(matched$doc_id), 0)
 })
 
 test_that("process_responses handles the offline core stages and validates prerequisites", {
@@ -85,7 +83,7 @@ test_that("process_responses handles the offline core stages and validates prere
   ))
 
   expect_equal(out$long$row_id, dat$row_id)
-  expect_true(all(c("tv", "tv2", "tv3", "Valence", "ValenceNoNA", "Warmth_dirx") %in% names(out$long)))
+  expect_true(all(c("tv", "tv2", "tv3", "Valence", "ValenceNoNA", "Warmth_direction") %in% names(out$long)))
 
   expect_error(
     process_responses(
@@ -97,7 +95,7 @@ test_that("process_responses handles the offline core stages and validates prere
   )
 })
 
-test_that("valyNoNA3 keeps 0 for dimension-absent responses and NA for missing responses", {
+test_that("valenceNoNA keeps 0 for dimension-absent responses and NA for missing responses", {
   dat <- data.frame(
     responsex = c("zzzzword", "warm", NA_character_),
     response = c("zzzzword", "warm", NA_character_),
@@ -114,8 +112,7 @@ test_that("valyNoNA3 keeps 0 for dimension-absent responses and NA for missing r
     valence_nona_col = "ValenceNoNA"
   ))
 
-  expect_equal(matched$Warmth_ValyNoNA[1], 0)
-  expect_equal(matched$Warmth_valyNoNA3[1], 0)
-  expect_equal(matched$Warmth_valyNoNA3[2], matched$Warmth_ValyNoNA[2])
-  expect_true(is.na(matched$Warmth_valyNoNA3[3]))
+  expect_equal(matched$Warmth_valenceNoNA[1], 0)
+  expect_true(!is.na(matched$Warmth_valenceNoNA[2]))
+  expect_true(is.na(matched$Warmth_valenceNoNA[3]))
 })

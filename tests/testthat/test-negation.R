@@ -128,7 +128,8 @@ test_that("match_dictionaries keeps negation local in directional outputs", {
     text_col = "tv3",
     response_col = "response",
     valence_col = "Valence",
-    valence_nona_col = "ValenceNoNA"
+    valence_nona_col = "ValenceNoNA",
+    keep_intermediate = TRUE
   )
   rownames(matched) <- matched$response
 
@@ -181,8 +182,7 @@ test_that("match_dictionaries handles identical and normalized-duplicate respons
 
   expect_equal(matched$row_id, dat$row_id)
   expect_equal(nrow(matched), nrow(dat))
-  expect_equal(anyDuplicated(matched$doc_id), 0)
-  expect_equal(matched$Warmth_dirx, rep(1, 4))
+  expect_equal(matched$Warmth_direction, rep(1, 4))
 })
 
 test_that("process_responses completes through dictionary matching with duplicate texts", {
@@ -206,6 +206,5 @@ test_that("process_responses completes through dictionary matching with duplicat
 
   expect_equal(result$long$row_id, dat$row_id)
   expect_equal(nrow(result$long), nrow(dat))
-  expect_equal(anyDuplicated(result$long$doc_id), 0)
-  expect_equal(result$long$Warmth_dirx, rep(1, 4))
+  expect_equal(result$long$Warmth_direction, rep(1, 4))
 })

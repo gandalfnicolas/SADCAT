@@ -1125,7 +1125,22 @@ score_valence <- function(data,
   if (is.null(response_col)) response_col <- text_col
   message("--- Stage 2: Scoring valence (5 dictionaries) ---")
 
-  valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
+  # Deduplicate: score unique texts only, then map back
+  texts <- data[[text_col]]
+  uniq_mask <- !duplicated(texts)
+  uniq_texts <- texts[uniq_mask]
+  n_uniq <- length(uniq_texts)
+  n_total <- length(texts)
+
+  if (n_uniq < n_total) {
+    message("  Deduplicating: ", n_total, " rows -> ", n_uniq, " unique texts")
+    uniq_scores <- .score_valence_from_scoped_tokens(uniq_texts)
+    map_idx <- match(texts, uniq_texts)
+    valence_scores <- uniq_scores[map_idx, , drop = FALSE]
+    rownames(valence_scores) <- NULL
+  } else {
+    valence_scores <- .score_valence_from_scoped_tokens(texts)
+  }
 
   # Separate internal negation-aware columns from output columns
   neg_valna_cols <- grep("^\\.neg_valna_", names(valence_scores), value = TRUE)
@@ -2184,7 +2199,22 @@ score_valence <- function(data,
   if (is.null(response_col)) response_col <- text_col
   message("--- Stage 2: Scoring valence (5 dictionaries) ---")
 
-  valence_scores <- .score_valence_from_scoped_tokens(data[[text_col]])
+  # Deduplicate: score unique texts only, then map back
+  texts <- data[[text_col]]
+  uniq_mask <- !duplicated(texts)
+  uniq_texts <- texts[uniq_mask]
+  n_uniq <- length(uniq_texts)
+  n_total <- length(texts)
+
+  if (n_uniq < n_total) {
+    message("  Deduplicating: ", n_total, " rows -> ", n_uniq, " unique texts")
+    uniq_scores <- .score_valence_from_scoped_tokens(uniq_texts)
+    map_idx <- match(texts, uniq_texts)
+    valence_scores <- uniq_scores[map_idx, , drop = FALSE]
+    rownames(valence_scores) <- NULL
+  } else {
+    valence_scores <- .score_valence_from_scoped_tokens(texts)
+  }
 
   # Separate internal negation-aware columns from output columns
   neg_valna_cols <- grep("^\\.neg_valna_", names(valence_scores), value = TRUE)
@@ -2230,19 +2260,36 @@ match_dictionaries <- function(data,
     sadcat_dict <- prepare_sadcat_dictionaries()
   }
 
-  data$tv4 <- enc2utf8(as.character(data[[text_col]]))
-  data$tv4 <- tolower(data$tv4)
-  data$tv4 <- gsub("-", " ", data$tv4)
+  # ---- Deduplicate for expensive operations ----
+  texts <- data[[text_col]]
+  uniq_mask <- !duplicated(texts)
+  uniq_texts <- texts[uniq_mask]
+  map_idx <- match(texts, uniq_texts)
+  n_uniq <- length(uniq_texts)
+  n_total <- nrow(data)
 
+  if (n_uniq < n_total) {
+    message("  Deduplicating: ", n_total, " rows -> ", n_uniq, " unique texts")
+  }
+
+  # ---- Prepare text for matching (tv3 -> tv4) on unique texts only ----
   delete_ending_Ss2_internal <- function(x) {
     if (is.na(x)) return(x)
     unlist(lapply(x, function(y) {
       paste(sapply(strsplit(y, ' '), SADCAT::delete_ending_Ss), collapse = ' ')
     }))
   }
-  data$tv4 <- vapply(data$tv4, delete_ending_Ss2_internal, character(1), USE.NAMES = FALSE)
 
-  toks <- .tokenize_quanteda_text(data$tv4,
+  uniq_tv4 <- enc2utf8(as.character(uniq_texts))
+  uniq_tv4 <- tolower(uniq_tv4)
+  uniq_tv4 <- gsub("-", " ", uniq_tv4)
+  uniq_tv4 <- vapply(uniq_tv4, delete_ending_Ss2_internal, character(1), USE.NAMES = FALSE)
+
+  # Map tv4 back to full data (needed for drop step)
+  data$tv4 <- uniq_tv4[map_idx]
+
+  # ---- Tokenize unique texts ----
+  toks <- .tokenize_quanteda_text(uniq_tv4,
                                   prefix = "response",
                                   remove_numbers = FALSE,
                                   remove_punct = TRUE,
@@ -2251,9 +2298,13 @@ match_dictionaries <- function(data,
   toks_dict_pre <- quanteda::tokens_lookup(toks, dictionary = sadcat_dict,
                                            nested_scope = "dictionary",
                                            exclusive = TRUE, levels = 1)
-  toks_dict_df <- quanteda::convert(quanteda::dfm(toks_dict_pre), to = "data.frame")
+  uniq_dict_df <- quanteda::convert(quanteda::dfm(toks_dict_pre), to = "data.frame")
+  uniq_dict_df$doc_id <- NULL
+  uniq_dict_df$ntoken <- quanteda::ntoken(toks)
 
-  toks_dict_df$ntoken <- quanteda::ntoken(toks)
+  # Map unique results back to full data
+  toks_dict_df <- uniq_dict_df[map_idx, , drop = FALSE]
+  rownames(toks_dict_df) <- NULL
   toks_dict <- cbind(toks_dict_df, data)
 
   dict_cols_all <- tolower(names(sadcat_dict))
@@ -2310,9 +2361,9 @@ match_dictionaries <- function(data,
     toks_dict$NONE_Valy <- ifelse(toks_dict$None2y == 0, NA, toks_dict[[valence_col]])
   }
 
-  adjusted_dir <- .compute_adjusted_direction_scores(data[[text_col]], sadcat_dict)
-  for (col in names(adjusted_dir)) {
-    toks_dict[[col]] <- adjusted_dir[[col]]
+  uniq_adjusted_dir <- .compute_adjusted_direction_scores(uniq_texts, sadcat_dict)
+  for (col in names(uniq_adjusted_dir)) {
+    toks_dict[[col]] <- uniq_adjusted_dir[map_idx, col]
   }
 
   for (dim in .SADCAT_DIR_DIMS) {

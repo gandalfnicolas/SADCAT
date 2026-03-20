@@ -53,22 +53,36 @@ match_dictionaries <- function(data,
     socats_dict <- prepare_socats_dictionaries()
   }
 
-  # ---- Prepare text for matching (tv3 -> tv4) ----
-  data$tv4 <- enc2utf8(as.character(data[[text_col]]))
-  data$tv4 <- tolower(data$tv4)
-  data$tv4 <- gsub("-", " ", data$tv4)
+  # ---- Deduplicate for expensive operations ----
+  texts <- data[[text_col]]
+  uniq_mask <- !duplicated(texts)
+  uniq_texts <- texts[uniq_mask]
+  map_idx <- match(texts, uniq_texts)
+  n_uniq <- length(uniq_texts)
+  n_total <- nrow(data)
 
-  # Remove ending Ss
+  if (n_uniq < n_total) {
+    message("  Deduplicating: ", n_total, " rows -> ", n_uniq, " unique texts")
+  }
+
+  # ---- Prepare text for matching (tv3 -> tv4) on unique texts only ----
   delete_ending_Ss2_internal <- function(x) {
     if (is.na(x)) return(x)
     unlist(lapply(x, function(y) {
       paste(sapply(strsplit(y, ' '), delete_ending_Ss), collapse = ' ')
     }))
   }
-  data$tv4 <- vapply(data$tv4, delete_ending_Ss2_internal, character(1), USE.NAMES = FALSE)
 
-  # ---- Tokenize (shared for both dictionaries) ----
-  toks <- .tokenize_quanteda_text(data$tv4,
+  uniq_tv4 <- enc2utf8(as.character(uniq_texts))
+  uniq_tv4 <- tolower(uniq_tv4)
+  uniq_tv4 <- gsub("-", " ", uniq_tv4)
+  uniq_tv4 <- vapply(uniq_tv4, delete_ending_Ss2_internal, character(1), USE.NAMES = FALSE)
+
+  # Map tv4 back to full data (needed for drop step)
+  data$tv4 <- uniq_tv4[map_idx]
+
+  # ---- Tokenize unique texts (shared for both dictionaries) ----
+  toks <- .tokenize_quanteda_text(uniq_tv4,
                                   prefix = "response",
                                   remove_numbers = FALSE,
                                   remove_punct = TRUE,
@@ -86,11 +100,13 @@ match_dictionaries <- function(data,
     toks_dict_pre <- quanteda::tokens_lookup(toks, dictionary = sadcat_dict,
                                              nested_scope = "dictionary",
                                              exclusive = TRUE, levels = 1)
-    toks_dict_df <- quanteda::convert(quanteda::dfm(toks_dict_pre), to = "data.frame")
-    toks_dict_df$doc_id <- NULL
+    uniq_dict_df <- quanteda::convert(quanteda::dfm(toks_dict_pre), to = "data.frame")
+    uniq_dict_df$doc_id <- NULL
+    uniq_dict_df$ntoken <- quanteda::ntoken(toks)
 
-    # Add token count and combine
-    toks_dict_df$ntoken <- quanteda::ntoken(toks)
+    # Map unique results back to full data
+    toks_dict_df <- uniq_dict_df[map_idx, , drop = FALSE]
+    rownames(toks_dict_df) <- NULL
     toks_dict <- cbind(toks_dict_df, toks_dict)
 
     # Identify SADCAT dictionary column names (quanteda lowercases them)
@@ -158,9 +174,9 @@ match_dictionaries <- function(data,
       toks_dict$NONE_Valy <- ifelse(toks_dict$None2y == 0, NA, toks_dict[[valence_col]])
     }
 
-    adjusted_dir <- .compute_adjusted_direction_scores(data[[text_col]], sadcat_dict)
-    for (col in names(adjusted_dir)) {
-      toks_dict[[col]] <- adjusted_dir[[col]]
+    uniq_adjusted_dir <- .compute_adjusted_direction_scores(uniq_texts, sadcat_dict)
+    for (col in names(uniq_adjusted_dir)) {
+      toks_dict[[col]] <- uniq_adjusted_dir[map_idx, col]
     }
 
     # ---- valy3/valyNoNA3 and dirx3 ----
@@ -239,15 +255,17 @@ match_dictionaries <- function(data,
     toks_socats_pre <- quanteda::tokens_lookup(toks, dictionary = socats_dict,
                                                nested_scope = "dictionary",
                                                exclusive = TRUE, levels = 1)
-    toks_socats_df <- quanteda::convert(quanteda::dfm(toks_socats_pre), to = "data.frame")
+    uniq_socats_df <- quanteda::convert(quanteda::dfm(toks_socats_pre), to = "data.frame")
+    uniq_socats_df$doc_id <- NULL
 
     # Add token counts if not already present from SADCAT matching
     if (!"ntoken" %in% names(toks_dict)) {
-      toks_socats_df$ntoken_socats <- quanteda::ntoken(toks)
+      uniq_socats_df$ntoken_socats <- quanteda::ntoken(toks)
     }
 
-    # Remove doc_id to avoid duplication when binding
-    toks_socats_df$doc_id <- NULL
+    # Map unique results back to full data
+    toks_socats_df <- uniq_socats_df[map_idx, , drop = FALSE]
+    rownames(toks_socats_df) <- NULL
     toks_dict <- cbind(toks_dict, toks_socats_df)
 
     # Identify SOCATS dictionary column names (quanteda lowercases them)
