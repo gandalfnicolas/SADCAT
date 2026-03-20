@@ -43,7 +43,7 @@ aggregate_responses <- function(data,
 
   if (is.null(mean_cols)) {
     mean_cols <- grep(
-      paste0("^Valy$|^ValyNoNA$|",
+      paste0("^Valence$|^ValenceNoNA$|",
              "_prevalence$|_dic_binary2$|^NoMatch$|^None2y$|",
              "_valence$|_valenceNoNA$|_direction$|_directionNoNA$|",
              "_Valy$|_ValyNoNA$|^NONE_Valy$|",
@@ -89,7 +89,7 @@ aggregate_responses <- function(data,
         dplyr::select(data, dplyr::all_of(c(group_cols, sum_cols))),
         dplyr::across(dplyr::all_of(group_cols))
       ),
-      dplyr::across(dplyr::everything(), ~sum(., na.rm = TRUE)),
+      dplyr::across(dplyr::everything(), ~if (all(is.na(.))) NA_real_ else sum(., na.rm = TRUE)),
       .groups = "drop"
     )
     # Rename sum columns with _Sum suffix

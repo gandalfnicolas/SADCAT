@@ -38,7 +38,7 @@ test_that("scoped negation marks only the intended local tokens", {
   expect_false(toks$negated[toks$token == "warm"])
 })
 
-test_that("individual dictionary scores are raw (no negation); Valy reflects negation", {
+test_that("individual dictionary scores are raw (no negation); Valence reflects negation", {
   dat <- data.frame(
     response = c(
       "friendly", "not friendly",
@@ -78,22 +78,22 @@ test_that("individual dictionary scores are raw (no negation); Valy reflects neg
   expect_equal(scored["not immoral", "Val_bing"], -1)
   expect_equal(scored["not immoral", "Val_loughran"], -1)
 
-  # Valy/ValyNoNA reflect negation (applied once to the average)
-  expect_gt(scored["friendly", "Valy"], 0)
-  expect_lt(scored["not friendly", "Valy"], 0)
-  expect_lt(scored["immoral", "Valy"], 0)
-  expect_gt(scored["not immoral", "Valy"], 0)
-  expect_lt(scored["incompetent", "Valy"], 0)
-  expect_gt(scored["not incompetent", "Valy"], 0)
-  expect_gt(scored["warm", "Valy"], 0)
-  expect_lt(scored["not warm", "Valy"], 0)
+  # Valence/ValenceNoNA reflect negation (applied once to the average)
+  expect_gt(scored["friendly", "Valence"], 0)
+  expect_lt(scored["not friendly", "Valence"], 0)
+  expect_lt(scored["immoral", "Valence"], 0)
+  expect_gt(scored["not immoral", "Valence"], 0)
+  expect_lt(scored["incompetent", "Valence"], 0)
+  expect_gt(scored["not incompetent", "Valence"], 0)
+  expect_gt(scored["warm", "Valence"], 0)
+  expect_lt(scored["not warm", "Valence"], 0)
 
-  # Mixed negation: "warm but not competent" → Valy lower than "warm"
-  expect_lt(scored["warm but not competent", "Valy"], scored["warm", "Valy"])
+  # Mixed negation: "warm but not competent" → Valence lower than "warm"
+  expect_lt(scored["warm but not competent", "Valence"], scored["warm", "Valence"])
 
-  # ValyNoNA is 0 instead of NA, otherwise same as Valy
-  expect_true("ValyNoNA" %in% names(scored))
-  expect_equal(scored["friendly", "ValyNoNA"], scored["friendly", "Valy"])
+  # ValenceNoNA is 0 instead of NA, otherwise same as Valence
+  expect_true("ValenceNoNA" %in% names(scored))
+  expect_equal(scored["friendly", "ValenceNoNA"], scored["friendly", "Valence"])
 })
 
 test_that("match_dictionaries keeps negation local in directional outputs", {
@@ -127,8 +127,8 @@ test_that("match_dictionaries keeps negation local in directional outputs", {
     scored,
     text_col = "tv3",
     response_col = "response",
-    valence_col = "Valy",
-    valence_nona_col = "ValyNoNA"
+    valence_col = "Valence",
+    valence_nona_col = "ValenceNoNA"
   )
   rownames(matched) <- matched$response
 
@@ -174,8 +174,8 @@ test_that("match_dictionaries handles identical and normalized-duplicate respons
       scored,
       text_col = "tv3",
       response_col = "response",
-      valence_col = "Valy",
-      valence_nona_col = "ValyNoNA"
+      valence_col = "Valence",
+      valence_nona_col = "ValenceNoNA"
     )
   })
 

@@ -15,8 +15,8 @@ test_that("canonical fixture stays row-aligned through preprocess, valence, and 
     scored,
     text_col = "tv3",
     response_col = "response",
-    valence_col = "Valy",
-    valence_nona_col = "ValyNoNA"
+    valence_col = "Valence",
+    valence_nona_col = "ValenceNoNA"
   ))
   rownames(matched) <- matched$row_id
 
@@ -45,8 +45,8 @@ test_that("SOCATS matching runs offline and applies the age heuristic", {
     scored,
     text_col = "tv3",
     response_col = "response",
-    valence_col = "Valy",
-    valence_nona_col = "ValyNoNA",
+    valence_col = "Valence",
+    valence_nona_col = "ValenceNoNA",
     socats = TRUE
   ))
 
@@ -64,8 +64,8 @@ test_that("adversarial fixtures do not break the offline core pipeline", {
     scored,
     text_col = "tv3",
     response_col = "response",
-    valence_col = "Valy",
-    valence_nona_col = "ValyNoNA"
+    valence_col = "Valence",
+    valence_nona_col = "ValenceNoNA"
   ))
 
   expect_equal(matched$row_id, dat$row_id)
@@ -85,7 +85,7 @@ test_that("process_responses handles the offline core stages and validates prere
   ))
 
   expect_equal(out$long$row_id, dat$row_id)
-  expect_true(all(c("tv", "tv2", "tv3", "Valy", "ValyNoNA", "Warmth_dirx") %in% names(out$long)))
+  expect_true(all(c("tv", "tv2", "tv3", "Valence", "ValenceNoNA", "Warmth_dirx") %in% names(out$long)))
 
   expect_error(
     process_responses(
@@ -110,8 +110,8 @@ test_that("valyNoNA3 keeps 0 for dimension-absent responses and NA for missing r
     scored,
     text_col = "tv3",
     response_col = "response",
-    valence_col = "Valy",
-    valence_nona_col = "ValyNoNA"
+    valence_col = "Valence",
+    valence_nona_col = "ValenceNoNA"
   ))
 
   expect_equal(matched$Warmth_ValyNoNA[1], 0)

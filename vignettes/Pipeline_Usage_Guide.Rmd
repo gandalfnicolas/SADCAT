@@ -101,10 +101,10 @@ scores with negation handling.
 **Key output columns:**
 
 
-- **`Valy`**: Combined valence. Mean of negation-aware scores across the
+- **`Valence`**: Combined valence. Mean of negation-aware scores across the
   5 dictionaries. NA when no dictionary matched any sentiment words.
   Negation is applied once to this combined score.
-- **`ValyNoNA`**: Same as `Valy`, but 0 instead of NA.
+- **`ValenceNoNA`**: Same as `Valence`, but 0 instead of NA.
 
 ```{r}
 dat <- score_valence(
@@ -114,7 +114,7 @@ dat <- score_valence(
 )
 
 # Inspect valence
-dat[, c("responsex", "Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran", "Valy", "ValyNoNA")]
+dat[, c("responsex", "Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran", "Valence", "ValenceNoNA")]
 ```
 
 ### Stage 3: Match SADCAT dictionaries
@@ -137,8 +137,8 @@ dat <- match_dictionaries(
   dat,
   text_col = "tv3",
   response_col = "responsex",   # NA-gating column; NULL defaults to text_col
-  valence_col = "Valy",
-  valence_nona_col = "ValyNoNA",
+  valence_col = "Valence",
+  valence_nona_col = "ValenceNoNA",
   sadcat_dict = NULL,           # NULL auto-loads SADCAT dictionaries
   socats_dict = NULL,           # NULL auto-loads SOCATS only if socats = TRUE
   socats = TRUE                 # include Social categories dictionaries as well (optional; default FALSE)

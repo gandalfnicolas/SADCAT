@@ -1117,7 +1117,7 @@ apply_single_valence_dict <- function(toksval, dict_obj, name, is_lexicoder = FA
 #'   Change to "tv2" for human participants.
 #' @param response_col Column with original response for negation detection (default "response")
 #' @return The input data with 12 new columns: Val_lexicoder, Val_NRC, Val_bing,
-#'   Val_affin, Val_loughran, their NA variants, Valy, and ValyNoNA
+#'   Val_affin, Val_loughran, their NA variants, Valence, and ValenceNoNA
 #' @export
 score_valence <- function(data,
                           text_col = "tv",
@@ -1135,10 +1135,10 @@ score_valence <- function(data,
   data <- cbind(data, valence_scores[, !names(valence_scores) %in% neg_valna_cols, drop = FALSE])
 
   # Combined valence (negation-aware, applied once to the average)
-  # Valy: NA when no dictionary matched any sentiment words
-  # ValyNoNA: 0 instead of NA
-  data$Valy <- neg_valna_avg
-  data$ValyNoNA <- ifelse(is.nan(neg_valna_avg), 0, neg_valna_avg)
+  # Valence: NA when no dictionary matched any sentiment words
+  # ValenceNoNA: 0 instead of NA
+  data$Valence <- neg_valna_avg
+  data$ValenceNoNA <- ifelse(is.nan(neg_valna_avg), 0, neg_valna_avg)
 
   val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
   valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
@@ -1147,14 +1147,14 @@ score_valence <- function(data,
   data <- .mask_missing_response_cols(
     data,
     response_col,
-    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNoNA$")
+    cols_or_patterns = c("^Val_", "^Valence$", "^ValenceNoNA$")
   )
 
   # Replace NaN with NA
   data <- replace_nan_with_na(data)
 
   message("  Valence scoring complete. Columns added: ",
-          paste(c(val_cols, valna_cols, "Valy", "ValyNoNA"), collapse = ", "))
+          paste(c(val_cols, valna_cols, "Valence", "ValenceNoNA"), collapse = ", "))
   return(data)
 }
 
@@ -1330,7 +1330,7 @@ prepare_sadcat_dictionaries <- function(pre_dictionaries = SADCAT::All.steps_Dic
 #' @param data A data.frame with preprocessed text and valence scores
 #' @param text_col Column with singularized text to match (default "tv3")
 #' @param response_col Column with original lowercased text for NA checks (default "tv")
-#' @param valence_col Name of combined valence column (default "Valy")
+#' @param valence_col Name of combined valence column (default "Valence")
 #' @param sadcat_dict Pre-computed quanteda dictionary. If NULL, calls prepare_sadcat_dictionaries()
 #' @return The input data with many new columns: dictionary counts, percentages,
 #'   binary indicators, direction scores, per-dimension valence, etc.
@@ -1338,8 +1338,8 @@ prepare_sadcat_dictionaries <- function(pre_dictionaries = SADCAT::All.steps_Dic
 match_dictionaries <- function(data,
                                text_col = "tv3",
                                response_col = NULL,
-                               valence_col = "Valy",
-                               valence_nona_col = "ValyNoNA",
+                               valence_col = "Valence",
+                               valence_nona_col = "ValenceNoNA",
                                sadcat_dict = NULL) {
   if (is.null(response_col)) response_col <- text_col
   message("--- Stage 4: Matching dictionaries ---")
@@ -1829,7 +1829,7 @@ aggregate_responses <- function(data,
 
   if (is.null(mean_cols)) {
     mean_cols <- grep(
-      paste0("^Valy$|^ValyNoNA$|",
+      paste0("^Valence$|^ValenceNoNA$|",
              "_dic_binary2$|^None2y$|",
              "_ValyNoNA$|^NONE_Valy$|",
              "_valy3$|_valyNoNA3$|_dirx3$|",
@@ -1871,7 +1871,7 @@ aggregate_responses <- function(data,
     sum_data <- data %>%
       dplyr::select(dplyr::all_of(c(group_cols, sum_cols))) %>%
       dplyr::group_by(dplyr::across(dplyr::all_of(group_cols))) %>%
-      dplyr::summarise(dplyr::across(dplyr::everything(), ~sum(., na.rm = TRUE)),
+      dplyr::summarise(dplyr::across(dplyr::everything(), ~if (all(is.na(.))) NA_real_ else sum(., na.rm = TRUE)),
                        .groups = "drop")
     # Rename sum columns with _Sum suffix
     sum_rename <- setdiff(names(sum_data), group_cols)
@@ -2050,8 +2050,8 @@ process_responses <- function(data,
     data <- match_dictionaries(data,
                                text_col = "tv3",
                                response_col = response_col,
-                               valence_col = "Valy",
-                               valence_nona_col = "ValyNoNA",
+                               valence_col = "Valence",
+                               valence_nona_col = "ValenceNoNA",
                                sadcat_dict = sadcat_dict)
     if (save_intermediates) {
       write.csv(data, paste0(save_prefix, "_3_dictionaries.csv"), row.names = FALSE)
@@ -2100,7 +2100,7 @@ process_responses <- function(data,
     data,
     response_col,
     cols_or_patterns = c(
-      "^Val_", "^Valy$", "^ValyNoNA$",
+      "^Val_", "^Valence$", "^ValenceNoNA$",
       "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
       "_dirx$", "_dirx2$", "_dirx3$",
       "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"
@@ -2194,10 +2194,10 @@ score_valence <- function(data,
   data <- cbind(data, valence_scores[, !names(valence_scores) %in% neg_valna_cols, drop = FALSE])
 
   # Combined valence (negation-aware, applied once to the average)
-  # Valy: NA when no dictionary matched any sentiment words
-  # ValyNoNA: 0 instead of NA
-  data$Valy <- neg_valna_avg
-  data$ValyNoNA <- ifelse(is.nan(neg_valna_avg), 0, neg_valna_avg)
+  # Valence: NA when no dictionary matched any sentiment words
+  # ValenceNoNA: 0 instead of NA
+  data$Valence <- neg_valna_avg
+  data$ValenceNoNA <- ifelse(is.nan(neg_valna_avg), 0, neg_valna_avg)
 
   val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
   valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
@@ -2206,22 +2206,22 @@ score_valence <- function(data,
   data <- .mask_missing_response_cols(
     data,
     response_col,
-    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNoNA$")
+    cols_or_patterns = c("^Val_", "^Valence$", "^ValenceNoNA$")
   )
 
   # Replace NaN with NA
   data <- replace_nan_with_na(data)
 
   message("  Valence scoring complete. Columns added: ",
-          paste(c(val_cols, valna_cols, "Valy", "ValyNoNA"), collapse = ", "))
+          paste(c(val_cols, valna_cols, "Valence", "ValenceNoNA"), collapse = ", "))
   return(data)
 }
 
 match_dictionaries <- function(data,
                                text_col = "tv3",
                                response_col = NULL,
-                               valence_col = "Valy",
-                               valence_nona_col = "ValyNoNA",
+                               valence_col = "Valence",
+                               valence_nona_col = "ValenceNoNA",
                                sadcat_dict = NULL) {
   if (is.null(response_col)) response_col <- text_col
   message("--- Stage 4: Matching dictionaries ---")
@@ -2603,7 +2603,7 @@ aggregate_responses <- function(data,
 
   if (is.null(mean_cols)) {
     mean_cols <- grep(
-      paste0("^Valy$|^ValyNoNA$|",
+      paste0("^Valence$|^ValenceNoNA$|",
              "_dic_binary2$|^None2y$|",
              "_ValyNoNA$|^NONE_Valy$|",
              "_valy3$|_valyNoNA3$|_dirx3$|",
@@ -2642,7 +2642,7 @@ aggregate_responses <- function(data,
     sum_data <- data %>%
       dplyr::select(dplyr::all_of(c(group_cols, sum_cols))) %>%
       dplyr::group_by(dplyr::across(dplyr::all_of(group_cols))) %>%
-      dplyr::summarise(dplyr::across(dplyr::everything(), ~sum(., na.rm = TRUE)),
+      dplyr::summarise(dplyr::across(dplyr::everything(), ~if (all(is.na(.))) NA_real_ else sum(., na.rm = TRUE)),
                        .groups = "drop")
     sum_rename <- setdiff(names(sum_data), group_cols)
     names(sum_data)[names(sum_data) %in% sum_rename] <- paste0(sum_rename, "_Sum")
@@ -2759,8 +2759,8 @@ process_responses <- function(data,
     data <- match_dictionaries(data,
                                text_col = "tv3",
                                response_col = response_col,
-                               valence_col = "Valy",
-                               valence_nona_col = "ValyNoNA",
+                               valence_col = "Valence",
+                               valence_nona_col = "ValenceNoNA",
                                sadcat_dict = sadcat_dict)
     if (save_intermediates) write.csv(data, paste0(save_prefix, "_3_dictionaries.csv"), row.names = FALSE)
   }
@@ -2799,7 +2799,7 @@ process_responses <- function(data,
     data,
     response_col,
     cols_or_patterns = c(
-      "^Val_", "^Valy$", "^ValyNoNA$",
+      "^Val_", "^Valence$", "^ValenceNoNA$",
       "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
       "_dirx$", "_dirx2$", "_dirx3$",
       "^SBERT_\\d+$", "^Gemini_\\d+$", "\\.seed$"

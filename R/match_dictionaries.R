@@ -8,8 +8,8 @@
 #' @param text_col Column with singularized text to match (default "tv3")
 #' @param response_col Column used for NA-gating (default: same as text_col).
 #'   Only needed if your NA-indicator column differs from text_col.
-#' @param valence_col Name of combined valence column with NA-gating (default "Valy")
-#' @param valence_nona_col Name of combined valence column without NA-gating (default "ValyNoNA")
+#' @param valence_col Name of combined valence column with NA-gating (default "Valence")
+#' @param valence_nona_col Name of combined valence column without NA-gating (default "ValenceNoNA")
 #' @param sadcat_dict Pre-computed SADCAT quanteda dictionary. If NULL and
 #'   \code{sadcat = TRUE} (default), calls \code{prepare_sadcat_dictionaries()}.
 #'   Set to FALSE to skip SADCAT matching entirely.
@@ -28,8 +28,8 @@
 match_dictionaries <- function(data,
                                text_col = "tv3",
                                response_col = NULL,
-                               valence_col = "Valy",
-                               valence_nona_col = "ValyNoNA",
+                               valence_col = "Valence",
+                               valence_nona_col = "ValenceNoNA",
                                sadcat_dict = NULL,
                                socats_dict = NULL,
                                socats = FALSE,

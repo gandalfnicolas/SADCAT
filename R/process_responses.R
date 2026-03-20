@@ -51,17 +51,17 @@
 #' # Stage 1: Preprocess -> produces tv, tv2, tv3
 #' dat <- preprocess_text(dat, text_col = "responsex", spellcheck = FALSE)
 #'
-#' # Stage 2: Valence -> produces Val_*, Valy, ValyNoNA
+#' # Stage 2: Valence -> produces Val_*, Valence, ValenceNoNA
 #' dat <- score_valence(dat, text_col = "tv")
 #'
 #' # Stage 3: SADCAT dictionaries -> produces compact outputs such as
 #' # {Dim}_prevalence, {Dim}_valence, {Dim}_direction, and NoMatch
 #' dat <- match_dictionaries(dat, text_col = "tv3",
-#'                           valence_col = "Valy", valence_nona_col = "ValyNoNA")
+#'                           valence_col = "Valence", valence_nona_col = "ValenceNoNA")
 #'
 #' # Stage 3b (optional): SOCATS social category dictionaries
 #' dat <- match_dictionaries(dat, text_col = "tv3",
-#'                           valence_col = "Valy", valence_nona_col = "ValyNoNA",
+#'                           valence_col = "Valence", valence_nona_col = "ValenceNoNA",
 #'                           sadcat_dict = FALSE, socats = TRUE)
 #'
 #' # Stage 4 (optional): Sentence embeddings (requires Python via reticulate)
@@ -77,10 +77,10 @@
 #'
 #' \strong{Valence columns.}
 #' \itemize{
-#'   \item \code{Valy}: Mean of negation-aware scores across 5 sentiment
+#'   \item \code{Valence}: Mean of negation-aware scores across 5 sentiment
 #'     dictionaries. NA when no dictionary matched. Negation is applied once
 #'     to this combined score, not to individual dictionary scores.
-#'   \item \code{ValyNoNA}: Same as \code{Valy}, but 0 instead of NA.
+#'   \item \code{ValenceNoNA}: Same as \code{Valence}, but 0 instead of NA.
 #'   \item \code{Val_lexicoder}, \code{Val_NRC}, etc.: Per-dictionary raw
 #'     presence scores (-1, 0, or 1) without negation flipping.
 #'   \item \code{{Dim}_prevalence}: 1/0 dimension prevalence, NA when response
@@ -185,8 +185,8 @@ process_responses <- function(data,
     data <- match_dictionaries(data,
                                text_col = "tv3",
                                response_col = response_col,
-                               valence_col = "Valy",
-                               valence_nona_col = "ValyNoNA",
+                               valence_col = "Valence",
+                               valence_nona_col = "ValenceNoNA",
                                sadcat_dict = sadcat_dict_obj,
                                socats_dict = socats_dict_obj,
                                socats = do_socats)
@@ -237,7 +237,7 @@ process_responses <- function(data,
     data,
     response_col,
     cols_or_patterns = c(
-      "^Val_", "^Valy$", "^ValyNoNA$",
+      "^Val_", "^Valence$", "^ValenceNoNA$",
       "_prevalence$", "_valence$", "_valenceNoNA$",
       "_direction$", "_directionNoNA$", "^NoMatch$",
       "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",

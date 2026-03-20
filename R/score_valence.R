@@ -10,8 +10,8 @@
 #' @param response_col Column used for NA-gating (default: same as text_col).
 #'   Only needed if your NA-indicator column differs from text_col.
 #' @return The input data with 12 new columns: Val_lexicoder, Val_NRC, Val_bing,
-#'   Val_affin, Val_loughran, their NA variants, Valy (NA when no dictionary
-#'   matched, negation-aware), and ValyNoNA (0 instead of NA)
+#'   Val_affin, Val_loughran, their NA variants, Valence (NA when no dictionary
+#'   matched, negation-aware), and ValenceNoNA (0 instead of NA)
 #' @export score_valence
 
 score_valence <- function(data,
@@ -32,10 +32,10 @@ score_valence <- function(data,
   data <- cbind(data, valence_scores[, !names(valence_scores) %in% neg_valna_cols, drop = FALSE])
 
   # Combined valence (negation-aware, applied once to the average)
-  # Valy: NA when no dictionary matched any sentiment words
-  # ValyNoNA: 0 instead of NA
-  data$Valy <- neg_valna_avg
-  data$ValyNoNA <- ifelse(is.nan(neg_valna_avg), 0, neg_valna_avg)
+  # Valence: NA when no dictionary matched any sentiment words
+  # ValenceNoNA: 0 instead of NA
+  data$Valence <- neg_valna_avg
+  data$ValenceNoNA <- ifelse(is.nan(neg_valna_avg), 0, neg_valna_avg)
 
   val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
   valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
@@ -44,13 +44,13 @@ score_valence <- function(data,
   data <- .mask_missing_response_cols(
     data,
     response_col,
-    cols_or_patterns = c("^Val_", "^Valy$", "^ValyNoNA$")
+    cols_or_patterns = c("^Val_", "^Valence$", "^ValenceNoNA$")
   )
 
   # Replace NaN with NA
   data <- replace_nan_with_na(data)
 
   message("  Valence scoring complete. Columns added: ",
-          paste(c(val_cols, valna_cols, "Valy", "ValyNoNA"), collapse = ", "))
+          paste(c(val_cols, valna_cols, "Valence", "ValenceNoNA"), collapse = ", "))
   return(data)
 }
