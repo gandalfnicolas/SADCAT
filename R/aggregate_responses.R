@@ -43,9 +43,9 @@ aggregate_responses <- function(data,
 
   if (is.null(mean_cols)) {
     mean_cols <- grep(
-      paste0("^Valence$|^ValenceNoNA$|",
+      paste0("^ValenceYesNA$|^ValenceNoNA$|",
              "_prevalence$|_dic_binary2$|^NoMatch$|^None2y$|",
-             "_valence$|_valenceNoNA$|_direction$|_directionNoNA$|",
+             "_Valence$|_valenceStrictNA$|_valenceNoNA$|_direction$|_directionNoNA$|",
              "_Valy$|_ValyNoNA$|^NONE_Valy$|",
              "_valy3$|_valyNoNA3$|_dirx3$|_dirx3NoNA$|",
              "^SBERT_|^Gemini_|",

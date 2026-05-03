@@ -8,8 +8,8 @@
 #' @param text_col Column with singularized text to match (default "tv3")
 #' @param response_col Column used for NA-gating (default: same as text_col).
 #'   Only needed if your NA-indicator column differs from text_col.
-#' @param valence_col Name of combined valence column with NA-gating (default "Valence")
-#' @param valence_nona_col Name of combined valence column without NA-gating (default "ValenceNoNA")
+#' @param valence_col Name of NA-gated combined valence column (default "ValenceYesNA")
+#' @param valence_nona_col Name of zero-imputed combined valence column (default "ValenceNoNA")
 #' @param sadcat_dict Pre-computed SADCAT quanteda dictionary. If NULL and
 #'   \code{sadcat = TRUE} (default), calls \code{prepare_sadcat_dictionaries()}.
 #'   Set to FALSE to skip SADCAT matching entirely.
@@ -22,13 +22,29 @@
 #'   \code{{Dim}_directionNoNA}, and \code{NoMatch}. If \code{TRUE}, keep
 #'   legacy SADCAT intermediate columns as well.
 #' @return The input data with dictionary-derived columns appended. By default,
-#'   SADCAT outputs are compact and renamed to informative suffixes.
+#'   SADCAT outputs are compact. For each SADCAT dimension \code{\{Dim\}}, three
+#'   valence columns are produced:
+#'   \itemize{
+#'     \item \code{\{Dim\}_Valence} (default for downstream means): NA when the
+#'       dimension is not tagged in the response; otherwise the global
+#'       \code{ValenceNoNA} (0 if no sentiment words matched, else the signed
+#'       negation-aware mean). Use \code{mean(., na.rm = TRUE)} to get the
+#'       average valence among tagged responses, where sentiment-less tagged
+#'       responses contribute 0.
+#'     \item \code{\{Dim\}_valenceStrictNA}: NA whenever either the dimension is
+#'       not tagged OR the global \code{ValenceYesNA} is itself NA. Strictly
+#'       NA-gated on both axes.
+#'     \item \code{\{Dim\}_valenceNoNA}: 0 whenever either the dimension is not
+#'       tagged OR the global sentiment is NA. Strictly zero-imputed on both
+#'       axes; interpretable as a prevalence-weighted valence over the full
+#'       response set.
+#'   }
 #' @export match_dictionaries
 
 match_dictionaries <- function(data,
                                text_col = "tv3",
                                response_col = NULL,
-                               valence_col = "Valence",
+                               valence_col = "ValenceYesNA",
                                valence_nona_col = "ValenceNoNA",
                                sadcat_dict = NULL,
                                socats_dict = NULL,
@@ -151,13 +167,15 @@ match_dictionaries <- function(data,
       toks_dict$None2y <- ifelse(is.na(row_sums), NA, ifelse(row_sums > 0, 0, 1))
     }
 
-    # ---- Per-dimension Valy / ValyNoNA ----
-    # Valy: NA if dimension prevalence is 0
-    # ValyNoNA: 0 if dimension prevalence is 0
+    # ---- Per-dimension Valy / ValyNoNA / _Valence (new default) ----
+    # Valy: NA if dimension prevalence is 0          (feeds _valenceStrictNA)
+    # ValyNoNA: 0 if dimension prevalence is 0       (feeds _valenceNoNA)
+    # _Valence: NA if binary==0; else ValenceNoNA    (new default column)
     for (dim in all_base_dims) {
       binary_col <- paste0(tolower(dim), "_dic_binary")
       valy_dim <- paste0(dim, "_Valy")
       valynona_dim <- paste0(dim, "_ValyNoNA")
+      valence_dim <- paste0(dim, "_Valence")
 
       if (binary_col %in% names(toks_dict) && valence_col %in% names(toks_dict)) {
         toks_dict[[valy_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
@@ -166,6 +184,8 @@ match_dictionaries <- function(data,
       if (binary_col %in% names(toks_dict) && valence_nona_col %in% names(toks_dict)) {
         toks_dict[[valynona_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
                                             0, toks_dict[[valence_nona_col]])
+        toks_dict[[valence_dim]] <- ifelse(toks_dict[[binary_col]] == 0,
+                                           NA, toks_dict[[valence_nona_col]])
       }
     }
 
@@ -306,8 +326,9 @@ match_dictionaries <- function(data,
     response_col,
     cols_or_patterns = c(
       "_Valy$", "_ValyNoNA$", "_valy3$", "_valyNoNA3$",
+      "_Valence$",
       "_dirx$", "_dirx2$", "_dirx3$", "_dirx3NoNA$",
-      "_prevalence$", "_valence$", "_valenceNoNA$",
+      "_prevalence$", "_valenceStrictNA$", "_valenceNoNA$",
       "_direction$", "_directionNoNA$", "^NoMatch$"
     )
   )
@@ -336,7 +357,7 @@ match_dictionaries <- function(data,
 
     valence_old <- paste0(dim, "_valy3")
     if (valence_old %in% names(data)) {
-      data[[paste0(dim, "_valence")]] <- data[[valence_old]]
+      data[[paste0(dim, "_valenceStrictNA")]] <- data[[valence_old]]
     }
 
     valence_nona_old <- paste0(dim, "_valyNoNA3")

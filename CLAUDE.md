@@ -12,8 +12,8 @@ allowing inspection between stages.
 | Stage | Function | Input column | Key outputs |
 |-------|----------|-------------|-------------|
 | 1. Preprocess | `preprocess_text()` | `responsex` (raw text) | `tv`, `tv2`, `tv3` |
-| 2. Valence | `score_valence()` | `tv` (or `tv2` for humans) | `Val_*`, `Val_*NA`, `Valence`, `ValenceNoNA` |
-| 3. Dictionaries | `match_dictionaries()` | `tv3` | `*_dic_binary`, `*_dirx`, `*_Valy`, `*_ValyNoNA` |
+| 2. Valence | `score_valence()` | `tv` (or `tv2` for humans) | `Val_*`, `Val_*NA`, `ValenceYesNA`, `ValenceNoNA` |
+| 3. Dictionaries | `match_dictionaries()` | `tv3` | `*_dic_binary`, `*_dirx`, `*_Valence`, `*_valenceStrictNA`, `*_valenceNoNA` |
 | 3b. SOCATS | `match_dictionaries(..., socats = TRUE)` | `tv3` | `age_dic`, `women_dic`, etc. |
 | 4. Embeddings | `compute_embeddings()` | `tv` | `SBERT_1..N`, `Gemini_1..N` |
 | 5. Seeds | `compute_seed_similarities()` | `SBERT_*` or `Gemini_*` | `*.seed` columns |
@@ -27,7 +27,7 @@ library(SADCAT)
 dat <- preprocess_text(dat, text_col = "responsex", spellcheck = FALSE)
 dat <- score_valence(dat, text_col = "tv")
 dat <- match_dictionaries(dat, text_col = "tv3",
-                          valence_col = "Valence", valence_nona_col = "ValenceNoNA")
+                          valence_col = "ValenceYesNA", valence_nona_col = "ValenceNoNA")
 # Optional:
 dat <- compute_embeddings(dat, text_col = "tv", methods = "sbert")
 dat <- compute_seed_similarities(dat, embedding_prefix = "SBERT")
@@ -45,18 +45,35 @@ result$agg   # group-level
 
 ### Valence columns
 
-- **`Valence`**: Mean of negation-aware scores across 5 sentiment dictionaries
-  (Lexicoder, NRC, Bing, AFINN, Loughran). NA when no dictionary matched.
-- **`ValenceNoNA`**: Same as `Valence`, but 0 instead of NA.
+- **`ValenceYesNA`**: Mean of negation-aware scores across 5 sentiment
+  dictionaries (Lexicoder, NRC, Bing, AFINN, Loughran). NA when no dictionary
+  matched any sentiment word.
+- **`ValenceNoNA`**: Same as `ValenceYesNA`, but 0 instead of NA.
 - **`Val_lexicoder`, `Val_NRC`, etc.**: Per-dictionary raw presence scores
   (no negation flipping). -1, 0, or 1.
-- **`{Dim}_Valy`**: Global `Valence` gated by dimension prevalence (NA if
-  dimension not present in the response).
-- **`{Dim}_ValyNoNA`**: Global `ValenceNoNA` gated by dimension prevalence
-  (0 if dimension not present).
 
-Negation is applied once to the combined `Valence`/`ValenceNoNA` average, not to
-individual dictionary scores.
+Negation is applied once to the combined average, not to individual dictionary
+scores.
+
+#### Per-dimension valence variants
+
+Each SADCAT dimension `{Dim}` produces three valence columns:
+
+- **`{Dim}_Valence`** *(default for means)*: NA when the dimension is not
+  tagged in the response; otherwise the global `ValenceNoNA` (0 if no
+  sentiment words matched, else the signed value). Use
+  `mean(., na.rm = TRUE)` to get the average valence among tagged responses,
+  where sentiment-less tagged responses contribute 0 (neutral).
+- **`{Dim}_valenceStrictNA`**: NA whenever either the dimension is not tagged
+  **or** `ValenceYesNA` is NA. Strictly NA-gated on both axes.
+- **`{Dim}_valenceNoNA`**: 0 whenever either the dimension is not tagged or
+  no sentiment matched; NA only when the response itself is missing.
+
+**Worked example** (Beliefs dimension):
+- Response tagged with Beliefs, contains sentiment → `Beliefs_Valence = <value>`
+- Response tagged with Beliefs, no sentiment words → `Beliefs_Valence = 0`,
+  `Beliefs_valenceStrictNA = NA`, `Beliefs_valenceNoNA = 0`
+- Response not tagged with Beliefs → all three are NA / 0 / 0 respectively
 
 ### Key conventions
 

@@ -117,17 +117,18 @@ produced by earlier stages:
 # Stage 1: Preprocess -> produces tv, tv2, tv3
 dat <- preprocess_text(dat, text_col = "responsex", spellcheck = FALSE)
 
-# Stage 2: Valence -> produces Val_*, Valy, ValyNoNA
+# Stage 2: Valence -> produces Val_*, ValenceYesNA, ValenceNoNA
 dat <- score_valence(dat, text_col = "tv")
 
 # Stage 3: SADCAT dictionaries -> produces compact outputs such as
-# {Dim}_prevalence, {Dim}_valence, {Dim}_direction, and NoMatch
+# {Dim}_prevalence, {Dim}_Valence, {Dim}_valenceStrictNA, {Dim}_valenceNoNA,
+# {Dim}_direction, and NoMatch
 dat <- match_dictionaries(dat, text_col = "tv3",
-                          valence_col = "Valy", valence_nona_col = "ValyNoNA")
+                          valence_col = "ValenceYesNA", valence_nona_col = "ValenceNoNA")
 
 # Stage 3b (optional): SOCATS social category dictionaries
 dat <- match_dictionaries(dat, text_col = "tv3",
-                          valence_col = "Valy", valence_nona_col = "ValyNoNA",
+                          valence_col = "ValenceYesNA", valence_nona_col = "ValenceNoNA",
                           sadcat_dict = FALSE, socats = TRUE)
 
 # Stage 4 (optional): Sentence embeddings (requires Python via reticulate)
@@ -143,18 +144,21 @@ agg <- aggregate_responses(dat,
 
 \strong{Valence columns.}
 \itemize{
-  \item \code{Valy}: Mean of negation-aware scores across 5 sentiment
-    dictionaries. NA when no dictionary matched. Negation is applied once
-    to this combined score, not to individual dictionary scores.
-  \item \code{ValyNoNA}: Same as \code{Valy}, but 0 instead of NA.
+  \item \code{ValenceYesNA}: Mean of negation-aware scores across 5 sentiment
+    dictionaries. NA when no dictionary matched any sentiment word. Negation
+    is applied once to this combined score, not to individual dictionary scores.
+  \item \code{ValenceNoNA}: Same as \code{ValenceYesNA}, but 0 instead of NA.
   \item \code{Val_lexicoder}, \code{Val_NRC}, etc.: Per-dictionary raw
     presence scores (-1, 0, or 1) without negation flipping.
   \item \code{{Dim}_prevalence}: 1/0 dimension prevalence, NA when response
     is missing.
-  \item \code{{Dim}_valence}: Dimension-gated valence (NA when dimension is
-    absent or response missing).
-  \item \code{{Dim}_valenceNoNA}: Same as \code{{Dim}_valence}, but 0 when
-    dimension is absent (NA when response missing).
+  \item \code{{Dim}_Valence}: Default per-dimension valence. NA when the
+    dimension is not tagged; otherwise \code{ValenceNoNA} (0 for sentiment-less
+    tagged responses, signed value otherwise). Best for \code{mean(., na.rm=TRUE)}.
+  \item \code{{Dim}_valenceStrictNA}: NA when the dimension is not tagged OR
+    \code{ValenceYesNA} is NA. Strictly NA-gated on both axes.
+  \item \code{{Dim}_valenceNoNA}: 0 when the dimension is not tagged or no
+    sentiment matched; NA only when response is missing.
   \item \code{{Dim}_direction}: Direction score for directional dimensions
     (NA when not applicable).
   \item \code{{Dim}_directionNoNA}: Same as \code{{Dim}_direction}, but 0

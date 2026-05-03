@@ -8,8 +8,8 @@ match_dictionaries(
   data,
   text_col = "tv3",
   response_col = NULL,
-  valence_col = "Valy",
-  valence_nona_col = "ValyNoNA",
+  valence_col = "ValenceYesNA",
+  valence_nona_col = "ValenceNoNA",
   sadcat_dict = NULL,
   socats_dict = NULL,
   socats = FALSE,
@@ -24,9 +24,9 @@ match_dictionaries(
 \item{response_col}{Column used for NA-gating (default: same as text_col).
 Only needed if your NA-indicator column differs from text_col.}
 
-\item{valence_col}{Name of combined valence column with NA-gating (default "Valy")}
+\item{valence_col}{Name of NA-gated combined valence column (default "ValenceYesNA")}
 
-\item{valence_nona_col}{Name of combined valence column without NA-gating (default "ValyNoNA")}
+\item{valence_nona_col}{Name of zero-imputed combined valence column (default "ValenceNoNA")}
 
 \item{sadcat_dict}{Pre-computed SADCAT quanteda dictionary. If NULL and
 \code{sadcat = TRUE} (default), calls \code{prepare_sadcat_dictionaries()}.
@@ -45,7 +45,23 @@ legacy SADCAT intermediate columns as well.}
 }
 \value{
 The input data with dictionary-derived columns appended. By default,
-  SADCAT outputs are compact and renamed to informative suffixes.
+  SADCAT outputs are compact. For each SADCAT dimension \code{\{Dim\}}, three
+  valence columns are produced:
+  \itemize{
+    \item \code{\{Dim\}_Valence} (default for downstream means): NA when the
+      dimension is not tagged in the response; otherwise the global
+      \code{ValenceNoNA} (0 if no sentiment words matched, else the signed
+      negation-aware mean). Use \code{mean(., na.rm = TRUE)} to get the
+      average valence among tagged responses, where sentiment-less tagged
+      responses contribute 0.
+    \item \code{\{Dim\}_valenceStrictNA}: NA whenever either the dimension is
+      not tagged OR the global \code{ValenceYesNA} is itself NA. Strictly
+      NA-gated on both axes.
+    \item \code{\{Dim\}_valenceNoNA}: 0 whenever either the dimension is not
+      tagged OR the global sentiment is NA. Strictly zero-imputed on both
+      axes; interpretable as a prevalence-weighted valence over the full
+      response set.
+  }
 }
 \description{
 Match text responses against SADCAT stereotype dictionaries

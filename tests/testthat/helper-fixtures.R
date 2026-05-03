@@ -100,14 +100,25 @@ pipeline_aggregate_fixture <- function() {
     Group = c("G", "G", "G"),
     Level = c("L", "L", "L"),
     warmth_dic_binary2 = c(1, 0, 1),
-    Valence = c(1, -1, NA),
+    ValenceYesNA = c(1, -1, NA),
     ValenceNoNA = c(1, -1, 0),
-    Warmth_Valy = c(1, NA, 0),
-    Warmth_ValyNoNA = c(1, NA, 0),
-    Warmth_valy3 = c(1, NA, NA),
-    Warmth_valyNoNA3 = c(1, NA, NA),
+    Warmth_Valence = c(1, NA, 0),
+    Warmth_valenceStrictNA = c(1, NA, NA),
+    Warmth_valenceNoNA = c(1, 0, 0),
     Warmth_dirx3 = c(1, NA, -1),
     Warning = c("note", "note", NA),
+    stringsAsFactors = FALSE
+  )
+}
+
+# Fixture for testing three-column valence semantics.
+# "warm" is in the Warmth dictionary. Rows vary ValenceYesNA and binary state.
+valence_semantics_fixture <- function() {
+  data.frame(
+    response    = c("warm",      "warm",      "neutral word", NA_character_),
+    tv3         = c("warm",      "warm",      "neutral word", NA_character_),
+    ValenceYesNA = c(0.5,        NA_real_,    NA_real_,       NA_real_),
+    ValenceNoNA  = c(0.5,        0,           0,              0),
     stringsAsFactors = FALSE
   )
 }

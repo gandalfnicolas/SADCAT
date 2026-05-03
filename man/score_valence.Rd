@@ -18,8 +18,9 @@ Only needed if your NA-indicator column differs from text_col.}
 }
 \value{
 The input data with 12 new columns: Val_lexicoder, Val_NRC, Val_bing,
-  Val_affin, Val_loughran, their NA variants, Valy (NA when no dictionary
-  matched, negation-aware), and ValyNoNA (0 instead of NA)
+  Val_affin, Val_loughran, their NA variants, ValenceYesNA (NA when no
+  dictionary matched any sentiment word, negation-aware), and ValenceNoNA
+  (0 instead of NA).
 }
 \description{
 Score text responses using 5 sentiment dictionaries.

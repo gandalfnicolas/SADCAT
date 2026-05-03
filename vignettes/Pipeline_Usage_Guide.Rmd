@@ -101,10 +101,10 @@ scores with negation handling.
 **Key output columns:**
 
 
-- **`Valence`**: Combined valence. Mean of negation-aware scores across the
-  5 dictionaries. NA when no dictionary matched any sentiment words.
+- **`ValenceYesNA`**: Combined valence. Mean of negation-aware scores across
+  the 5 dictionaries. NA when no dictionary matched any sentiment words.
   Negation is applied once to this combined score.
-- **`ValenceNoNA`**: Same as `Valence`, but 0 instead of NA.
+- **`ValenceNoNA`**: Same as `ValenceYesNA`, but 0 instead of NA.
 
 ```{r}
 dat <- score_valence(
@@ -114,7 +114,7 @@ dat <- score_valence(
 )
 
 # Inspect valence
-dat[, c("responsex", "Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran", "Valence", "ValenceNoNA")]
+dat[, c("responsex", "Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran", "ValenceYesNA", "ValenceNoNA")]
 ```
 
 ### Stage 3: Match SADCAT dictionaries
@@ -125,8 +125,14 @@ binary indicators, percentages, direction scores, and per-dimension valence.
 **Key output columns (per dimension, e.g., Warmth, Competence, Morality, ...):**
 
 - `{Dim}_prevalence`: 1 if any match, 0 if none, NA if response missing
-- `{Dim}_valence`: dimension-gated valence (NA if dimension absent or response missing)
-- `{Dim}_valenceNoNA`: same as `{Dim}_valence`, but 0 if dimension absent (still NA if response missing)
+- `{Dim}_Valence` *(default for downstream means)*: NA if dimension absent;
+  otherwise the global `ValenceNoNA` (0 for sentiment-less tagged responses,
+  signed value otherwise). Use `mean(., na.rm = TRUE)` to average over tagged
+  responses where sentiment-less ones contribute 0 (neutral).
+- `{Dim}_valenceStrictNA`: NA if dimension absent **or** `ValenceYesNA` is NA.
+  Strictly NA-gated on both axes.
+- `{Dim}_valenceNoNA`: 0 if dimension absent or no sentiment matched;
+  NA only if response is missing.
 - `{Dim}_direction` (directional dimensions only): hi-lo direction, NA when not applicable
 - `{Dim}_directionNoNA` (directional dimensions only): same as `{Dim}_direction`, but 0 if dimension absent (still NA if response missing)
 - `NoMatch`: 1 if no SADCAT dimension matched at all (NA if response missing)
@@ -137,7 +143,7 @@ dat <- match_dictionaries(
   dat,
   text_col = "tv3",
   response_col = "responsex",   # NA-gating column; NULL defaults to text_col
-  valence_col = "Valence",
+  valence_col = "ValenceYesNA",
   valence_nona_col = "ValenceNoNA",
   sadcat_dict = NULL,           # NULL auto-loads SADCAT dictionaries
   socats_dict = NULL,           # NULL auto-loads SOCATS only if socats = TRUE

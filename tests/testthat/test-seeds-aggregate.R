@@ -52,11 +52,10 @@ test_that("aggregate_responses computes sums, means, and noNA columns", {
 
   expect_equal(out["A", "warmth_dic_binary2_Sum"], 1)
   expect_equal(out["A", "ValenceNoNA"], 0)
-  expect_equal(out["A", "Warmth_Valy"], 1)
+  expect_equal(out["A", "Warmth_Valence"], 1)
   expect_equal(out["A", "Warmth_dirx3"], 1)
-  expect_equal(out["A", "Warmth_dirx3noNA"], 1)
-  expect_true(is.na(out["B", "Warmth_valy3"]))
-  expect_true(is.na(out["B", "Warmth_valy3noNA"]) || out["B", "Warmth_valy3noNA"] == 0)
+  expect_true(is.na(out["B", "Warmth_valenceStrictNA"]))
+  expect_equal(out["B", "Warmth_valenceNoNA"], 0)
 })
 
 test_that("aggregate_responses validates missing grouping columns", {

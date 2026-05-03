@@ -79,21 +79,21 @@ test_that("individual dictionary scores are raw (no negation); Valence reflects 
   expect_equal(scored["not immoral", "Val_loughran"], -1)
 
   # Valence/ValenceNoNA reflect negation (applied once to the average)
-  expect_gt(scored["friendly", "Valence"], 0)
-  expect_lt(scored["not friendly", "Valence"], 0)
-  expect_lt(scored["immoral", "Valence"], 0)
-  expect_gt(scored["not immoral", "Valence"], 0)
-  expect_lt(scored["incompetent", "Valence"], 0)
-  expect_gt(scored["not incompetent", "Valence"], 0)
-  expect_gt(scored["warm", "Valence"], 0)
-  expect_lt(scored["not warm", "Valence"], 0)
+  expect_gt(scored["friendly", "ValenceYesNA"], 0)
+  expect_lt(scored["not friendly", "ValenceYesNA"], 0)
+  expect_lt(scored["immoral", "ValenceYesNA"], 0)
+  expect_gt(scored["not immoral", "ValenceYesNA"], 0)
+  expect_lt(scored["incompetent", "ValenceYesNA"], 0)
+  expect_gt(scored["not incompetent", "ValenceYesNA"], 0)
+  expect_gt(scored["warm", "ValenceYesNA"], 0)
+  expect_lt(scored["not warm", "ValenceYesNA"], 0)
 
   # Mixed negation: "warm but not competent" → Valence lower than "warm"
-  expect_lt(scored["warm but not competent", "Valence"], scored["warm", "Valence"])
+  expect_lt(scored["warm but not competent", "ValenceYesNA"], scored["warm", "ValenceYesNA"])
 
   # ValenceNoNA is 0 instead of NA, otherwise same as Valence
   expect_true("ValenceNoNA" %in% names(scored))
-  expect_equal(scored["friendly", "ValenceNoNA"], scored["friendly", "Valence"])
+  expect_equal(scored["friendly", "ValenceNoNA"], scored["friendly", "ValenceYesNA"])
 })
 
 test_that("match_dictionaries keeps negation local in directional outputs", {
@@ -127,7 +127,7 @@ test_that("match_dictionaries keeps negation local in directional outputs", {
     scored,
     text_col = "tv3",
     response_col = "response",
-    valence_col = "Valence",
+    valence_col = "ValenceYesNA",
     valence_nona_col = "ValenceNoNA",
     keep_intermediate = TRUE
   )
@@ -175,7 +175,7 @@ test_that("match_dictionaries handles identical and normalized-duplicate respons
       scored,
       text_col = "tv3",
       response_col = "response",
-      valence_col = "Valence",
+      valence_col = "ValenceYesNA",
       valence_nona_col = "ValenceNoNA"
     )
   })
