@@ -598,7 +598,17 @@ replace_nan_with_na <- function(df) {
 Spellcheck2 <- function(raw, dict_tv = SADCAT::All.steps_Dictionaries$tv, rawlist,
                          bigram_freqs = NULL) {
   tryCatch({
-    if (raw == "NA" | is.na(raw)) {
+    if (is.na(raw) || raw == "NA") {
+      return("na")
+    }
+    # NA markers must short-circuit before hunspell, which otherwise turns
+    # "n/a" -> "naan" and "?" -> "s". Catch:
+    #   (1) inputs with no letters and no digits (e.g., "?", "--", "...")
+    #   (2) explicit n/a variants
+    raw_trim_lower <- tolower(trimws(raw))
+    if (nchar(gsub("[^[:alnum:]]", "", raw_trim_lower)) == 0L ||
+        raw_trim_lower %in% c("n/a", "n.a", "n.a.", "n\\a", "n_a",
+                               "#n/a", "n / a", "n. a.")) {
       return("na")
     }
     if (raw %in% dict_tv) {
@@ -803,13 +813,13 @@ Spellcheck2 <- function(raw, dict_tv = SADCAT::All.steps_Dictionaries$tv, rawlis
 #' @return Singularized version of the word
 #' @export
 singularize2 <- function(word, dictionary = TRUE) {
-  if (word %in% SADCAT::All.steps_Dictionaries$tv) {
-    return(word)
-  }
   if (is.na(word)) {
     return(word)
   }
-  if (stringr::str_detect(word, 'es$')) {
+  if (nchar(word) < 3) {
+    return(word)
+  }
+  if (word %in% SADCAT::All.steps_Dictionaries$tv) {
     return(word)
   }
   spl <- unlist(strsplit(word, " "))
@@ -853,11 +863,15 @@ singularize2 <- function(word, dictionary = TRUE) {
         }
         chn <- TRUE
       } else if (any(last.lets == c("zes", "ses"))) {
-        word <- substr(word, 1, nchar(word) - 3)
-        chn <- TRUE
-        if (!word %in% checker) {
-          word <- orig.word
-          chn <- FALSE
+        cand_s  <- substr(word, 1, nchar(word) - 1)
+        cand_es <- substr(word, 1, nchar(word) - 2)
+        cand_3  <- substr(word, 1, nchar(word) - 3)
+        if (cand_s %in% checker) {
+          word <- cand_s; chn <- TRUE
+        } else if (cand_es %in% checker) {
+          word <- cand_es; chn <- TRUE
+        } else if (cand_3 %in% checker) {
+          word <- cand_3; chn <- TRUE
         }
       }
     }
@@ -874,7 +888,10 @@ singularize2 <- function(word, dictionary = TRUE) {
   if (!chn) {
     if (any(last.lets == c("s", "i", "a"))) {
       if (last.lets == "s") {
-        word <- substr(word, 1, nchar(word) - 1)
+        prev.char <- substr(word, nchar(word) - 1, nchar(word) - 1)
+        if (prev.char != "s") {
+          word <- substr(word, 1, nchar(word) - 1)
+        }
       } else if (last.lets == "i") {
         word <- substr(word, 1, nchar(word) - 1)
         word <- paste0(word, "us")
@@ -883,6 +900,9 @@ singularize2 <- function(word, dictionary = TRUE) {
         word <- paste0(word, "on")
       }
     }
+  }
+  if (nchar(word) < 3 && nchar(orig.word) >= 3) {
+    word <- orig.word
   }
   if (isTRUE(dictionary)) {
     if (!word %in% checker) {

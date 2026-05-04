@@ -17,6 +17,6 @@ Singularized version of the word
 \description{
 Singularize a word, respecting SADCAT dictionary.
 Converts plural forms to singular. Skips words already in the SADCAT
-dictionary and words ending in "es" (to avoid incorrect singularization).
-Handles irregular plurals via switch cases.
+dictionary. Handles irregular plurals via switch cases and standard
+"ves"/"ies"/"zes"/"ses"/"es" suffix rules.
 }

@@ -1,7 +1,7 @@
 Package: SADCAT
 Type: Package
 Title: Dictionary creation with stereotype content dictionaries
-Version: 0.1.0
+Version: 0.2.0
 Author: Gandalf Nicolas [aut, cre]
 Maintainer: Gandalf Nicolas <gandalfn@gmail.com>
 Authors@R: person("Gandalf", "Nicolas", email = "gandalfn@gmail.com", role = c("aut", "cre"))

@@ -15,7 +15,17 @@
 Spellcheck2 <- function(raw, dict_tv = All.steps_Dictionaries$tv, rawlist,
                          bigram_freqs = NULL) {
   tryCatch({
-    if (raw == "NA" | is.na(raw)) {
+    if (is.na(raw) || raw == "NA") {
+      return("na")
+    }
+    # NA markers must short-circuit before hunspell, which otherwise turns
+    # "n/a" -> "naan" and "?" -> "s". Catch:
+    #   (1) inputs with no letters and no digits (e.g., "?", "--", "...")
+    #   (2) explicit n/a variants
+    raw_trim_lower <- tolower(trimws(raw))
+    if (nchar(gsub("[^[:alnum:]]", "", raw_trim_lower)) == 0L ||
+        raw_trim_lower %in% c("n/a", "n.a", "n.a.", "n\\a", "n_a",
+                               "#n/a", "n / a", "n. a.")) {
       return("na")
     }
     # If the whole string is already known or correctly spelled, return as-is
