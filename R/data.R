@@ -145,6 +145,55 @@
 "Sentiments"
 
 
+#' Warriner et al. (2013) affective valence norms
+#'
+#' Mean valence ratings for 13,905 English lemmas from Warriner, Kuperman, &
+#' Brysbaert (2013), rescaled to the [-1, 1] range. The original 1-9 Likert
+#' ratings (where 5 = neutral) are linearly transformed via
+#' \code{(V.Mean.Sum - 5) / 4}, so 1 (very negative) maps to -1, 5 to 0, and
+#' 9 (very positive) to +1. Used by \code{score_valence(include_warriner = TRUE)}.
+#'
+#' @source Warriner, A. B., Kuperman, V., & Brysbaert, M. (2013). Norms of
+#'   valence, arousal, and dominance for 13,915 English lemmas. \emph{Behavior
+#'   Research Methods, 45}, 1191-1207. \doi{10.3758/s13428-012-0314-x}.
+#'   Supplementary material redistributed under the journal's supplementary
+#'   terms; see \code{data-raw/build_warriner_jockers.R} for the build recipe.
+#'
+#' @format A data frame with 13,905 rows and 2 columns:
+#' \itemize{
+#'   \item \code{word}: lowercased lemma (character)
+#'   \item \code{valence}: rescaled mean valence in [-1, 1] (numeric)
+#' }
+"Warriner_norms"
+
+
+#' Jockers/Rinker sentiment lexicon
+#'
+#' The Jockers/Rinker hand-curated sentiment lexicon (originally distributed
+#' as \code{lexicon::hash_sentiment_jockers_rinker}, MIT-licensed). Values
+#' are continuous in [-1, 1]. Of the 11,710 entries in the upstream source,
+#' 13 fell outside [-1, 1] (e.g., \code{overly} = -2, \code{could have} =
+#' -1.05, \code{too much} = -2). These are shifter / amplifier / counterfactual
+#' coefficients used by sentimentr's sliding-window aggregator to override
+#' neighboring sentiment, not independently sentiment-bearing words; they
+#' have been dropped here to avoid artificially biasing per-text means.
+#' Used by \code{score_valence(include_jockers = TRUE)}.
+#'
+#' @source Originally compiled by Matthew Jockers for narrative/literary
+#'   sentiment analysis (\code{syuzhet} package); the variant used here is
+#'   the Rinker-extended version distributed via the \code{lexicon} R package.
+#'   Note: validated primarily on narrative/fiction text rather than
+#'   person-perception research specifically. See
+#'   \code{data-raw/build_warriner_jockers.R} for the build recipe.
+#'
+#' @format A data frame with 11,697 rows and 2 columns:
+#' \itemize{
+#'   \item \code{word}: lowercased term (character)
+#'   \item \code{valence}: sentiment in [-1, 1] (numeric)
+#' }
+"Jockers_norms"
+
+
 #' Raw SOCATS social category dictionary
 #'
 #' Source data used by \code{prepare_socats_dictionaries()} to build the

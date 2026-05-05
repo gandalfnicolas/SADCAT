@@ -493,7 +493,195 @@ replace_nan_with_na <- function(df) {
   }, logical(1))
 }
 
-.score_valence_from_scoped_tokens <- function(text) {
+.build_dict_output <- function(presence, pos_key, neg_key, name,
+                                lex_neg_presence = NULL,
+                                neg_pos_key = NULL,
+                                neg_neg_key = NULL) {
+  any_pos <- presence$nonneg[, pos_key] | presence$neg[, pos_key]
+  any_neg <- presence$nonneg[, neg_key] | presence$neg[, neg_key]
+
+  neg_pos_binary <- presence$nonneg[, pos_key] | presence$neg[, neg_key]
+  neg_neg_binary <- presence$nonneg[, neg_key] | presence$neg[, pos_key]
+
+  if (!is.null(neg_pos_key) && !is.null(lex_neg_presence)) {
+    any_neg <- any_neg | lex_neg_presence[[neg_pos_key]]
+    neg_neg_binary <- neg_neg_binary | lex_neg_presence[[neg_pos_key]]
+  }
+  if (!is.null(neg_neg_key) && !is.null(lex_neg_presence)) {
+    any_pos <- any_pos | lex_neg_presence[[neg_neg_key]]
+    neg_pos_binary <- neg_pos_binary | lex_neg_presence[[neg_neg_key]]
+  }
+
+  raw_val <- any_pos - any_neg
+  raw_valna <- ifelse(any_pos + any_neg == 0, NA, raw_val)
+
+  neg_val <- neg_pos_binary - neg_neg_binary
+  neg_valna <- ifelse(neg_pos_binary + neg_neg_binary == 0, NA, neg_val)
+
+  out <- data.frame(raw_val = raw_val, raw_valna = raw_valna, neg_valna = neg_valna)
+  colnames(out) <- c(paste0("Val_", name), paste0("Val_", name, "NA"),
+                      paste0(".neg_valna_", name))
+  out
+}
+
+.get_continuous_lexicon_lookup <- function(name) {
+  cache_key <- paste0("continuous_lex_lookup_", name)
+  if (exists(cache_key, envir = .negation_cache, inherits = FALSE)) {
+    return(get(cache_key, envir = .negation_cache, inherits = FALSE))
+  }
+
+  data_name <- switch(name,
+    warriner = "Warriner_norms",
+    jockers  = "Jockers_norms",
+    stop("Unknown continuous lexicon: ", name)
+  )
+  e <- new.env(parent = emptyenv())
+  utils::data(list = data_name, package = "SADCAT", envir = e)
+  df <- e[[data_name]]
+
+  raw_words <- as.character(df$word)
+  vals <- as.numeric(df$valence)
+
+  toks <- .tokenize_quanteda_text(
+    .normalize_valence_terms(raw_words),
+    prefix = "term",
+    remove_numbers = FALSE,
+    remove_punct = TRUE,
+    remove_symbols = TRUE
+  )
+  tok_list <- quanteda::as.list(toks)
+  norm_each <- vapply(tok_list, function(tok) {
+    tok <- tok[nzchar(tok)]
+    if (length(tok) == 1L) tok else NA_character_
+  }, character(1), USE.NAMES = FALSE)
+
+  keep <- !is.na(norm_each) &
+    !grepl(.NEGATION_TOKEN_SEPARATOR, norm_each, fixed = TRUE) &
+    !is.na(vals)
+  norm_each <- norm_each[keep]
+  vals <- vals[keep]
+
+  ord <- !duplicated(norm_each)
+  norm_each <- norm_each[ord]
+  vals <- vals[ord]
+
+  lookup <- new.env(hash = TRUE, parent = emptyenv(),
+                    size = max(8L, length(norm_each)))
+  for (i in seq_along(norm_each)) {
+    assign(norm_each[i], vals[i], envir = lookup)
+  }
+
+  result <- list(env = lookup, n = length(norm_each))
+  assign(cache_key, result, envir = .negation_cache)
+  result
+}
+
+.score_continuous_dict <- function(profile, lookup_env) {
+  n_docs <- length(profile$tokens)
+  raw_score <- numeric(n_docs)
+  raw_n <- integer(n_docs)
+  neg_score <- numeric(n_docs)
+  neg_n <- integer(n_docs)
+
+  for (i in seq_len(n_docs)) {
+    tokens <- profile$tokens[[i]]
+    negated <- profile$negated[[i]]
+    if (!length(tokens)) next
+
+    keep <- !vapply(tokens, .is_punctuation_token, logical(1))
+    tokens <- tokens[keep]
+    negated <- negated[keep]
+    if (!length(tokens)) next
+
+    nonneg_unique <- unique(tokens[!negated])
+    neg_unique <- unique(tokens[negated])
+
+    lookup_one <- function(tok) {
+      v <- get0(tok, envir = lookup_env, inherits = FALSE,
+                ifnotfound = NA_real_)
+      as.numeric(v)
+    }
+    nonneg_vals <- if (length(nonneg_unique))
+      vapply(nonneg_unique, lookup_one, numeric(1)) else numeric(0)
+    neg_vals <- if (length(neg_unique))
+      vapply(neg_unique, lookup_one, numeric(1)) else numeric(0)
+
+    matched_nonneg <- !is.na(nonneg_vals)
+    matched_neg <- !is.na(neg_vals)
+
+    raw_matched <- c(nonneg_vals[matched_nonneg], neg_vals[matched_neg])
+    raw_score[i] <- if (length(raw_matched)) mean(raw_matched) else 0
+    raw_n[i] <- length(raw_matched)
+
+    signed_matched <- c(nonneg_vals[matched_nonneg],
+                         -neg_vals[matched_neg])
+    neg_score[i] <- if (length(signed_matched)) mean(signed_matched) else 0
+    neg_n[i] <- length(signed_matched)
+  }
+
+  list(raw_score = raw_score, raw_n = raw_n,
+       neg_score = neg_score, neg_n = neg_n)
+}
+
+.build_continuous_dict_output <- function(scores, name) {
+  raw_val <- scores$raw_score
+  raw_valna <- ifelse(scores$raw_n == 0L, NA_real_, scores$raw_score)
+  neg_valna <- ifelse(scores$neg_n == 0L, NA_real_, scores$neg_score)
+
+  out <- data.frame(raw_val = raw_val,
+                    raw_valna = raw_valna,
+                    neg_valna = neg_valna)
+  colnames(out) <- c(paste0("Val_", name),
+                      paste0("Val_", name, "NA"),
+                      paste0(".neg_valna_", name))
+  out
+}
+
+.get_sentiwn_negation_spec <- function(threshold = 0.10) {
+  cache_key <- paste0("sentiwn_negation_spec_", format(threshold, nsmall = 4))
+  if (exists(cache_key, envir = .negation_cache, inherits = FALSE)) {
+    return(get(cache_key, envir = .negation_cache, inherits = FALSE))
+  }
+
+  swn_env <- new.env(parent = emptyenv())
+  utils::data("Sentiments", package = "SADCAT", envir = swn_env)
+  swn <- swn_env$Sentiments
+  swn <- swn[!is.na(swn$Val_sentiwn) & swn$Val_sentiwn != 0, c("word", "Val_sentiwn")]
+  swn$word <- tolower(as.character(swn$word))
+  swn <- swn[!is.na(swn$word) & nchar(swn$word) > 0, ]
+  swn <- swn[!duplicated(swn$word), ]
+  swn <- swn[abs(swn$Val_sentiwn) >= threshold, ]
+
+  pos_terms <- swn$word[swn$Val_sentiwn > 0]
+  neg_terms <- swn$word[swn$Val_sentiwn < 0]
+
+  term_groups <- list(
+    sentiwn_positive = .join_term_tokens(.normalize_term_set(
+      pos_terms, .normalize_valence_terms, drop_cue_leading = TRUE)),
+    sentiwn_negative = .join_term_tokens(.normalize_term_set(
+      neg_terms, .normalize_valence_terms, drop_cue_leading = TRUE))
+  )
+
+  compound_terms <- unique(unlist(lapply(term_groups, function(x)
+    stringr::str_replace_all(x, .NEGATION_TOKEN_SEPARATOR, " ")), use.names = FALSE))
+  compound_terms <- compound_terms[grepl(" ", compound_terms, fixed = TRUE)]
+
+  spec <- list(
+    term_groups = term_groups,
+    compound_patterns = .build_compound_patterns(compound_terms),
+    cue_tokens = c("anti", "not", "limited",
+                   paste0("bad", .NEGATION_TOKEN_SEPARATOR, "at"))
+  )
+
+  assign(cache_key, spec, envir = .negation_cache)
+  spec
+}
+
+.score_valence_from_scoped_tokens <- function(text,
+                                               include_sentiwn = TRUE,
+                                               sentiwn_threshold = 0.10,
+                                               include_warriner = TRUE,
+                                               include_jockers = TRUE) {
   spec <- .get_valence_negation_spec()
   profile <- .build_scoped_token_profile(
     text = text,
@@ -508,47 +696,43 @@ replace_nan_with_na <- function(df) {
     neg_negative = .lookup_phrase_presence(text, spec$lex_neg_negative_terms)
   )
 
-  build_output <- function(pos_key, neg_key, name, neg_pos_key = NULL, neg_neg_key = NULL) {
-    # Raw presence (no negation flipping) for individual dictionary columns
-    any_pos <- presence$nonneg[, pos_key] | presence$neg[, pos_key]
-    any_neg <- presence$nonneg[, neg_key] | presence$neg[, neg_key]
+  out <- cbind(
+    .build_dict_output(presence, "lex_positive", "lex_negative", "lexicoder",
+                        lex_neg_presence = lex_neg_presence,
+                        neg_pos_key = "neg_positive", neg_neg_key = "neg_negative"),
+    .build_dict_output(presence, "nrc_positive",      "nrc_negative",      "NRC"),
+    .build_dict_output(presence, "bing_positive",     "bing_negative",     "bing"),
+    .build_dict_output(presence, "affin_positive",    "affin_negative",    "affin"),
+    .build_dict_output(presence, "loughran_positive", "loughran_negative", "loughran")
+  )
 
-    # Negation-aware (for computing combined average only)
-    neg_pos_binary <- presence$nonneg[, pos_key] | presence$neg[, neg_key]
-    neg_neg_binary <- presence$nonneg[, neg_key] | presence$neg[, pos_key]
-
-    if (!is.null(neg_pos_key)) {
-      # Lexicoder neg_positive = negated positive phrases -> negative sentiment
-      any_neg <- any_neg | lex_neg_presence[[neg_pos_key]]
-      neg_neg_binary <- neg_neg_binary | lex_neg_presence[[neg_pos_key]]
-    }
-    if (!is.null(neg_neg_key)) {
-      # Lexicoder neg_negative = negated negative phrases -> positive sentiment
-      any_pos <- any_pos | lex_neg_presence[[neg_neg_key]]
-      neg_pos_binary <- neg_pos_binary | lex_neg_presence[[neg_neg_key]]
-    }
-
-    # Raw individual scores (no negation)
-    raw_val <- any_pos - any_neg
-    raw_valna <- ifelse(any_pos + any_neg == 0, NA, raw_val)
-
-    # Negation-aware scores (internal, for combined average)
-    neg_val <- neg_pos_binary - neg_neg_binary
-    neg_valna <- ifelse(neg_pos_binary + neg_neg_binary == 0, NA, neg_val)
-
-    out <- data.frame(raw_val = raw_val, raw_valna = raw_valna, neg_valna = neg_valna)
-    colnames(out) <- c(paste0("Val_", name), paste0("Val_", name, "NA"),
-                        paste0(".neg_valna_", name))
-    out
+  if (isTRUE(include_sentiwn)) {
+    swn_spec <- .get_sentiwn_negation_spec(threshold = sentiwn_threshold)
+    swn_profile <- .build_scoped_token_profile(
+      text = text,
+      normalizer = .normalize_valence_text,
+      cue_tokens = swn_spec$cue_tokens,
+      compound_patterns = swn_spec$compound_patterns,
+      singularize_words = FALSE
+    )
+    swn_presence <- .compute_group_presence(swn_profile, swn_spec$term_groups)
+    out <- cbind(out, .build_dict_output(swn_presence,
+                                          "sentiwn_positive",
+                                          "sentiwn_negative",
+                                          "sentiwn"))
   }
 
-  out <- cbind(
-    build_output("lex_positive", "lex_negative", "lexicoder", "neg_positive", "neg_negative"),
-    build_output("nrc_positive", "nrc_negative", "NRC"),
-    build_output("bing_positive", "bing_negative", "bing"),
-    build_output("affin_positive", "affin_negative", "affin"),
-    build_output("loughran_positive", "loughran_negative", "loughran")
-  )
+  if (isTRUE(include_warriner)) {
+    warr <- .get_continuous_lexicon_lookup("warriner")
+    warr_scores <- .score_continuous_dict(profile, warr$env)
+    out <- cbind(out, .build_continuous_dict_output(warr_scores, "warriner"))
+  }
+
+  if (isTRUE(include_jockers)) {
+    jock <- .get_continuous_lexicon_lookup("jockers")
+    jock_scores <- .score_continuous_dict(profile, jock$env)
+    out <- cbind(out, .build_continuous_dict_output(jock_scores, "jockers"))
+  }
 
   replace_nan_with_na(out)
 }
@@ -1141,9 +1325,16 @@ apply_single_valence_dict <- function(toksval, dict_obj, name, is_lexicoder = FA
 #' @export
 score_valence <- function(data,
                           text_col = "tv",
-                          response_col = NULL) {
+                          response_col = NULL,
+                          include_sentiwn = TRUE,
+                          sentiwn_threshold = 0.10,
+                          include_warriner = TRUE,
+                          include_jockers = TRUE) {
   if (is.null(response_col)) response_col <- text_col
-  message("--- Stage 2: Scoring valence (5 dictionaries) ---")
+  n_dicts <- 5L + sum(c(isTRUE(include_sentiwn),
+                         isTRUE(include_warriner),
+                         isTRUE(include_jockers)))
+  message("--- Stage 2: Scoring valence (", n_dicts, " dictionaries) ---")
 
   # Deduplicate: score unique texts only, then map back
   texts <- data[[text_col]]
@@ -1154,12 +1345,20 @@ score_valence <- function(data,
 
   if (n_uniq < n_total) {
     message("  Deduplicating: ", n_total, " rows -> ", n_uniq, " unique texts")
-    uniq_scores <- .score_valence_from_scoped_tokens(uniq_texts)
+    uniq_scores <- .score_valence_from_scoped_tokens(uniq_texts,
+                                                      include_sentiwn = include_sentiwn,
+                                                      sentiwn_threshold = sentiwn_threshold,
+                                                      include_warriner = include_warriner,
+                                                      include_jockers = include_jockers)
     map_idx <- match(texts, uniq_texts)
     valence_scores <- uniq_scores[map_idx, , drop = FALSE]
     rownames(valence_scores) <- NULL
   } else {
-    valence_scores <- .score_valence_from_scoped_tokens(texts)
+    valence_scores <- .score_valence_from_scoped_tokens(texts,
+                                                         include_sentiwn = include_sentiwn,
+                                                         sentiwn_threshold = sentiwn_threshold,
+                                                         include_warriner = include_warriner,
+                                                         include_jockers = include_jockers)
   }
 
   # Separate internal negation-aware columns from output columns
@@ -1177,6 +1376,18 @@ score_valence <- function(data,
 
   val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
   valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
+  if (isTRUE(include_sentiwn)) {
+    val_cols <- c(val_cols, "Val_sentiwn")
+    valna_cols <- c(valna_cols, "Val_sentiwnNA")
+  }
+  if (isTRUE(include_warriner)) {
+    val_cols <- c(val_cols, "Val_warriner")
+    valna_cols <- c(valna_cols, "Val_warrinerNA")
+  }
+  if (isTRUE(include_jockers)) {
+    val_cols <- c(val_cols, "Val_jockers")
+    valna_cols <- c(valna_cols, "Val_jockersNA")
+  }
 
   # Ensure valence family columns are NA when the original response is missing
   data <- .mask_missing_response_cols(
@@ -2221,9 +2432,16 @@ process_responses <- function(data,
 
 score_valence <- function(data,
                           text_col = "tv",
-                          response_col = NULL) {
+                          response_col = NULL,
+                          include_sentiwn = TRUE,
+                          sentiwn_threshold = 0.10,
+                          include_warriner = TRUE,
+                          include_jockers = TRUE) {
   if (is.null(response_col)) response_col <- text_col
-  message("--- Stage 2: Scoring valence (5 dictionaries) ---")
+  n_dicts <- 5L + sum(c(isTRUE(include_sentiwn),
+                         isTRUE(include_warriner),
+                         isTRUE(include_jockers)))
+  message("--- Stage 2: Scoring valence (", n_dicts, " dictionaries) ---")
 
   # Deduplicate: score unique texts only, then map back
   texts <- data[[text_col]]
@@ -2234,12 +2452,20 @@ score_valence <- function(data,
 
   if (n_uniq < n_total) {
     message("  Deduplicating: ", n_total, " rows -> ", n_uniq, " unique texts")
-    uniq_scores <- .score_valence_from_scoped_tokens(uniq_texts)
+    uniq_scores <- .score_valence_from_scoped_tokens(uniq_texts,
+                                                      include_sentiwn = include_sentiwn,
+                                                      sentiwn_threshold = sentiwn_threshold,
+                                                      include_warriner = include_warriner,
+                                                      include_jockers = include_jockers)
     map_idx <- match(texts, uniq_texts)
     valence_scores <- uniq_scores[map_idx, , drop = FALSE]
     rownames(valence_scores) <- NULL
   } else {
-    valence_scores <- .score_valence_from_scoped_tokens(texts)
+    valence_scores <- .score_valence_from_scoped_tokens(texts,
+                                                         include_sentiwn = include_sentiwn,
+                                                         sentiwn_threshold = sentiwn_threshold,
+                                                         include_warriner = include_warriner,
+                                                         include_jockers = include_jockers)
   }
 
   # Separate internal negation-aware columns from output columns
@@ -2257,6 +2483,18 @@ score_valence <- function(data,
 
   val_cols <- c("Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran")
   valna_cols <- c("Val_lexicoderNA", "Val_NRCNA", "Val_bingNA", "Val_affinNA", "Val_loughranNA")
+  if (isTRUE(include_sentiwn)) {
+    val_cols <- c(val_cols, "Val_sentiwn")
+    valna_cols <- c(valna_cols, "Val_sentiwnNA")
+  }
+  if (isTRUE(include_warriner)) {
+    val_cols <- c(val_cols, "Val_warriner")
+    valna_cols <- c(valna_cols, "Val_warrinerNA")
+  }
+  if (isTRUE(include_jockers)) {
+    val_cols <- c(val_cols, "Val_jockers")
+    valna_cols <- c(valna_cols, "Val_jockersNA")
+  }
 
   # Ensure valence family columns are NA when the original response is missing
   data <- .mask_missing_response_cols(

@@ -4,26 +4,57 @@
 \alias{score_valence}
 \title{Score Text Valence}
 \usage{
-score_valence(data, text_col = "tv", response_col = NULL)
+score_valence(
+  data,
+  text_col = "tv",
+  response_col = NULL,
+  include_sentiwn = TRUE,
+  sentiwn_threshold = 0.1,
+  include_warriner = TRUE,
+  include_jockers = TRUE
+)
 }
 \arguments{
 \item{data}{A data.frame with text to score}
 
 \item{text_col}{Column containing cleaned text for valence scoring (default "tv").
 Uses tv (not tv2/tv3) to preserve original response for LLMs with low spelling errors.
-Change to "tv2" for human participants.}
+Change to "tv2" or "tv3" for human participants (a singularized text column
+matches more dictionary entries when responses contain plural/inflected forms).}
 
 \item{response_col}{Column used for NA-gating (default: same as text_col).
 Only needed if your NA-indicator column differs from text_col.}
+
+\item{include_sentiwn}{Logical (default \code{TRUE}). If \code{TRUE}, also
+apply SentiWordNet (presence-based, thresholded at \code{sentiwn_threshold})
+and add \code{Val_sentiwn} / \code{Val_sentiwnNA}.}
+
+\item{sentiwn_threshold}{Numeric in [0, 1] (default 0.10). Minimum
+|Val_sentiwn| magnitude for a word to count as positive or negative.}
+
+\item{include_warriner}{Logical (default \code{TRUE}). If \code{TRUE}, also
+apply Warriner et al. (2013) affective norms (continuous valence in
+[-1, 1] from 13,915 lemmas, rescaled from the original 1-9 Likert) and
+add \code{Val_warriner} / \code{Val_warrinerNA}.}
+
+\item{include_jockers}{Logical (default \code{TRUE}). If \code{TRUE}, also
+apply the Jockers/Rinker lexicon (continuous valence clipped to [-1, 1]
+from 11,710 entries) and add \code{Val_jockers} / \code{Val_jockersNA}.}
 }
 \value{
-The input data with 12 new columns: Val_lexicoder, Val_NRC, Val_bing,
-  Val_affin, Val_loughran, their NA variants, ValenceYesNA (NA when no
-  dictionary matched any sentiment word, negation-aware), and ValenceNoNA
-  (0 instead of NA).
+The input data with new columns. Always: Val_lexicoder, Val_NRC,
+  Val_bing, Val_affin, Val_loughran, their NA variants, ValenceYesNA, and
+  ValenceNoNA. Optionally also Val_sentiwn, Val_warriner, Val_jockers
+  (and their NA variants) per the \code{include_*} flags.
 }
 \description{
-Score text responses using 5 sentiment dictionaries.
-Applies Lexicoder (LSD2015), NRC, Bing, AFINN, and Loughran sentiment
-dictionaries. Produces per-dictionary valence scores and a combined score.
+Score text responses using up to 8 sentiment dictionaries.
+Always applies Lexicoder (LSD2015), NRC, Bing, AFINN, and Loughran. By
+default also applies SentiWordNet, Warriner et al. (2013) affective norms,
+and the Jockers/Rinker lexicon. The Bing/NRC/AFINN/Loughran/Lexicoder/
+SentiWordNet dictionaries score each text as -1, 0, or +1 (presence-based).
+Warriner and Jockers are continuous-valued in [-1, 1] (mean of matched-word
+valences; Warriner's 1-9 ratings are linearly rescaled, Jockers values
+clipped to [-1, 1]). All per-dictionary scores are then averaged into the
+combined negation-aware \code{ValenceYesNA} / \code{ValenceNoNA}.
 }
