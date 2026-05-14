@@ -4,16 +4,35 @@
 \alias{get_Hypos}
 \title{Wordnet hyponym retriever}
 \usage{
-get_Hypos(synsets, Syns = T)
+get_Hypos(synsets, Syns = TRUE, max_depth = Inf, verbose = FALSE)
 }
 \arguments{
-\item{synsets}{synsets to obtain hyponyms for}
+\item{synsets}{synsets to obtain hyponyms for. May be a single synset or a
+list of synsets.}
 
-\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the various words that make up the synsets.}
+\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the
+various words that make up the synsets.}
+
+\item{max_depth}{Maximum levels of hyponym recursion. Default \code{Inf}
+(expand until natural termination, still bounded by the visited-set
+deduplication). Set to a finite integer to cap worst-case runtime when
+working with very general seed terms.}
+
+\item{verbose}{If TRUE, prints one progress message per expansion level
+showing the depth and number of new hyponym synsets retrieved. Default
+FALSE.}
 }
 \value{
-hyponym hierarchy
+hyponym hierarchy (list of synsets if \code{Syns=TRUE}, otherwise the
+  words drawn from those synsets)
 }
 \description{
-Gets the synsets/words (depending on Syns) of a term's hyponym hierarchy.
+Gets the synsets/words (depending on \code{Syns}) of a term's
+  hyponym hierarchy. Expansion runs level by level, and synsets visited at
+  earlier levels are skipped on subsequent passes, so no synset is
+  expanded twice. This deduplication prevents the combinatorial blow-up
+  that earlier versions could exhibit when seed terms sat near the top of
+  WordNet's hyponym graph (e.g., general or abstract nouns whose subtrees
+  contain many thousands of synsets reachable via multiple inheritance
+  paths).
 }

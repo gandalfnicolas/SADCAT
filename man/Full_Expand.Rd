@@ -4,7 +4,13 @@
 \alias{Full_Expand}
 \title{Full Wordnet Expansion}
 \usage{
-Full_Expand(datax, antonym = T, syns = F)
+Full_Expand(
+  datax,
+  antonym = TRUE,
+  syns = FALSE,
+  max_hypo_depth = Inf,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{datax}{dataframe with three columns, named: term, PoS, and sense.}
@@ -12,7 +18,17 @@ Full_Expand(datax, antonym = T, syns = F)
 \item{antonym}{Obtain antonyms? Default is TRUE.}
 
 \item{syns}{return synsets? Default is FALSE. IF FALSE, returns words.}
+
+\item{max_hypo_depth}{Maximum hyponym recursion depth, passed through to
+\code{\link[=get_Hypos]{get_Hypos()}}. Default \code{Inf} (expand until natural termination, bounded
+by the visited-set deduplication inside \code{get_Hypos}). Set to a finite
+integer (e.g., 6) to cap worst-case runtime when expanding seed lists
+that may contain very general nouns.}
+
+\item{verbose}{If TRUE, prints per-level progress from the hyponym
+expansion step. Default FALSE.}
 }
 \description{
-Gets see also, similar, attributes, hyponyms, antonyms, derivationally related forms, to expand a list of seed words.
+Gets see also, similar, attributes, hyponyms, antonyms, derivationally
+related forms, to expand a list of seed words.
 }
