@@ -1,23 +1,31 @@
 #' @title Wordnet part meronyms retriever
 #'
-#' @description Gets part meronyms for a term's synset
-#' @param synsets synsets to obtain part meronyms for
-#' @param Syns Return the synsets? Defaults to TRUE. If FALSE, returns the various words that make up the synsets.
+#' @description Gets part meronyms for a term's synset.
+#' @param synsets synsets to obtain part meronyms for. May be a single synset
+#'   or a list of synsets.
+#' @param Syns Return the synsets? Defaults to TRUE. If FALSE, returns the
+#'   various words that make up the synsets.
 #' @return part meronyms of the words
 #' @export get_part_meronyms
 
 
-get_part_meronyms = function(synsets, Syns=T){
+get_part_meronyms = function(synsets, Syns = TRUE){
   tryCatch({
-    if(length(synsets)==1){
-      result = wordnet::getRelatedSynsets(synsets, pointerSymbol = "#p")}
-    else{
-      result = sapply(synsets,getRelatedSynsets, pointerSymbol = "#p")}
-    if(Syns == F){
-      return(sapply(unlist(result),getWord))}
-    else{
-      return(unlist(result))}},
-    error = function(s){
-      message(paste0("ERROR in get_part_meronyms"))
-      return(NA)})
+    if (length(synsets) == 0L) {
+      return(if (isFALSE(Syns)) character(0) else list())
+    }
+    syn_list <- if (is.list(synsets)) synsets else list(synsets)
+    result <- unlist(lapply(syn_list, function(s) {
+      tryCatch(wordnet::getRelatedSynsets(s, pointerSymbol = "#p"),
+               error = function(e) list())
+    }))
+    if (isFALSE(Syns)) {
+      return(unlist(lapply(result, wordnet::getWord)))
+    }
+    result
+  },
+  error = function(e) {
+    message("ERROR in get_part_meronyms: ", conditionMessage(e))
+    NA
+  })
 }
