@@ -1,8 +1,49 @@
-# SADCAT NEWS
+# SADCAT 2.0.0
 
-## SADCAT 0.2.0 (development)
+## Data corrections (breaking)
 
-### New features
+* Full consistency repair of the dictionary datasets
+  (`All.steps_Dictionaries`, `All.steps_Dictionaries_FT`, `Spanishdicts`,
+  `Sentiments`):
+  * Direction columns now contain only -1, 0, +1, or NA. Two corrupted "2"
+    codings were repaired ("accepting" is +1 on Morality and Warmth; the
+    censorial/censoring/censorship family is -1 on both), along with their
+    corrupted SentiWordNet/AFINN valence cells.
+  * Membership and direction are now consistent everywhere: a word has a
+    direction if and only if it is a member of that directional dimension.
+    97 Politics/Religion membership flags were added for manually added words
+    that carried directions; roughly 150 member words with missing directions
+    were manually coded; stray directions on non-member words were removed.
+  * `_dict_hi` / `_dict_lo` columns rebuilt as membership plus direction
+    (+1 / -1). About 1,400 word-dimension pairs from the manually added
+    vocabulary now contribute to pipeline direction scoring, so direction
+    scores will shift relative to earlier versions.
+  * `Val` recomputed from its component columns; `_dict_Pos` / `_dict_Neg`
+    recomputed as membership crossed with the sign of `Val`.
+  * 38 duplicated `All.steps_Dictionaries` rows merged; value columns cleaned
+    (stray strings, trailing spaces, TRUE/FALSE casing, `values2`/`values3`
+    normalized to the documented recipe).
+  * Dimension hierarchy enforced: Sociability or Morality membership implies
+    Warmth membership; Ability or Assertiveness membership implies Competence
+    membership.
+* Removed legacy columns `Beliefs_dict_ABC*`, `work_dir_dummy`, and
+  `beliefsother_dir_dummy` from all datasets.
+* `Dictionaries` and `Dictionaries_FT` are no longer shipped as package data.
+  `Dictionaries` was stale relative to `All.steps_Dictionaries` (it lacked
+  about 1,100 stems, including all manually added vocabulary). Both files
+  remain available unchanged in `archived-data/` on GitHub.
+* Removed `Code_words()` and `Code_single()`, the legacy word-coding API built
+  on the archived `Dictionaries` data. Use the current pipeline
+  (`preprocess_text()`, `score_valence()`, `match_dictionaries()`) instead.
+  `Full_preprocess()` now uses `All.steps_Dictionaries$values3` as its
+  spellcheck wordlist.
+* Documentation updated to the actual column set of `All.steps_Dictionaries`
+  (`tv`, `values`, `values2`, `values3`).
+* Please cite this data-corrected release as SADCAT 2.0.0.
+
+# SADCAT 0.2.0 (development)
+
+## New features
 
 * **`score_valence()` adds three new dictionaries by default**: SentiWordNet,
   Warriner et al. (2013) affective norms, and the Jockers/Rinker lexicon are
@@ -39,7 +80,7 @@
   and increased coverage of previously-no-match responses (≈22% rescue at
   default thresholds on a 47.8k-row human-response corpus).
 
-### Data
+## Data
 
 * New bundled datasets `Warriner_norms` and `Jockers_norms` (see
   `data-raw/build_warriner_jockers.R` for the build recipe; Warriner data
@@ -47,7 +88,7 @@
   redistributed under Springer's free supplementary terms; Jockers/Rinker
   is sourced from the MIT-licensed `lexicon` R package).
 
-### Bug fixes
+## Bug fixes
 
 * **`singularize2()` now actually singularizes -es plurals**: a stray
   `if (stringr::str_detect(word, "es$")) return(word)` early-return made the
@@ -92,7 +133,7 @@
   an explicit n/a variant (`"n/a"`, `"N/A"`, `"n.a."`, `"#N/A"`, etc.) and
   returns the canonical `"na"` placeholder.
 
-### Breaking changes
+## Breaking changes
 
 * **Global valence rename**: `score_valence()` now outputs `ValenceYesNA`
   instead of `Valence`. `ValenceNoNA` is unchanged. Downstream code that reads
@@ -118,7 +159,7 @@
   from `"Valence"` to `"ValenceYesNA"` to match the renamed output of
   `score_valence()`. Callers that pass the old default explicitly must update.
 
-### Migration guide
+## Migration guide
 
 ```r
 # Old

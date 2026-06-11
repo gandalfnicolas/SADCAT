@@ -4,16 +4,18 @@
 \alias{get_derivrelto}
 \title{Wordnet derivationally related terms retriever}
 \usage{
-get_derivrelto(synsets, Syns = T)
+get_derivrelto(synsets, Syns = TRUE)
 }
 \arguments{
-\item{synsets}{synsets to obtain part meronyms for}
+\item{synsets}{synsets to obtain derivationally related forms for. May be a
+single synset or a list of synsets.}
 
-\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the various words that make up the synsets.}
+\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the
+various words that make up the synsets.}
 }
 \value{
 derivetally related forms of words
 }
 \description{
-Gets derivationally related forms for a term's synset
+Gets derivationally related forms for a term's synset.
 }

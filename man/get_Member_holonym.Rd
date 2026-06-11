@@ -4,16 +4,18 @@
 \alias{get_Member_holonym}
 \title{Wordnet member holonym retriever}
 \usage{
-get_Member_holonym(synsets, Syns = T)
+get_Member_holonym(synsets, Syns = TRUE)
 }
 \arguments{
-\item{synsets}{synsets to obtain member holonyms  for}
+\item{synsets}{synsets to obtain member holonyms for. May be a single
+synset or a list of synsets.}
 
-\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the various words that make up the synsets.}
+\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the
+various words that make up the synsets.}
 }
 \value{
 member holonyms of the words
 }
 \description{
-Gets member holonyms for a term's synset
+Gets member holonyms for a term's synset.
 }

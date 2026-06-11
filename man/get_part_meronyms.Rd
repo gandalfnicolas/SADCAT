@@ -4,16 +4,18 @@
 \alias{get_part_meronyms}
 \title{Wordnet part meronyms retriever}
 \usage{
-get_part_meronyms(synsets, Syns = T)
+get_part_meronyms(synsets, Syns = TRUE)
 }
 \arguments{
-\item{synsets}{synsets to obtain part meronyms for}
+\item{synsets}{synsets to obtain part meronyms for. May be a single synset
+or a list of synsets.}
 
-\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the various words that make up the synsets.}
+\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the
+various words that make up the synsets.}
 }
 \value{
 part meronyms of the words
 }
 \description{
-Gets part meronyms for a term's synset
+Gets part meronyms for a term's synset.
 }

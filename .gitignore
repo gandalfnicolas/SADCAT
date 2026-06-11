@@ -13,3 +13,5 @@ inst/doc
 *.Rcheck/
 ..Rcheck/
 nul
+.claude/settings.local.json
+Claude temporary files/

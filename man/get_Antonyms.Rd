@@ -4,16 +4,18 @@
 \alias{get_Antonyms}
 \title{Wordnet antonym retriever}
 \usage{
-get_Antonyms(synsets, Syns = T)
+get_Antonyms(synsets, Syns = TRUE)
 }
 \arguments{
-\item{synsets}{synsets to obtain antonyms for}
+\item{synsets}{synsets to obtain antonyms for. May be a single synset or a
+list of synsets.}
 
-\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the various words that make up the synsets.}
+\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the
+various words that make up the synsets.}
 }
 \value{
 antonym expansion
 }
 \description{
-Gets antonyms for nouns or adjectives of a term's synset
+Gets antonyms for nouns or adjectives of a term's synset.
 }

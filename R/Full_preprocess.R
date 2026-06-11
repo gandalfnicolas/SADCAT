@@ -32,7 +32,7 @@ Full_preprocess = function(words, parallelize = T, print =T, debug=F, treetagger
     })
   }
   res = sapply(res,delete_ending_Ss)
-  res = mapply(Spellcheck,raw = words, cleaned = res, MoreArgs = list(rawlist = words, dict_cleaned= SADCAT::Dictionaries$word))
+  res = mapply(Spellcheck,raw = words, cleaned = res, MoreArgs = list(rawlist = words, dict_cleaned= unique(SADCAT::All.steps_Dictionaries$values3)))
   res = as.character(res)
   res = sapply(res,tolower)
   res = sapply(res,trimws) #removes whitespace

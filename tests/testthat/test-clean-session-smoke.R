@@ -59,16 +59,6 @@ test_that("every exported function has a clean-session smoke case", {
           out <- Code_sent(data.frame(rawword = "warm", word = "warm", stringsAsFactors = FALSE))
           stopifnot(is.data.frame(out))
         },
-        Code_single = function() {
-          out <- Code_single(data.frame(word = "warm", stringsAsFactors = FALSE), text = "word")
-          stopifnot(is.data.frame(out))
-        },
-        Code_words = function() {
-          with_treetagger(function() {
-            out <- Code_words(data.frame(word = "warm", stringsAsFactors = FALSE), text = "word", more2na = FALSE, parallelize = FALSE, print = FALSE)
-            stopifnot(is.data.frame(out))
-          })
-        },
         Cohens_d_EMmeans = function() {
           if (!suggest_ready(c("emmeans", "multcomp", "lme4"))) {
             return(skip_case("emmeans/multcomp/lme4 not installed"))
@@ -99,7 +89,7 @@ test_that("every exported function has a clean-session smoke case", {
           })
         },
         Spellcheck = function() {
-          out <- Spellcheck("warm", "warm", SADCAT::Dictionaries$word, c("warm"))
+          out <- Spellcheck("warm", "warm", unique(SADCAT::All.steps_Dictionaries$values3), c("warm"))
           stopifnot(is.character(out), length(out) == 1)
         },
         Spellcheck2 = function() {

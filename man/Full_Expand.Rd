@@ -20,10 +20,10 @@ Full_Expand(
 \item{syns}{return synsets? Default is FALSE. IF FALSE, returns words.}
 
 \item{max_hypo_depth}{Maximum hyponym recursion depth, passed through to
-\code{\link[=get_Hypos]{get_Hypos()}}. Default \code{Inf} (expand until natural termination, bounded
-by the visited-set deduplication inside \code{get_Hypos}). Set to a finite
-integer (e.g., 6) to cap worst-case runtime when expanding seed lists
-that may contain very general nouns.}
+\code{\link{get_Hypos}}. Default \code{Inf} (expand until natural
+termination, bounded by the visited-set deduplication inside
+\code{get_Hypos}). Set to a finite integer (e.g., 6) to cap worst-case
+runtime when expanding seed lists that may contain very general nouns.}
 
 \item{verbose}{If TRUE, prints per-level progress from the hyponym
 expansion step. Default FALSE.}
