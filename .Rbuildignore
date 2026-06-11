@@ -20,3 +20,4 @@
 ^\.{2}Rcheck$
 ^nul$
 ^archived-data$
+^Claude temporary files
