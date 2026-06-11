@@ -1,0 +1,90 @@
+# Compute Sentence Embeddings
+
+Compute sentence embeddings using SBERT and/or Gemini via reticulate.
+Generates embeddings for unique text values and joins them back to the
+data. SBERT uses the sentence-transformers Python library; Gemini uses
+the Google genai Python library with batched API calls and rate
+limiting.
+
+## Usage
+
+``` r
+compute_embeddings(
+  data,
+  text_col = "tv",
+  methods = c("sbert"),
+  sbert_model = "paraphrase-mpnet-base-v2",
+  sbert_dims = 768L,
+  gemini_api_key = NULL,
+  gemini_model = "gemini-embedding-exp-03-07",
+  gemini_dims = 2000L,
+  gemini_batch_size = 10L,
+  gemini_sleep = 63,
+  gemini_task_type = "SEMANTIC_SIMILARITY",
+  response_col = NULL,
+  verbose = TRUE
+)
+```
+
+## Arguments
+
+- data:
+
+  A data.frame with a text column
+
+- text_col:
+
+  Column containing text to encode (default "tv")
+
+- methods:
+
+  Character vector: one or both of "sbert" and "gemini" (default
+  "sbert")
+
+- sbert_model:
+
+  SBERT model name (default "paraphrase-mpnet-base-v2")
+
+- sbert_dims:
+
+  Number of dimensions in SBERT output (default 768)
+
+- gemini_api_key:
+
+  Gemini API key. If NULL, reads from Sys.getenv("GEMINI_API_KEY")
+
+- gemini_model:
+
+  Gemini model name (default "gemini-embedding-exp-03-07")
+
+- gemini_dims:
+
+  Embedding dimensionality for Gemini (default 2000) Gemini docs
+  indicate 3072-d outputs are already normalized; when the returned
+  dimensionality is not 3072, SADCAT applies L2 normalization.
+
+- gemini_batch_size:
+
+  Batch size for Gemini API calls (default 10)
+
+- gemini_sleep:
+
+  Seconds to sleep between Gemini batches (default 63)
+
+- gemini_task_type:
+
+  Gemini task type (default "SEMANTIC_SIMILARITY")
+
+- response_col:
+
+  Column used for NA-gating (default: same as text_col). Only needed if
+  your NA-indicator column differs from text_col.
+
+- verbose:
+
+  Print progress? (default TRUE)
+
+## Value
+
+The input data with embedding columns appended (SBERT_1:SBERT_N and/or
+Gemini_1:Gemini_N)

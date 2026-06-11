@@ -1,0 +1,217 @@
+# Pipeline Usage Guide
+
+This guide shows how to process text responses through the SADCAT
+pipeline, either as a single call or stage-by-stage for full control
+over each step.
+
+## Setup
+
+``` r
+
+library(SADCAT)
+```
+
+## Input data format
+
+Your data should be a data.frame with at least one text column
+containing the raw responses. Additional columns (e.g., grouping
+variables) are preserved through the pipeline.
+
+``` r
+
+dat <- data.frame(
+  responsex = c("warm and friendly", "cold and rde", "smart worker", NA),
+  Target = c("A", "A", "B", "B"),
+  Participant = c("1", "2", "3", "4"),
+  stringsAsFactors = FALSE
+)
+```
+
+Coding stages: `"preprocess"`, `"valence"`, `"dictionaries"`,
+`"socats"`, `"embeddings"`, `"seeds"`, `"aggregate"`.
+
+### Stage 1: Preprocess text
+
+Cleans and normalizes text responses. Produces three text columns:
+
+- **`tv`**: lowercased text (used for valence scoring)
+- **`tv2`**: spell-checked text
+- **`tv3`**: singularized text (used for dictionary matching)
+
+Two spell-checking methods are available via the `spellcheck_method`
+parameter:
+
+- **`"hunspell"`** (default): Uses Java + WordNet + hunspell.
+  Suggestions are ranked by edit distance, with bigram context as a
+  tiebreaker when the corpus has 50+ unique values. Auto-detects Java
+  and WordNet paths across macOS/Linux/Windows. If auto-detection fails,
+  set explicit `java_home` / `wordnet_dict` arguments or environment
+  variables (`JAVA_HOME`, `SADCAT_WORDNET_DICT`).
+- **`"gemini"`**: **RECOMMENDED SPELL-CHECKING METHOD**. Uses the Gemini
+  LLM for context-aware correction. Sends full responses (not individual
+  words) so the model can use surrounding context. Requires a Gemini API
+  key via `gemini_spellcheck_key` or the `GEMINI_API_KEY` environment
+  variable. May require updating the model, check:
+  <https://ai.google.dev/gemini-api/docs/models>. You can also provide a
+  custom context prompt via `gemini_spellcheck_context` to give the
+  model more information about the domain of your text data. The default
+  prompt describes the text as short responses describing a social
+  target.
+
+``` r
+
+dat <- preprocess_text(
+  dat,
+  text_col = "responsex",
+  spellcheck = TRUE,                     # TRUE enables spell-checking
+  spellcheck_method = "gemini",         # "hunspell" (default) or "gemini"
+  singularize = TRUE,
+  java_home = NULL,                       # optional; used for hunspell only
+  wordnet_dict = NULL,                    # optional; used for hunspell only
+  gemini_spellcheck_key = NULL,           # optional; used for gemini only
+  gemini_spellcheck_model = "gemini-3.1-flash-lite-preview",
+  gemini_spellcheck_context = NULL,       # optional custom Gemini prompt
+  verbose = TRUE
+)
+
+# Inspect: what did preprocessing change?
+dat[, c("responsex", "tv", "tv2", "tv3")]
+```
+
+### Stage 2: Score valence
+
+Scores each response against 5 sentiment dictionaries
+(Lexicoder/LSD2015, NRC, Bing, AFINN, Loughran). Produces per-dictionary
+scores and combined scores with negation handling.
+
+**Key output columns:**
+
+- **`ValenceYesNA`**: Combined valence. Mean of negation-aware scores
+  across the 5 dictionaries. NA when no dictionary matched any sentiment
+  words. Negation is applied once to this combined score.
+- **`ValenceNoNA`**: Same as `ValenceYesNA`, but 0 instead of NA.
+
+``` r
+
+dat <- score_valence(
+  dat,
+  text_col = "tv2",             # recommend using "tv2" for human participants
+  response_col = "responsex"    # NA-gating column; NULL defaults to text_col
+)
+
+# Inspect valence
+dat[, c("responsex", "Val_lexicoder", "Val_NRC", "Val_bing", "Val_affin", "Val_loughran", "ValenceYesNA", "ValenceNoNA")]
+```
+
+### Stage 3: Match SADCAT dictionaries
+
+Matches text against the SADCAT stereotype content dictionaries and
+computes binary indicators, percentages, direction scores, and
+per-dimension valence.
+
+**Key output columns (per dimension, e.g., Warmth, Competence, Morality,
+…):**
+
+- `{Dim}_prevalence`: 1 if any match, 0 if none, NA if response missing
+- `{Dim}_Valence` *(default for downstream means)*: NA if dimension
+  absent; otherwise the global `ValenceNoNA` (0 for sentiment-less
+  tagged responses, signed value otherwise). Use `mean(., na.rm = TRUE)`
+  to average over tagged responses where sentiment-less ones contribute
+  0 (neutral).
+- `{Dim}_valenceStrictNA`: NA if dimension absent **or** `ValenceYesNA`
+  is NA. Strictly NA-gated on both axes.
+- `{Dim}_valenceNoNA`: 0 if dimension absent or no sentiment matched; NA
+  only if response is missing.
+- `{Dim}_direction` (directional dimensions only): hi-lo direction, NA
+  when not applicable
+- `{Dim}_directionNoNA` (directional dimensions only): same as
+  `{Dim}_direction`, but 0 if dimension absent (still NA if response
+  missing)
+- `NoMatch`: 1 if no SADCAT dimension matched at all (NA if response
+  missing)
+- Note: Warmth = Sociability + Morality; Competence = Ability +
+  Assertiveness. Beauty is a subdimension of Appearance. Words may fall
+  into multiple dictionaries.
+
+``` r
+
+dat <- match_dictionaries(
+  dat,
+  text_col = "tv3",
+  response_col = "responsex",   # NA-gating column; NULL defaults to text_col
+  valence_col = "ValenceYesNA",
+  valence_nona_col = "ValenceNoNA",
+  sadcat_dict = NULL,           # NULL auto-loads SADCAT dictionaries
+  socats_dict = NULL,           # NULL auto-loads SOCATS only if socats = TRUE
+  socats = TRUE                 # include Social categories dictionaries as well (optional; default FALSE)
+)
+
+# Inspect dimension-level results
+View(dat)
+
+#Inspect top 20 words matching each dimension (for sanity check and to understand what the dictionaries are capturing)
+get_top_dictionary_matches(dat, text_col = "tv3", top_n = 20)
+```
+
+### Stage 4 (optional): Compute embeddings
+
+Generates sentence embeddings via SBERT and/or Gemini. Requires Python
+via reticulate.
+
+``` r
+
+dat <- compute_embeddings(
+  dat,
+  text_col = "tv",
+  response_col = "responsex",   # NA-gating column; NULL defaults to text_col
+  methods = c("sbert", "gemini"),           # or "sbert" if gemini not set up
+  sbert_model = "paraphrase-mpnet-base-v2",
+  sbert_dims = 768L,
+  gemini_api_key = NULL,       # required only when methods includes "gemini" and key not set via env var
+  gemini_model = "gemini-embedding-001",
+  gemini_dims = 768L,
+  gemini_batch_size = 10L,
+  gemini_sleep = 63,
+  gemini_task_type = "SEMANTIC_SIMILARITY",
+  verbose = TRUE
+)
+```
+
+### Stage 5 (optional): Compute seed similarities
+
+Computes correlation (or cosine similarity) between response embeddings
+and SADCAT seed vectors. Requires embeddings from Stage 4.
+
+``` r
+
+dat <- compute_seed_similarities(
+  dat,
+  embedding_prefix = c("SBERT", "Gemini"),  # or only one model, based on stage 4 decisions
+  seed_vectors = Seed_Vectors_Avg,
+  method = "correlation",      # or "cosine"
+  response_col = "responsex",  # NA-gating column
+  verbose = TRUE
+)
+```
+
+### Stage 6: Aggregate responses
+
+Aggregates response-level data to group-level, using sum, mean, and
+distinct operations. Auto-detects standard columns by naming patterns.
+
+``` r
+
+agg <- aggregate_responses(
+  dat,
+  group_cols = c("Participant", "Target"),
+  sum_cols = NULL,             # NULL = auto-detect
+  mean_cols = NULL,            # NULL = auto-detect
+  distinct_cols = NULL,        # NULL = auto-detect
+  extra_sum_cols = NULL,
+  extra_mean_cols = NULL,
+  extra_distinct_cols = NULL,
+  verbose = TRUE
+)
+
+View(agg)
+```

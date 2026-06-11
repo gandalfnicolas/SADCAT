@@ -1,0 +1,11 @@
+url: https://gandalfnicolas.github.io/SADCAT/
+
+template:
+  bootstrap: 5
+
+articles:
+- title: Guides
+  navbar: ~
+  contents:
+  - Pipeline_Usage_Guide
+  - Dictionary_Creation_Example_Guide

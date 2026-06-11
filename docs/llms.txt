@@ -1,0 +1,124 @@
+# SADCAT
+
+To install (using R):
+
+install.packages(“devtools”)
+
+library(devtools)
+
+install_github(“gandalfnicolas/SADCAT”)
+
+library(SADCAT)
+
+See articles/vignettes
+
+# Package index
+
+## All functions
+
+- [`aggregate_responses()`](https://gandalfnicolas.github.io/SADCAT/reference/aggregate_responses.md)
+  : Aggregate Responses
+- [`All.steps_Dictionaries`](https://gandalfnicolas.github.io/SADCAT/reference/All.steps_Dictionaries.md)
+  : Unprocessed Full dictionary codings
+- [`All.steps_Dictionaries_FT`](https://gandalfnicolas.github.io/SADCAT/reference/All.steps_Dictionaries_FT.md)
+  : Unprocessed Full dictionary codings shortened with Fasttext
+- [`cldtable()`](https://gandalfnicolas.github.io/SADCAT/reference/cldtable.md)
+  : Compact Letter Display Table
+- [`clean_large_text()`](https://gandalfnicolas.github.io/SADCAT/reference/clean_large_text.md)
+  : Clean Large Text
+- [`clean_naresponses()`](https://gandalfnicolas.github.io/SADCAT/reference/clean_naresponses.md)
+  : Clean na responses
+- [`clean_symbols()`](https://gandalfnicolas.github.io/SADCAT/reference/clean_symbols.md)
+  : Remove symbols
+- [`Code_sent()`](https://gandalfnicolas.github.io/SADCAT/reference/Code_sent.md)
+  : Code single-word responses into dictionaries and sentiment
+- [`Code_single()`](https://gandalfnicolas.github.io/SADCAT/reference/Code_single.md)
+  : Code single-word responses
+- [`Code_words()`](https://gandalfnicolas.github.io/SADCAT/reference/Code_words.md)
+  : Code single-word unprocessed responses
+- [`Cohens_d_EMmeans()`](https://gandalfnicolas.github.io/SADCAT/reference/Cohens_d_EMmeans.md)
+  : Cohen's d from Emmeans
+- [`compute_embeddings()`](https://gandalfnicolas.github.io/SADCAT/reference/compute_embeddings.md)
+  : Compute Sentence Embeddings
+- [`compute_seed_similarities()`](https://gandalfnicolas.github.io/SADCAT/reference/compute_seed_similarities.md)
+  : Compute Seed Similarities
+- [`cosinize()`](https://gandalfnicolas.github.io/SADCAT/reference/cosinize.md)
+  : Cosine Similarity Computation
+- [`delete_ending_Ss()`](https://gandalfnicolas.github.io/SADCAT/reference/delete_ending_Ss.md)
+  : Singular transform
+- [`Dictionaries`](https://gandalfnicolas.github.io/SADCAT/reference/Dictionaries.md)
+  : Full dictionary codings
+- [`Dictionaries_FT`](https://gandalfnicolas.github.io/SADCAT/reference/Dictionaries_FT.md)
+  : Full dictionary codings shortened with fasttext
+- [`euclideanize()`](https://gandalfnicolas.github.io/SADCAT/reference/euclideanize.md)
+  : Euclidean Distance Computation
+- [`Full_Expand()`](https://gandalfnicolas.github.io/SADCAT/reference/Full_Expand.md)
+  : Full Wordnet Expansion
+- [`Full_preprocess()`](https://gandalfnicolas.github.io/SADCAT/reference/Full_preprocess.md)
+  : Full preprocess
+- [`Full_Vectors_Avg`](https://gandalfnicolas.github.io/SADCAT/reference/Full_Vectors_Avg.md)
+  : Average Word embeddings for expanded dictionaries
+- [`get_Adj_Expansion()`](https://gandalfnicolas.github.io/SADCAT/reference/get_Adj_Expansion.md)
+  : Wordnet adjective expansion
+- [`get_Antonyms()`](https://gandalfnicolas.github.io/SADCAT/reference/get_Antonyms.md)
+  : Wordnet antonym retriever
+- [`get_derivrelto()`](https://gandalfnicolas.github.io/SADCAT/reference/get_derivrelto.md)
+  : Wordnet derivationally related terms retriever
+- [`get_Hypos()`](https://gandalfnicolas.github.io/SADCAT/reference/get_Hypos.md)
+  : Wordnet hyponym retriever
+- [`get_Member_holonym()`](https://gandalfnicolas.github.io/SADCAT/reference/get_Member_holonym.md)
+  : Wordnet member holonym retriever
+- [`get_Part_holonym()`](https://gandalfnicolas.github.io/SADCAT/reference/get_Part_holonym.md)
+  : Wordnet part holonym retriever
+- [`get_part_meronyms()`](https://gandalfnicolas.github.io/SADCAT/reference/get_part_meronyms.md)
+  : Wordnet part meronyms retriever
+- [`get_Syns()`](https://gandalfnicolas.github.io/SADCAT/reference/get_Syns.md)
+  : Wordnet Synset retriever
+- [`get_top_dictionary_matches()`](https://gandalfnicolas.github.io/SADCAT/reference/get_top_dictionary_matches.md)
+  : Get Top SADCAT Dictionary Matches
+- [`Jockers_norms`](https://gandalfnicolas.github.io/SADCAT/reference/Jockers_norms.md)
+  : Jockers/Rinker sentiment lexicon
+- [`Lemmatize()`](https://gandalfnicolas.github.io/SADCAT/reference/Lemmatize.md)
+  : Lemmatizer
+- [`match_dictionaries()`](https://gandalfnicolas.github.io/SADCAT/reference/match_dictionaries.md)
+  : Match Text Against SADCAT and/or SOCATS Dictionaries
+- [`Obituary_data`](https://gandalfnicolas.github.io/SADCAT/reference/Obituary_data.md)
+  : Example obituary data for text coding
+- [`prepare_sadcat_dictionaries()`](https://gandalfnicolas.github.io/SADCAT/reference/prepare_sadcat_dictionaries.md)
+  : Prepare SADCAT Dictionaries for Quanteda Matching
+- [`prepare_socats_dictionaries()`](https://gandalfnicolas.github.io/SADCAT/reference/prepare_socats_dictionaries.md)
+  : Prepare SOCATS Dictionaries for Quanteda Matching
+- [`preprocess_text()`](https://gandalfnicolas.github.io/SADCAT/reference/preprocess_text.md)
+  : Preprocess Text Responses
+- [`process_responses()`](https://gandalfnicolas.github.io/SADCAT/reference/process_responses.md)
+  : Run the Full SADCAT Pipeline
+- [`score_valence()`](https://gandalfnicolas.github.io/SADCAT/reference/score_valence.md)
+  : Score Text Valence
+- [`Seed_Vectors_allwords_Avg`](https://gandalfnicolas.github.io/SADCAT/reference/Seed_Vectors_allwords_Avg.md)
+  : Average word embeddings for seed dictionaries (all words)
+- [`Seed_Vectors_Avg`](https://gandalfnicolas.github.io/SADCAT/reference/Seed_Vectors_Avg.md)
+  : Average Word embeddings for seed dictionaries
+- [`Seed_Vectors_personcontext_Avg`](https://gandalfnicolas.github.io/SADCAT/reference/Seed_Vectors_personcontext_Avg.md)
+  : Average word embeddings for seed dictionaries (person context)
+- [`Sentiments`](https://gandalfnicolas.github.io/SADCAT/reference/Sentiments.md)
+  : Sentiment lexicon data
+- [`singularize2()`](https://gandalfnicolas.github.io/SADCAT/reference/singularize2.md)
+  : Singularize a Word
+- [`SOCATS_Dictionaries`](https://gandalfnicolas.github.io/SADCAT/reference/SOCATS_Dictionaries.md)
+  : Raw SOCATS social category dictionary
+- [`Spanishdicts`](https://gandalfnicolas.github.io/SADCAT/reference/Spanishdicts.md)
+  : Full spanish dictionaries
+- [`Spellcheck()`](https://gandalfnicolas.github.io/SADCAT/reference/Spellcheck.md)
+  : Spellchecker
+- [`Spellcheck2()`](https://gandalfnicolas.github.io/SADCAT/reference/Spellcheck2.md)
+  : Spell-check Text with SADCAT Dictionary
+- [`Warriner_norms`](https://gandalfnicolas.github.io/SADCAT/reference/Warriner_norms.md)
+  : Warriner et al. (2013) affective valence norms
+
+# Articles
+
+### Guides
+
+- [Pipeline Usage
+  Guide](https://gandalfnicolas.github.io/SADCAT/articles/Pipeline_Usage_Guide.md):
+- [Dictionary_Creation_Example_Guide](https://gandalfnicolas.github.io/SADCAT/articles/Dictionary_Creation_Example_Guide.md):
