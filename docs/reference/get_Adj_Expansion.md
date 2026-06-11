@@ -1,18 +1,20 @@
 # Wordnet adjective expansion
 
-Gets see also, similar, and attribute for Adjectives
+Gets see also, similar, and attribute related synsets/words for
+adjectives.
 
 ## Usage
 
 ``` r
-get_Adj_Expansion(synsets, Syns = T)
+get_Adj_Expansion(synsets, Syns = TRUE)
 ```
 
 ## Arguments
 
 - synsets:
 
-  synsets to obtain part meronyms for
+  synsets to obtain the expansion for. May be a single synset or a list
+  of synsets.
 
 - Syns:
 

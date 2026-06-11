@@ -1,18 +1,19 @@
 # Wordnet derivationally related terms retriever
 
-Gets derivationally related forms for a term's synset
+Gets derivationally related forms for a term's synset.
 
 ## Usage
 
 ``` r
-get_derivrelto(synsets, Syns = T)
+get_derivrelto(synsets, Syns = TRUE)
 ```
 
 ## Arguments
 
 - synsets:
 
-  synsets to obtain part meronyms for
+  synsets to obtain derivationally related forms for. May be a single
+  synset or a list of synsets.
 
 - Syns:
 

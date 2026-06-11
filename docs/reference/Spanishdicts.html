@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SADCAT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,7 @@
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
     <p>A data frame. Key column groups:</p><ul><li><p><code>Palabra</code>: Spanish word, not stemmed but some preprocessing (no symbols, spaces, accents)</p></li>
 <li><p><code>Palabra_stem</code>: Stemmed version of Palabra</p></li>
-<li><p><code>values</code>, <code>values0</code>-<code>values3</code>: Words at different preprocessing stages</p></li>
+<li><p><code>values1</code>-<code>values3</code>: Words at different preprocessing stages</p></li>
 <li><p>Columns ending in <code>_dict</code>: Binary (0/1) dictionary membership. With <code>_lo</code>/<code>_hi</code> suffixes for low/high variants</p></li>
 <li><p>Columns ending in <code>_dir</code>: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary</p></li>
 <li><p><code>fasttext.*</code>: Fasttext word embedding dimensions (Common Crawl)</p></li>

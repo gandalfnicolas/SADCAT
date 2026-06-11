@@ -32,7 +32,7 @@ Full_Expand(
 - max_hypo_depth:
 
   Maximum hyponym recursion depth, passed through to
-  [`get_Hypos()`](https://gandalfnicolas.github.io/SADCAT/reference/get_Hypos.md).
+  [`get_Hypos`](https://gandalfnicolas.github.io/SADCAT/reference/get_Hypos.md).
   Default `Inf` (expand until natural termination, bounded by the
   visited-set deduplication inside `get_Hypos`). Set to a finite integer
   (e.g., 6) to cap worst-case runtime when expanding seed lists that may

@@ -2,12 +2,12 @@
 
 To install (using R):
 
-install.packages(“devtools”)
+``` r
 
+install.packages("devtools")
 library(devtools)
-
-install_github(“gandalfnicolas/SADCAT”)
-
+install_github("gandalfnicolas/SADCAT")
 library(SADCAT)
+```
 
 See articles/vignettes

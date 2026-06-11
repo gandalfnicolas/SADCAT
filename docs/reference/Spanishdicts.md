@@ -18,7 +18,7 @@ A data frame. Key column groups:
 
 - `Palabra_stem`: Stemmed version of Palabra
 
-- `values`, `values0`-`values3`: Words at different preprocessing stages
+- `values1`-`values3`: Words at different preprocessing stages
 
 - Columns ending in `_dict`: Binary (0/1) dictionary membership. With
   `_lo`/`_hi` suffixes for low/high variants

@@ -1,18 +1,19 @@
 # Wordnet antonym retriever
 
-Gets antonyms for nouns or adjectives of a term's synset
+Gets antonyms for nouns or adjectives of a term's synset.
 
 ## Usage
 
 ``` r
-get_Antonyms(synsets, Syns = T)
+get_Antonyms(synsets, Syns = TRUE)
 ```
 
 ## Arguments
 
 - synsets:
 
-  synsets to obtain antonyms for
+  synsets to obtain antonyms for. May be a single synset or a list of
+  synsets.
 
 - Syns:
 

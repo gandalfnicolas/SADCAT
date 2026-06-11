@@ -1,18 +1,19 @@
 # Wordnet part holonym retriever
 
-Gets part holonyms for a term's synset
+Gets part holonyms for a term's synset.
 
 ## Usage
 
 ``` r
-get_Part_holonym(synsets, Syns = T)
+get_Part_holonym(synsets, Syns = TRUE)
 ```
 
 ## Arguments
 
 - synsets:
 
-  synsets to obtain part holonyms for
+  synsets to obtain part holonyms for. May be a single synset or a list
+  of synsets.
 
 - Syns:
 

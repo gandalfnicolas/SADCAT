@@ -18,10 +18,6 @@
   : Remove symbols
 - [`Code_sent()`](https://gandalfnicolas.github.io/SADCAT/reference/Code_sent.md)
   : Code single-word responses into dictionaries and sentiment
-- [`Code_single()`](https://gandalfnicolas.github.io/SADCAT/reference/Code_single.md)
-  : Code single-word responses
-- [`Code_words()`](https://gandalfnicolas.github.io/SADCAT/reference/Code_words.md)
-  : Code single-word unprocessed responses
 - [`Cohens_d_EMmeans()`](https://gandalfnicolas.github.io/SADCAT/reference/Cohens_d_EMmeans.md)
   : Cohen's d from Emmeans
 - [`compute_embeddings()`](https://gandalfnicolas.github.io/SADCAT/reference/compute_embeddings.md)
@@ -32,10 +28,6 @@
   : Cosine Similarity Computation
 - [`delete_ending_Ss()`](https://gandalfnicolas.github.io/SADCAT/reference/delete_ending_Ss.md)
   : Singular transform
-- [`Dictionaries`](https://gandalfnicolas.github.io/SADCAT/reference/Dictionaries.md)
-  : Full dictionary codings
-- [`Dictionaries_FT`](https://gandalfnicolas.github.io/SADCAT/reference/Dictionaries_FT.md)
-  : Full dictionary codings shortened with fasttext
 - [`euclideanize()`](https://gandalfnicolas.github.io/SADCAT/reference/euclideanize.md)
   : Euclidean Distance Computation
 - [`Full_Expand()`](https://gandalfnicolas.github.io/SADCAT/reference/Full_Expand.md)

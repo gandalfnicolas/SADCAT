@@ -12,9 +12,18 @@ All.steps_Dictionaries
 
 ## Format
 
-A data frame with 14449 rows. Key column groups:
+A data frame with 15678 rows. Key column groups:
 
-- `values`, `values0`-`values3`: Words at different preprocessing stages
+- `tv`: Lower-cased source word; the matching pipeline derives its keys
+  from this column
+
+- `values`: Word as obtained from the literature or WordNet
+  (unprocessed)
+
+- `values2`: Lemmatized form: lower-case, no spaces or symbols
+
+- `values3`: `values2` with at most one trailing "s" stripped (not
+  necessarily real words)
 
 - Columns ending in `_dict`: Binary (0/1) dictionary membership. With
   `_lo`/`_hi` suffixes for low/high variants

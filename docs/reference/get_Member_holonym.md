@@ -1,18 +1,19 @@
 # Wordnet member holonym retriever
 
-Gets member holonyms for a term's synset
+Gets member holonyms for a term's synset.
 
 ## Usage
 
 ``` r
-get_Member_holonym(synsets, Syns = T)
+get_Member_holonym(synsets, Syns = TRUE)
 ```
 
 ## Arguments
 
 - synsets:
 
-  synsets to obtain member holonyms for
+  synsets to obtain member holonyms for. May be a single synset or a
+  list of synsets.
 
 - Syns:
 

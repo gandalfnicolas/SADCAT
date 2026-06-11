@@ -12,9 +12,9 @@ All.steps_Dictionaries_FT
 
 ## Format
 
-A data frame with 11291 rows and 1539 variables. Key column groups:
+A data frame with 11291 rows and 1533 variables. Key column groups:
 
-- `values`, `values0`-`values3`: Words at different preprocessing stages
+- `values0`-`values3`: Words at different preprocessing stages
 
 - Columns ending in `_dict`: Binary (0/1) dictionary membership. With
   `_lo`/`_hi` suffixes for low/high variants
