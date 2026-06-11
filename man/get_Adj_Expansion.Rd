@@ -4,16 +4,19 @@
 \alias{get_Adj_Expansion}
 \title{Wordnet adjective expansion}
 \usage{
-get_Adj_Expansion(synsets, Syns = T)
+get_Adj_Expansion(synsets, Syns = TRUE)
 }
 \arguments{
-\item{synsets}{synsets to obtain part meronyms for}
+\item{synsets}{synsets to obtain the expansion for. May be a single synset
+or a list of synsets.}
 
-\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the various words that make up the synsets.}
+\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the
+various words that make up the synsets.}
 }
 \value{
 adjective expansion
 }
 \description{
-Gets see also, similar, and attribute for Adjectives
+Gets see also, similar, and attribute related synsets/words
+  for adjectives.
 }

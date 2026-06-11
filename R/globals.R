@@ -6,7 +6,6 @@ utils::globalVariables(c(
   # Package data objects used as default function arguments
   "All.steps_Dictionaries",
   "Seed_Vectors_Avg",
-  "Dictionaries",
   "SOCATS_Dictionaries",
   # NSE / tidyverse column names used in new pipeline files
   ".data", "sentiment", "Val_lexicoder", "Estimate", "p.value",

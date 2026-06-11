@@ -2,9 +2,9 @@
 #'
 #' Unprocessed Full dictionary codings, shortened with Fasttext, including the vector codings. May be used for different degrees of preprocessing. (e.g., use if text too extensive to preprocess)
 #'
-#' @format A data frame with 11291 rows and 1539 variables. Key column groups:
+#' @format A data frame with 11291 rows and 1533 variables. Key column groups:
 #' \itemize{
-#'   \item \code{values}, \code{values0}-\code{values3}: Words at different preprocessing stages
+#'   \item \code{values0}-\code{values3}: Words at different preprocessing stages
 #'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
 #'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
 #'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
@@ -18,9 +18,14 @@
 #'
 #' Unprocessed Full dictionary codings, including the vector codings. May be used for different degrees of preprocessing. (e.g., use if text too extensive to preprocess)
 #'
-#' @format A data frame with 14449 rows. Key column groups:
+#' @format A data frame with 15678 rows. Key column groups:
 #' \itemize{
-#'   \item \code{values}, \code{values0}-\code{values3}: Words at different preprocessing stages
+#'   \item \code{tv}: Lower-cased source word; the matching pipeline derives its
+#'     keys from this column
+#'   \item \code{values}: Word as obtained from the literature or WordNet (unprocessed)
+#'   \item \code{values2}: Lemmatized form: lower-case, no spaces or symbols
+#'   \item \code{values3}: \code{values2} with at most one trailing "s" stripped
+#'     (not necessarily real words)
 #'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
 #'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
 #'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
@@ -29,40 +34,6 @@
 #'   \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
 #' }
 "All.steps_Dictionaries"
-
-
-#' Full dictionary codings shortened with fasttext
-#'
-#' Full dictionary codings, shortened with fasttext, including the vector codings
-#'
-#' @format A data frame with 13930 rows. Key column groups:
-#' \itemize{
-#'   \item \code{word}: A word in one or more of the dictionaries
-#'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
-#'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
-#'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
-#'   \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
-#'   \item \code{Word2vec.*}: Word2vec embedding dimensions (Google News)
-#'   \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
-#' }
-"Dictionaries_FT"
-
-
-#' Full dictionary codings
-#'
-#' Full dictionary codings, including the vector codings
-#'
-#' @format A data frame with 13930 rows. Key column groups:
-#' \itemize{
-#'   \item \code{word}: A word in one or more of the dictionaries
-#'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
-#'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
-#'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)
-#'   \item \code{Glove.*}: GloVe word embedding dimensions (Common Crawl 840B)
-#'   \item \code{Word2vec.*}: Word2vec embedding dimensions (Google News)
-#'   \item \code{USE.*}: Universal Sentence Encoder embedding dimensions
-#' }
-"Dictionaries"
 
 
 #' Average Word embeddings for expanded dictionaries
@@ -101,7 +72,7 @@
 #' \itemize{
 #'   \item \code{Palabra}: Spanish word, not stemmed but some preprocessing (no symbols, spaces, accents)
 #'   \item \code{Palabra_stem}: Stemmed version of Palabra
-#'   \item \code{values}, \code{values0}-\code{values3}: Words at different preprocessing stages
+#'   \item \code{values1}-\code{values3}: Words at different preprocessing stages
 #'   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
 #'   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
 #'   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)

@@ -5,9 +5,14 @@
 \alias{All.steps_Dictionaries}
 \title{Unprocessed Full dictionary codings}
 \format{
-A data frame with 14449 rows. Key column groups:
+A data frame with 15678 rows. Key column groups:
 \itemize{
-  \item \code{values}, \code{values0}-\code{values3}: Words at different preprocessing stages
+  \item \code{tv}: Lower-cased source word; the matching pipeline derives its
+    keys from this column
+  \item \code{values}: Word as obtained from the literature or WordNet (unprocessed)
+  \item \code{values2}: Lemmatized form: lower-case, no spaces or symbols
+  \item \code{values3}: \code{values2} with at most one trailing "s" stripped
+    (not necessarily real words)
   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)

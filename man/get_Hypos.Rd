@@ -23,8 +23,8 @@ showing the depth and number of new hyponym synsets retrieved. Default
 FALSE.}
 }
 \value{
-hyponym hierarchy (list of synsets if \code{Syns=TRUE}, otherwise the
-  words drawn from those synsets)
+hyponym hierarchy (list of synsets if \code{Syns=TRUE}, otherwise
+  the words drawn from those synsets)
 }
 \description{
 Gets the synsets/words (depending on \code{Syns}) of a term's

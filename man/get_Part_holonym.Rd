@@ -4,16 +4,18 @@
 \alias{get_Part_holonym}
 \title{Wordnet part holonym retriever}
 \usage{
-get_Part_holonym(synsets, Syns = T)
+get_Part_holonym(synsets, Syns = TRUE)
 }
 \arguments{
-\item{synsets}{synsets to obtain part holonyms for}
+\item{synsets}{synsets to obtain part holonyms for. May be a single synset
+or a list of synsets.}
 
-\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the various words that make up the synsets.}
+\item{Syns}{Return the synsets? Defaults to TRUE. If FALSE, returns the
+various words that make up the synsets.}
 }
 \value{
 part holonyms of words
 }
 \description{
-Gets part holonyms for a term's synset
+Gets part holonyms for a term's synset.
 }

@@ -9,7 +9,7 @@ A data frame. Key column groups:
 \itemize{
   \item \code{Palabra}: Spanish word, not stemmed but some preprocessing (no symbols, spaces, accents)
   \item \code{Palabra_stem}: Stemmed version of Palabra
-  \item \code{values}, \code{values0}-\code{values3}: Words at different preprocessing stages
+  \item \code{values1}-\code{values3}: Words at different preprocessing stages
   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)

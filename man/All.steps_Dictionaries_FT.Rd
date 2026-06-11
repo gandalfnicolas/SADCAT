@@ -5,9 +5,9 @@
 \alias{All.steps_Dictionaries_FT}
 \title{Unprocessed Full dictionary codings shortened with Fasttext}
 \format{
-A data frame with 11291 rows and 1539 variables. Key column groups:
+A data frame with 11291 rows and 1533 variables. Key column groups:
 \itemize{
-  \item \code{values}, \code{values0}-\code{values3}: Words at different preprocessing stages
+  \item \code{values0}-\code{values3}: Words at different preprocessing stages
   \item Columns ending in \code{_dict}: Binary (0/1) dictionary membership. With \code{_lo}/\code{_hi} suffixes for low/high variants
   \item Columns ending in \code{_dir}: Direction coding (1=high, 0=neutral, -1=low). NA if word not in dictionary
   \item \code{fasttext.*}: Fasttext word embedding dimensions (Common Crawl)

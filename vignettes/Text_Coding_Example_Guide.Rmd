@@ -46,7 +46,7 @@ library(tm)
 #install.packages("textstem")
 library(textstem)
 
-#2:  Load dictionaries: Using the most extensive dictionaries here. Switch to "SADCAT::Dictionaries_FT" for a smaller dictionary (i.e., it may miss some words related to the dimensions, but it may also make fewer coding mistakes when applying the dictionaries to domains different to the ones they were developed for originally).
+#2:  Load dictionaries: All.steps_Dictionaries is the complete, corrected dictionary dataset (as of SADCAT 2.0.0 it is the only dictionary dataset shipped with the package).
 Pre_Dictionaries = SADCAT::All.steps_Dictionaries
 
 
