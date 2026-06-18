@@ -69,6 +69,27 @@
 pipeline, either as a single call or stage-by-stage for full control
 over each step.</p>
 <div class="section level2">
+<h2 id="dependencies-at-a-glance">Dependencies at a glance<a class="anchor" aria-label="anchor" href="#dependencies-at-a-glance"></a>
+</h2>
+<p>The core pipeline (preprocess, valence, dictionaries, aggregate) runs
+on a standard R installation with no Java and no Python. Two parts are
+optional and carry extra requirements:</p>
+<ul>
+<li>
+<strong>Spell-checking in preprocessing.</strong> Only relevant when
+<code>spellcheck = TRUE</code>. The default <code>"hunspell"</code>
+method needs Java and a WordNet dictionary; the <code>"gemini"</code>
+method needs a Gemini API key. Set <code>spellcheck = FALSE</code> to
+skip the step and require neither.</li>
+<li>
+<strong>Embeddings and seed similarities (Stages 4 and 5).</strong>
+Need Python through <code>reticulate</code> (SBERT uses the
+<code>sentence-transformers</code> library; Gemini embeddings use
+Google’s <code>genai</code> library plus an API key). These stages are
+optional, and the dictionary-based coding is complete without them.</li>
+</ul>
+</div>
+<div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -106,8 +127,15 @@ scoring)</li>
 <strong><code>tv3</code></strong>: singularized text (used for
 dictionary matching)</li>
 </ul>
-<p>Two spell-checking methods are available via the
-<code>spellcheck_method</code> parameter:</p>
+<p>Spell-checking is optional and is governed by two arguments:
+<code>spellcheck</code> (whether to run it at all) and
+<code>spellcheck_method</code> (how to run it, when it runs).</p>
+<p>Set <code>spellcheck = FALSE</code> to skip spell-checking entirely.
+This requires neither Java nor an API key, and is the simplest option if
+your responses are already clean or you just want a first pass. When
+skipped, <code>tv2</code> is copied directly from <code>tv</code>.</p>
+<p>When <code>spellcheck = TRUE</code>, two methods are available via
+<code>spellcheck_method</code>:</p>
 <ul>
 <li>
 <strong><code>"hunspell"</code></strong> (default): Uses Java +
@@ -133,7 +161,7 @@ describes the text as short responses describing a social target.</li>
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/preprocess_text.html">preprocess_text</a></span><span class="op">(</span></span>
 <span>  <span class="va">dat</span>,</span>
 <span>  text_col <span class="op">=</span> <span class="st">"responsex"</span>,</span>
-<span>  spellcheck <span class="op">=</span> <span class="cn">TRUE</span>,                     <span class="co"># TRUE enables spell-checking</span></span>
+<span>  spellcheck <span class="op">=</span> <span class="cn">TRUE</span>,                     <span class="co"># FALSE skips it entirely (no Java or API key needed)</span></span>
 <span>  spellcheck_method <span class="op">=</span> <span class="st">"gemini"</span>,         <span class="co"># "hunspell" (default) or "gemini"</span></span>
 <span>  singularize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  java_home <span class="op">=</span> <span class="cn">NULL</span>,                       <span class="co"># optional; used for hunspell only</span></span>

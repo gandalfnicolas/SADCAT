@@ -19,6 +19,21 @@ knitr::opts_chunk$set(
 This guide shows how to process text responses through the SADCAT pipeline,
 either as a single call or stage-by-stage for full control over each step.
 
+## Dependencies at a glance
+
+The core pipeline (preprocess, valence, dictionaries, aggregate) runs on a
+standard R installation with no Java and no Python. Two parts are optional and
+carry extra requirements:
+
+- **Spell-checking in preprocessing.** Only relevant when `spellcheck = TRUE`.
+  The default `"hunspell"` method needs Java and a WordNet dictionary; the
+  `"gemini"` method needs a Gemini API key. Set `spellcheck = FALSE` to skip the
+  step and require neither.
+- **Embeddings and seed similarities (Stages 4 and 5).** Need Python through
+  `reticulate` (SBERT uses the `sentence-transformers` library; Gemini
+  embeddings use Google's `genai` library plus an API key). These stages are
+  optional, and the dictionary-based coding is complete without them.
+
 ## Setup
 
 ```{r}
@@ -53,7 +68,16 @@ Cleans and normalizes text responses. Produces three text columns:
 - **`tv2`**: spell-checked text
 - **`tv3`**: singularized text (used for dictionary matching)
 
-Two spell-checking methods are available via the `spellcheck_method` parameter:
+Spell-checking is optional and is governed by two arguments: `spellcheck`
+(whether to run it at all) and `spellcheck_method` (how to run it, when it
+runs).
+
+Set `spellcheck = FALSE` to skip spell-checking entirely. This requires neither
+Java nor an API key, and is the simplest option if your responses are already
+clean or you just want a first pass. When skipped, `tv2` is copied directly
+from `tv`.
+
+When `spellcheck = TRUE`, two methods are available via `spellcheck_method`:
 
 - **`"hunspell"`** (default): Uses Java + WordNet + hunspell. Suggestions are
   ranked by edit distance, with bigram context as a tiebreaker when the corpus
@@ -75,7 +99,7 @@ Two spell-checking methods are available via the `spellcheck_method` parameter:
 dat <- preprocess_text(
   dat,
   text_col = "responsex",
-  spellcheck = TRUE,                     # TRUE enables spell-checking
+  spellcheck = TRUE,                     # FALSE skips it entirely (no Java or API key needed)
   spellcheck_method = "gemini",         # "hunspell" (default) or "gemini"
   singularize = TRUE,
   java_home = NULL,                       # optional; used for hunspell only
